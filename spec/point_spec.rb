@@ -19,6 +19,7 @@ module Laser
             end
           end
         end
+
         context 'move by' do
           it 'should move properly' do
             p = point1.move_by(10, -2)
