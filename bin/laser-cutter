@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
+require 'rubygems'
+require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
+require 'laser-cutter'
+
+Laser::Cutter::Box.new(Dimension.new(50, 30, 40), 6).render
