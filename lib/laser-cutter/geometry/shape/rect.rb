@@ -23,6 +23,11 @@ module Laser
           vertices.each_with_index do |v, index|
             sides << Line.new(v, vertices[(index + 1) % vertices.size])
           end
+          self
+        end
+
+        def clone
+          self.class.new(position, w, h, name)
         end
 
         def to_s

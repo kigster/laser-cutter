@@ -17,6 +17,15 @@ module Laser
 
           point2.x = point1.x + dx
           point2.y = point1.y + dy
+          self
+        end
+
+        def center
+          Point.new((point2.x + point1.x) / 2, (point2.y + point1.y) / 2)
+        end
+
+        def length
+          Math.sqrt((point2.x - point1.x)**2 + (point2.y - point1.y)**2)
         end
 
         def to_s
