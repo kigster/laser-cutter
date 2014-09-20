@@ -2,12 +2,27 @@ module Laser
   module Cutter
     module Geometry
       class Rect < Shape
-        attr_accessor :width, :height, :name
+        attr_accessor :w, :h, :name
+        attr_accessor :sides, :vertices
 
-        def initialize(width, height, name = nil)
-          self.width = width
-          self.height = height
+        def initialize(point, w, h, name = nil)
+          self.position = point.clone
+          self.w = w
+          self.h = h
           self.name = name
+          relocate!
+        end
+
+        def relocate!
+          self.vertices = []
+          vertices << position.clone
+          vertices << position.clone.move_by(w, 0)
+          vertices << position.clone.move_by(w, h)
+          vertices << position.clone.move_by(0, h)
+          self.sides = []
+          vertices.each_with_index do |v, index|
+            sides << Line.new(v, vertices[(index + 1) % vertices.size])
+          end
         end
 
         def with_name value
@@ -15,17 +30,9 @@ module Laser
           self
         end
 
-        def render pdf
-          rect = self
-          puts "Printing Rectangle: #{self}"
-          pdf.line_width = 0.001.in
-          pdf.stroke do
-            pdf.rectangle [rect.position.x, rect.position.y + rect.height].map(&:mm), rect.width.mm, rect.height.mm
-          end
-        end
 
         def to_s
-          "#{sprintf "%3d", width}(w)x#{sprintf "%3d", height}(h) @ #{position.to_s} #{name}"
+          "#{sprintf "%3d", w}(w)x#{sprintf "%3d", h}(h) @ #{position.to_s} #{name}"
         end
 
       end

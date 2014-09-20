@@ -17,14 +17,16 @@ module Laser
         self.margin = 2
         self.padding = 5
 
-        self.front = Geometry::Rect.new(dim.w, dim.h, "front")
-        self.back = front.clone.with_name("back")
+        zero = Geometry::Point.new(0,0)
 
-        self.top = Geometry::Rect.new(dim.w, dim.d, "top")
-        self.bottom = top.clone.with_name("bottom")
+        self.front  = Geometry::Rect.new(zero, dim.w, dim.h, "front")
+        self.back   = Geometry::Rect.new(zero, dim.w, dim.h, "back")
 
-        self.left = Geometry::Rect.new(dim.d, dim.h, "left")
-        self.right = left.clone.with_name("right")
+        self.top    = Geometry::Rect.new(zero, dim.w, dim.d, "top")
+        self.bottom = Geometry::Rect.new(zero, dim.w, dim.d, "bottom")
+
+        self.left   = Geometry::Rect.new(zero, dim.d, dim.h, "left")
+        self.right  = Geometry::Rect.new(zero, dim.d, dim.h, "right")
 
         self.sides = [top, front, bottom, back, left, right]
 
@@ -40,7 +42,7 @@ module Laser
         #               |                 |
         #               +-----------------+
         #               +-----------------+
-        #               | bottom:   W x D |
+        #               | top:      W x D |
         #               +-----------------+
         #   +--------+  +-----------------+  +--------+
         #   |        |  |                 |  |        |
@@ -48,25 +50,31 @@ module Laser
         #   | D x H  |  |                 |  | D x H  |
         #   +--------+  +-----------------+  +--------+
         #               +-----------------+
-        #               | top:      W x D |
+        #               | bottom:   W x D |
         #               +-----------------+
         #
         # 0,0
         #___________________________________________________________________
 
 
-        # Deal with X
-        group_shift = margin + d + padding
-        [top, front, bottom, back].each{|s| s.position.x = group_shift }
-        left.position.x = margin
-        right.position.x = margin + 2 * padding + w + d
+        offset = margin + padding + d
 
-        # Deal with Y
-        top.position.y = margin
-        group_shift = margin + d + padding
-        [left, front, right].each{ |s| s.position.y = group_shift }
-        bottom.position.y = margin + d + 2 * padding + h
-        back.position.y = margin + 3 * padding + 2 * d + h
+        left.x = top.y = margin
+
+        [bottom, front, top, back].each do |s|
+          s.x = offset
+        end
+
+        right.x = margin + 2 * padding + w + d
+
+        [left, front, right].each do |s|
+          s.y = offset
+        end
+
+        bottom.y = margin + d + 2 * padding + h
+        back.y = margin + 3 * padding + 2 * d + h
+
+        sides.each(&:relocate!)
       end
 
       def w
@@ -81,16 +89,6 @@ module Laser
         dim.d
       end
 
-      def render
-        pdf = Prawn::Document.new(:page_size => "LETTER", :page_layout => :portrait)
-        pdf.text "Laser Cutter, version #{Laser::Cutter::VERSION}"
-        pdf.text "#{self.to_s}"
-        pdf.stroke_axis
-        sides.each do |rect|
-          rect.render(pdf)
-        end
-        pdf.render_file "output.pdf"
-      end
 
       def to_s
         "Box Parameters:\nH:#{dim.h} W:#{dim.w} D:#{dim.d}\nThickness:#{thick}, Notch:#{notch}"

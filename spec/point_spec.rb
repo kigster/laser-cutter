@@ -18,7 +18,18 @@ module Laser
               expect(Point.new(x: 1, y: 2)).to eql(point1)
             end
           end
-
+        end
+        context 'move by' do
+          it 'should move properly' do
+            p = point1.move_by(10, -2)
+            expect(p.x).to be_within(0.001).of(11)
+            expect(p.y).to be_within(0.001).of(0)
+          end
+          it 'should move cloned version properly' do
+            p2 = point1.clone.move_by(10, -2)
+            expect(p2.x).to be_within(0.001).of(11)
+            expect(p2.y).to be_within(0.001).of(0)
+          end
         end
       end
     end

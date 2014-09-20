@@ -32,7 +32,7 @@ module Laser
         end
 
         def to_s
-          "#{self.class.name}:#{coordinates.map { |a| sprintf("%3f", a) }.join(separator)}"
+          "#{coordinates.map { |a| sprintf("%.0f", a) }.join(separator)}"
         end
 
         def valid?
@@ -43,6 +43,12 @@ module Laser
         def eql?(other)
           return false unless other.respond_to?(:coordinates)
           self.coordinates.eql?(other.coordinates)
+        end
+
+        def clone
+          clone = super
+          clone.coordinates = self.coordinates.clone
+          clone
         end
 
         private

@@ -25,6 +25,10 @@ module Laser
         def hash_keys
           [:x, :y]
         end
+
+        def move_by w, h
+          Point.new(x + w, y + h)
+        end
       end
     end
   end
