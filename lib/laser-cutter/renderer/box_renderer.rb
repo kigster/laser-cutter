@@ -12,8 +12,15 @@ module Laser
           pdf.line_width = 0.001.in
           pdf.stroke_color "000000"
           pdf.stroke_axis
-          box.sides.each do |rect|
-            RectRenderer.new(rect).render(pdf)
+          box.faces.each do |rect|
+            #RectRenderer.new(rect).render(pdf)
+          end
+          box.bounds.each do |rect|
+            #RectRenderer.new(rect).render(pdf)
+          end
+
+          box.notches.each do |notch|
+            LineRenderer.new(notch).render(pdf)
           end
           pdf.render_file "output.pdf"
         end
