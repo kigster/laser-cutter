@@ -4,17 +4,19 @@ module Laser
       # Everything is in millimeters
 
       attr_accessor :dim, :thickness, :notch_width
-      attr_accessor :margin, :padding
+      attr_accessor :margin, :padding, :units
 
       attr_accessor :front, :back, :top, :bottom, :left, :right
       attr_accessor :faces, :bounds, :notches, :conf
 
-      def initialize(dimension, thickness, notch_width = nil)
-        self.dim = dimension if (dimension.is_a?(Geometry::Dimensions) && dimension.valid?)
-        self.thickness = thickness
-        self.notch_width = notch_width || (1.0 * self.longest / 5.0)
-        self.margin = 5
-        self.padding = 3
+      def initialize(config = {})
+        self.dim = Geometry::Dimensions.new(config['width'], config['height'], config['depth'])
+        self.thickness = config['thickness']
+
+        self.notch_width = config['notch'] || (1.0 * self.longest / 5.0)
+        self.margin = config['margin']
+        self.padding = config['padding']
+        self.units = config['units']
 
         zero = Geometry::Point.new(0,0)
 

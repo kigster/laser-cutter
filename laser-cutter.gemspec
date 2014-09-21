@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'prawn'
   spec.add_dependency 'hashie'
+  spec.add_dependency 'colored'
 
   spec.add_development_dependency 'bundler', "~> 1.6"
   spec.add_development_dependency 'rake'

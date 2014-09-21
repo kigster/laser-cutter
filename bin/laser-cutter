@@ -3,5 +3,96 @@ ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
 require 'rubygems'
 require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
 require 'laser-cutter'
+require 'laser-cutter/renderer'
+require 'laser-cutter/configuration'
+require 'optparse'
+require 'colored'
+require 'json'
 
-Laser::Cutter::Box.new(Dimension.new(50, 30, 40), 6).render
+module Laser
+  module Cutter
+    class OptParse
+      def self.parse(args)
+        banner_text = <<-EOF
+Usage: laser-cutter [options]'
+
+   eg: laser-cutter --units in -s 2x3x2/0.125/0.5   -o box.pdf'
+       laser-cutter -w 30 -h 20 -d 10 -t 4.3 -n 10  -o box.pdf
+EOF
+
+        options = OpenStruct.new
+        options.verbose = false
+
+        opt_parser = OptionParser.new do |opts|
+          opts.banner = banner_text.cyan
+          opts.separator ""
+          opts.separator "Specific options:"
+
+          opts.on("-s", "--size WxHxD/T/N",
+              "Compact format for the dimension, T is thickness, N is notch length") do |size|
+            options.size = size
+          end
+
+          opts.on("-w", "--width WIDTH", "Width of the box") { |value|  options.width = value }
+          opts.on("-h", "--height HEIGHT", "Height of the box") { |value|  options.height = value }
+          opts.on("-d", "--depth DEPTH", "Depth of the box") { |value|  options.depth= value }
+
+          opts.on("-t", "--thickness THICKNESS", "Thickness of the box") { |value|  options.thickness = value }
+          opts.on("-n", "--notch NOTCH", "Depth of the box") { |value|  options.notch = value }
+          opts.on("-o", "--file FILE", "Output filename of the PDF") { |value|  options.file = value }
+
+          opts.on("-u", "--units UNITS", "Either 'mm' or 'in', metric is default") { |value|  options.units = value }
+          opts.on("-m", "--margin MARGIN", "Margin from the edge of the document") { |value|  options.margin = value }
+          opts.on("-p", "--padding PADDING", "Space between boxes") { |value|  options.padding = value }
+
+          opts.on("-v", "--[no-]verbose", "Run verbosely") { |v| options.verbose = v }
+
+          opts.separator ""
+          opts.separator "Common options:"
+
+          opts.on_tail("--help", "Show this message") do
+            puts opts
+            exit
+          end
+          opts.on_tail("--version", "Show version") do
+            puts Laser::Cutter::VERSION
+            exit
+          end
+        end
+        opt_parser.parse!(args)
+        options
+      rescue OptionParser::InvalidOption => e
+        puts opt_parser.help
+        puts
+        puts "#{e.message}".red
+        exit 1
+      end # end parse()
+    end
+  end
+end # class OptParse
+
+options = Laser::Cutter::OptParse.parse(ARGV)
+config = Laser::Cutter::Configuration.new(options.to_h)
+
+if options.verbose
+  puts "Starting with the following configuration:"
+  puts JSON.pretty_generate(config.to_h).green
+end
+
+begin
+  config.validate!
+rescue Exception => e
+  STDERR.puts "\nSorry, #{e}".red
+  STDERR.puts "Try --help for more info..."
+  exit 1
+end
+
+begin
+  box = Laser::Cutter::Box.new(config)
+  Laser::Cutter::Renderer::BoxRenderer.new(box, config).render
+rescue Exception => e
+  puts "#{e}".red
+  STDERR.puts "Try --help for more info..."
+end
+
+
