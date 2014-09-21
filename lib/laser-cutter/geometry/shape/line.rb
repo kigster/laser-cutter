@@ -36,7 +36,7 @@ module Laser
         end
 
         def to_s
-          "line:{#{p1}———→#{p2}}"
+          "line:{#{p1}=>#{p2}}"
         end
 
         def eql?(other)
