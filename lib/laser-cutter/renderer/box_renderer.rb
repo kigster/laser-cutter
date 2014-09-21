@@ -25,7 +25,7 @@ https://github.com/kigster/laser-cutter
             end
             pdf.bounding_box([400, 710], :width => 200, :height => 300) do
               pdf.font('Courier', :size => 6) do
-                pdf.text JSON.pretty_generate(options.to_h), :color => "222222"
+                pdf.text JSON.pretty_generate(options.to_hash), :color => "222222"
               end
             end
           end

@@ -62,7 +62,7 @@ module Laser
               expect(inside.p1).to_not eql(inside.p2)
               path = generator.path(edge)
               expect(path).to be_a_kind_of(NotchedPath)
-              expect(path.size > 5).to be_true
+              expect(path.size).to be > 5
 
               expect(Line.new(path.vertices.first, inside.p1).length).to be_within(0.001).of(0)
               expect(Line.new(path.vertices.last, inside.p2).length).to be_within(0.001).of(0)
@@ -76,7 +76,7 @@ module Laser
               path = generator.path(edge)
               lines = path.create_lines
               expect(path.size).to eq(12)
-              expect(lines.size > 1).to be_true
+              expect(lines.size).to be > 1
             end
           end
         end
