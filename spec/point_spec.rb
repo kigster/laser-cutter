@@ -27,6 +27,10 @@ module Laser
               # should not affect our point
               expect(p2).to eql(p1)
             end
+
+            it 'should create point from class method' do
+              expect(Point[1,2]).to eql(p1)
+            end
           end
 
           context 'from a hash' do

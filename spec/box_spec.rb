@@ -10,12 +10,12 @@ module Laser
 
         it 'should initialize with passed in parameters' do
           expect(box1.w).to eq(50.0)
-          expect(box1.thick).to eq(6.0)
-          expect(box1.notch).to eq(10.0)
+          expect(box1.thickness).to eq(6.0)
+          expect(box1.notch_width).to eq(10.0)
         end
 
         it 'should initialize with default notch' do
-          expect(box2.notch).to eq(10)
+          expect(box2.notch_width).to eq(70.0 / 5.0)
         end
       end
 

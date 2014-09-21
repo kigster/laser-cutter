@@ -2,7 +2,7 @@ module Laser
   module Cutter
     module Geometry
       class Shape
-        attr_accessor :position
+        attr_accessor :position, :name
 
         def position
           @position ||= Point.new(0, 0)
@@ -21,6 +21,7 @@ module Laser
           relocate!
           self
         end
+
 
         # Implement in each shape to move to the new pointd
         def relocate!

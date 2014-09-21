@@ -10,9 +10,10 @@ module Laser
             self.p1 = Point.new(options[:from])
             self.p2 = Point.new(options[:to])
           else
-            self.p1 = point1
-            self.p2 = point2
+            self.p1 = point1.clone
+            self.p2 = point2.clone
           end
+          self.position = p1.clone
           raise 'Both points are required for line definition' unless (p1 && p2)
         end
 
@@ -20,10 +21,8 @@ module Laser
           dx = p2.x - p1.x
           dy = p2.y - p1.y
 
-          p1 = position
-
-          p2.x = p1.x + dx
-          p2.y = p1.y + dy
+          self.p1 = position.clone
+          self.p2 = Point[p1.x + dx, p1.y + dy]
           self
         end
 
@@ -36,13 +35,18 @@ module Laser
         end
 
         def to_s
-          "line:{#{p1}=>#{p2}}"
+          "#{self.class.name}:{#{p1}=>#{p2}}"
         end
 
         def eql?(other)
           (other.p1.eql?(p1) && other.p2.eql?(p2)) ||
           (other.p2.eql?(p1) && other.p1.eql?(p2))
         end
+
+        def clone
+          self.class.new(p1, p2)
+        end
+
       end
 
     end

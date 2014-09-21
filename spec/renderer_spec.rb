@@ -5,15 +5,17 @@ module Laser
     module Renderer
       describe 'BoxRenderer' do
         context '#render' do
-          let(:box) { Box.new(Geometry::Dimensions.new("10x50x30"), 4, 7) }
+          let(:box) { Laser::Cutter::Box.new(Geometry::Dimensions.new("50x40x20"), 3, 9) }
           let(:renderer) { BoxRenderer.new(box) }
-          xit 'should layout correctly' do
+          let(:file) { File.expand_path("../../laser-cutter-pdf-test.#{$$}.pdf", __FILE__)}
 
-          end
-
-          xit 'should save a PDF file' do
-            renderer.render
-            `open ./output.pdf`
+          it 'should be able to generate a PDF file' do
+            expect(!File.exists?(file))
+            renderer.render(nil, file)
+            expect(File.exist?(file))
+            expect(File.size(file) > 0)
+            File.delete(file)
+            expect(!File.exists?(file))
           end
         end
 

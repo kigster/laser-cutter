@@ -4,14 +4,23 @@ module Laser
   module Cutter
     module Geometry
       describe Rect do
-        let(:p1) { Point.new(1, 3) }
-        let(:rect1) { Rect.new(p1, 10, 20) }
+        let(:p1) { Point[ 1.0,  3.0] }
+        let(:p2) { Point[11.0, 23.0] }
+
+        let(:rect1) { Rect.new(p1, p2) }
+
+        context 'creating' do
+          it 'creates from a class method' do
+            expect(Rect[p1, p2]).to eql(rect1)
+          end
+        end
 
         context 'sides' do
           it 'sets correctly all attributes' do
-            expect(rect1.w).to eql(10)
-            expect(rect1.h).to eql(20)
+            expect(rect1.w).to eql(10.0)
+            expect(rect1.h).to eql(20.0)
             expect(rect1.position).to eql(rect1.vertices[0])
+            expect(rect1.p2).to eql(rect1.vertices[2])
           end
           it 'it generates four side lines' do
             expect(rect1.sides.size).to eql(4)
@@ -25,8 +34,8 @@ module Laser
             expect(rect1.sides[0].p1.to_s).to eql("{1,3}")
             rect1.x = 1000
             rect1.y = 100
-
             rect1.relocate!
+
             expect(rect1.sides[0].p1.to_s).to eql("{1000,100}")
             expect(rect1.sides[1].p1.to_s).to eql("{1010,100}")
             expect(rect1.sides[2].p1.to_s).to eql("{1010,120}")

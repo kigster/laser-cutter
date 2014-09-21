@@ -2,6 +2,10 @@ module Laser
   module Cutter
     module Geometry
       class Point < Tuple
+        def self.[] *array
+          Point.new *array
+        end
+
         def customize_args(args)
           if args.first.is_a?(Point)
             return args.first.to_a

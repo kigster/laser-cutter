@@ -17,7 +17,7 @@ module Laser
                                             fill_edge: fill_edge) }
         context 'edge' do
           it 'should properly calculate notch size' do
-            expect(edge.notch_width).to be_within(0.001).of(8.0/5.0)
+            expect(edge.notch_width).to be_within(0.001).of(1.6)
           end
           context 'edge cases with the edge :)' do
             let(:notch) { 15 } # too big
@@ -29,7 +29,7 @@ module Laser
         end
 
         context 'alternating iterator' do
-          let(:iterator) {AlternatingIterator.new([:a, :b, :c])}
+          let(:iterator) { InfiniteIterator.new([:a, :b, :c]) }
           it 'returns things in alternating order' do
             expect(iterator.next).to eq(:a)
             expect(iterator.next).to eq(:b)
@@ -52,24 +52,31 @@ module Laser
 
 
         context 'path generation' do
-          let(:outside) { Line.new(
-              from: inside.p1.move_by(-thickness, -thickness),
-              to: inside.p2.move_by(thickness, -thickness)) }
+          # let(:outside) { Line.new(
+          #     from: inside.p1.move_by(-thickness, -thickness),
+          #     to: inside.p2.move_by(thickness, -thickness)) }
 
           context 'center out' do
-            it 'generates correct path' do
+            it 'generates correct path vertices' do
               inside.freeze
               expect(inside.p1).to_not eql(inside.p2)
               path = generator.path(edge)
               expect(path).to be_a_kind_of(NotchedPath)
-              expect(path.size).to eq(12)
-              expect(path[0]).to eql(inside.p1)
-              expect(path[11]).to eql(inside.p2)
+              expect(path.size > 5).to be_true
+
+              expect(Line.new(path.vertices.first, inside.p1).length).to be_within(0.001).of(0)
+              expect(Line.new(path.vertices.last, inside.p2).length).to be_within(0.001).of(0)
 
               # Sanity Check
-              expect(Point.new(1,1)).to eql(inside.p1)
-              expect(Point.new(9,1)).to eql(inside.p2)
+              expect(Point.new(1, 1)).to eql(inside.p1)
+              expect(Point.new(9, 1)).to eql(inside.p2)
+            end
 
+            it 'generates correct lines' do
+              path = generator.path(edge)
+              lines = path.create_lines
+              expect(path.size).to eq(12)
+              expect(lines.size > 1).to be_true
             end
           end
         end

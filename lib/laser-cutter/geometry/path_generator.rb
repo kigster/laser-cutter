@@ -24,20 +24,31 @@ module Laser
 
         def initialize(*args)
           super(*args)
-          adjust_notch(inside)
+          adjust_notch(self.inside)
         end
 
         def adjust_notch(line)
           d = (line.length / notch_width).to_f.ceil
-          d = d + 1 if d.even?
+          pairs = d / 2
+          d = pairs * 2 + 1
           d = MINIMUM_NOTCHES_PER_SIDE if d < MINIMUM_NOTCHES_PER_SIDE
           self.notch_width = line.length / (1.0 * d)
           self.notch_count = d
         end
+
+        # face_setting determins if we want that face to have center notch
+        # facing out (for a hole, etc).  This works well when we have odd number
+        # of notches, but
+        def add_across_line?(face_setting)
+          notch_count % 4 == 1 ? face_setting : !face_setting
+        end
+
+
+
       end
 
       # Alternating iterator
-      class AlternatingIterator < Struct.new(:shift_array)
+      class InfiniteIterator < Struct.new(:shift_array)
         attr_accessor :current_index
         def next
           self.current_index = -1 if current_index.nil?
@@ -50,17 +61,16 @@ module Laser
       class PathGenerator
 
         attr_accessor :notch_width, :thickness
-        attr_accessor :center_out, :fill_corner
+        attr_accessor :center_out, :fill_corners
 
         def initialize(options = {})
-          @notch_width = options[:notch_width] # only desired, will be adapted for each line
-          @center_out = options[:center_out]
-          @fill_corner = options[:fill_corner]
+          @notch_width = options[:notch_width]    # only desired, will be adapted for each line
+          @center_out = options[:center_out]      # when true, the notch in the middle of the edge is out, not in.
           @thickness = options[:thickness]
 
-          if fill_corner && !center_out
-            raise 'Can not fill corner for center-inward sides!'
-          end
+          # 2D array of booleans.  If true first or second end of the edge is
+          # created with a corner filled in.
+          @fill_corners = options[:fill_corners] || [ false, false ]
         end
 
         # Calculates a notched path that flows between the outer edge of the box
@@ -83,6 +93,7 @@ module Laser
           path
         end
 
+
         private
 
         # This method has the bulk of the logic: we create the list of path deltas
@@ -91,16 +102,14 @@ module Laser
           along_iterator, across_iterator = define_shift_iterators(edge)
           shifts = []
 
-          shifts << across_iterator.next if center_out
+          shifts << across_iterator.next if edge.add_across_line?(center_out)
 
           (1..edge.notch_count).to_a.each do |count|
             shifts << along_iterator.next
             shifts << across_iterator.next unless count == edge.notch_count
           end
 
-          if center_out
-            shifts << across_iterator.next
-          end
+          shifts << across_iterator.next if edge.add_across_line?(center_out)
           shifts
         end
 
@@ -114,12 +123,12 @@ module Laser
 
           across_dimension = (alongside_dimension + 1) % 2
           across_direction = (edge.inside.p1.coords[across_dimension] >
-              edge.outside.p1.coords[across_dimension]) ? 1 : -1
+              edge.outside.p1.coords[across_dimension]) ? -1 : 1
 
           [
-           AlternatingIterator.new(
+           InfiniteIterator.new(
                [Shift.new(edge.notch_width, alongside_direction, alongside_dimension)]),
-           AlternatingIterator.new(
+           InfiniteIterator.new(
                [Shift.new(thickness, across_direction, across_dimension),
                 Shift.new(thickness, -across_direction, across_dimension)])
           ]
