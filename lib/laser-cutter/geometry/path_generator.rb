@@ -4,10 +4,10 @@ module Laser
   module Cutter
     module Geometry
       class Shift < Struct.new(:delta, :direction, :dim_index)
-        POINTERS = {[1, 0]  => '   ⟹',
-                    [-1, 0] => '⟸   ',
-                    [1, 1]  => '  ⇓  ',
-                    [-1, 1] => '  ⇑  '}
+        POINTERS = {[1, 0]  => '   ->',
+                    [-1, 0] => '<-   ',
+                    [1, 1]  => '  V  ',
+                    [-1, 1] => '  ^  '}
 
         def next(point1)
           p = Point.new(point1.to_a)
@@ -42,9 +42,6 @@ module Laser
         def add_across_line?(face_setting)
           notch_count % 4 == 1 ? face_setting : !face_setting
         end
-
-
-
       end
 
       # Alternating iterator
