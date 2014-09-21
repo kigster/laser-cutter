@@ -2,20 +2,27 @@ module Laser
   module Cutter
     module Geometry
       class Point < Tuple
+        def customize_args(args)
+          if args.first.is_a?(Point)
+            return args.first.to_a
+          end
+          args
+        end
+
         def x= value
-          coordinates[0] = value
+          coords[0] = value
         end
 
         def x
-          coordinates[0]
+          coords[0]
         end
 
         def y= value
-          coordinates[1] = value
+          coords[1] = value
         end
 
         def y
-          coordinates[1]
+          coords[1]
         end
 
         def separator

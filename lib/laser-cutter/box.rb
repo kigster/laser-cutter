@@ -12,8 +12,7 @@ module Laser
       def initialize(dimension, thick, notch = nil)
         self.dim = dimension if (dimension.is_a?(Geometry::Dimensions) && dimension.valid?)
         self.thick = thick
-        self.notch = notch
-        self.notch = (self.thick * 2) if self.notch.nil?
+        self.notch = determine_notch
         self.margin = 2
         self.padding = 5
 
@@ -121,14 +120,14 @@ module Laser
         end
         #puts "info: dnx,dny,dtx,dty: #{dnx}, #{dny}, #{dtx}, #{dty}"
         points = []
-        dir_against = (c_b.coordinates[dim_against] < c_s.coordinates[dim_against]) ? 1 : -1
-        start_point = bounding_side.point1
-        end_point   = bounding_side.point2
+        dir_against = (c_b.coords[dim_against] < c_s.coords[dim_against]) ? 1 : -1
+        start_point = bounding_side.p1
+        end_point   = bounding_side.p2
         dir_along   = 1
         procs = {1 => lambda { |p_current, p_end| p_current < p_end - notch/2 },
                  -1 => lambda { |p_current, p_end| p_current > p_end + notch/2 }}
 
-        if bounding_side.point1.coordinates[dim_along] < bounding_side.point2.coordinates[dim_along]
+        if bounding_side.p1.coords[dim_along] < bounding_side.p2.coords[dim_along]
           dir_along = 1
         else
           dir_along = -1
@@ -138,7 +137,7 @@ module Laser
 
         middle = true
         p = c_b
-        while procs[dir_along].call(p.coordinates[dim_along], end_point.coordinates[dim_along])
+        while procs[dir_along].call(p.coords[dim_along], end_point.coords[dim_along])
           points << p.clone
           p = p.move_by(dir_along * (middle ? dnx / 2 : dnx),  dir_along * (middle ? dny / 2: dny))
           points << p.clone
@@ -152,11 +151,11 @@ module Laser
         end
 
         points = []
-        dir_against = (c_b.coordinates[dim_against] < c_s.coordinates[dim_against]) ? 1 : -1
+        dir_against = (c_b.coords[dim_against] < c_s.coords[dim_against]) ? 1 : -1
         middle = true
         p = c_b
         dir_along = dir_along * (-1)
-        while procs[dir_along].call(p.coordinates[dim_along], start_point.coordinates[dim_along])
+        while procs[dir_along].call(p.coords[dim_along], start_point.coords[dim_along])
           points << p.clone
           p = p.move_by(dir_along * (middle ? dnx / 2 : dnx),  dir_along * (middle ? dny / 2: dny))
           points << p.clone
@@ -186,6 +185,17 @@ module Laser
 
       def smallest_side
         [w,h,d].min()
+      end
+
+      def determine_notch
+        self.notch = (self.thick * 2) if self.notch.nil?
+        divisions = smallest_side / notch
+        divisions = 3 if divisions < 3
+        if divisions.to_i.even?
+          divisions = divisions.to_i + 1
+        end
+        self.notch = smallest_side / divisions
+        self.notch
       end
 
 

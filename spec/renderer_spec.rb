@@ -5,7 +5,7 @@ module Laser
     module Renderer
       describe 'BoxRenderer' do
         context '#render' do
-          let(:box) { Box.new(Geometry::Dimensions.new("10x50x30"), 4, 4) }
+          let(:box) { Box.new(Geometry::Dimensions.new("10x50x30"), 4, 7) }
           let(:renderer) { BoxRenderer.new(box) }
           xit 'should layout correctly' do
 

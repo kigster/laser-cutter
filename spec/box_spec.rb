@@ -15,7 +15,7 @@ module Laser
         end
 
         it 'should initialize with default notch' do
-          expect(box2.notch).to eq(12)
+          expect(box2.notch).to eq(10)
         end
       end
 

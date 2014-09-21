@@ -2,19 +2,26 @@ module Laser
   module Cutter
     module Geometry
       class Tuple
-        attr_accessor :coordinates
+        attr_accessor :coords
 
         def initialize(*args)
+          args = customize_args(args)
           x = args.first
           if x.is_a?(String)
             parse_string(x)
           elsif x.is_a?(Hash)
             parse_hash(x)
+          elsif x.is_a?(Array)
+            self.coords = x.clone
           else
-            self.coordinates = args
+            self.coords = args.clone
           end
 
-          self.coordinates.map!(&:to_f)
+          self.coords.map!(&:to_f)
+        end
+
+        def customize_args(args)
+          args
         end
 
         def separator
@@ -28,26 +35,26 @@ module Laser
         end
 
         def to_a
-          self.coordinates
+          self.coords
         end
 
         def to_s
-          "#{coordinates.map { |a| sprintf("%.0f", a) }.join(separator)}"
+          "{#{coords.map { |a| sprintf("%.0f", a) }.join(separator)}}"
         end
 
         def valid?
-          raise "Have nil value: #{self.inspect}" if coordinates.any? { |c| c.nil? }
+          raise "Have nil value: #{self.inspect}" if coords.any? { |c| c.nil? }
           true
         end
 
         def eql?(other)
-          return false unless other.respond_to?(:coordinates)
-          self.coordinates.eql?(other.coordinates)
+          return false unless other.respond_to?(:coords)
+          self.coords.eql?(other.coords)
         end
 
         def clone
           clone = super
-          clone.coordinates = self.coordinates.clone
+          clone.coords = self.coords.clone
           clone
         end
 
@@ -58,12 +65,12 @@ module Laser
         # and then to a new instance.
         #
         def parse_string string
-          self.coordinates = string.split(separator).map(&:to_f)
+          self.coords = string.split(separator).map(&:to_f)
         end
 
         def parse_hash hash
-          self.coordinates = []
-          hash_keys.each { |k| self.coordinates << hash[k] }
+          self.coords = []
+          hash_keys.each { |k| self.coords << hash[k] }
         end
 
       end

@@ -4,15 +4,15 @@ module Laser
       class Dimensions < Tuple
 
         def w
-          coordinates[0]
+          coords[0]
         end
 
         def h
-          coordinates[1]
+          coords[1]
         end
 
         def d
-          coordinates[2]
+          coords[2]
         end
 
         def separator

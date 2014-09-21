@@ -6,8 +6,8 @@ module Laser
           subject
         end
         def render pdf = nil
-          pdf.stroke { pdf.line [line.point1.x, line.point1.y].map(&:mm),
-                                [line.point2.x, line.point2.y].map(&:mm)}
+          pdf.stroke { pdf.line [line.p1.x, line.p1.y].map(&:mm),
+                                [line.p2.x, line.p2.y].map(&:mm)}
 
         end
       end
