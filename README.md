@@ -82,16 +82,17 @@ Or install it yourself as:
 
 ```bash
 Usage: laser-cutter [options]
+       laser-cutter --list-all-page-sizes --units in
 
 Examples:
   1. Create a box defined in inches, and open PDF in preview right after:
 
-     laser-cutter --units in -s 3x2x2/0.125/0.5  -O -o box.pdf
+       laser-cutter --units in -s 3x2x2/0.125/0.5  -O -o box.pdf
 
   2. Create a box defined in millimeters, print verbose info and set
-     page size to A3, and layout to landscape, and stroke width to 1/2mm:
+     page size to A3, and layout to landscape, and stroke width to 2mm:
 
-     laser-cutter -w70 -h20 -d50 -t4.3 -n5 -PA3 -L landscape -S 0.5 -v -O -o box.pdf
+       laser-cutter -w70 -h20 -d50 -t4.3 -n5 -PA3 -L landscape -S 0.5 -v -O -o box.pdf
 
 
 Specific options:
@@ -107,10 +108,11 @@ Specific options:
     -u, --units UNITS                Either 'mm' (default) or 'in'
     -m, --margin MARGIN              Margins from the edge of the document
     -p, --padding PADDING            Space between the boxes on the page
-    -P, --page_size LETTER           Page size, see docs on Prawn for more options
+    -P, --page_size LETTER           Page size, see --list-all-page-sizes for more info.
     -L, --page_layout portrait       Page layout, other option is 'landscape'
     -S, --stroke WIDTH               Numeric stroke width of the line
     -O, --open                       Open generated file with system viewer before exiting
+    -A, --list-all-page-sizes        Print all available page sizes with dimensions and exit
     -v, --[no-]verbose               Run verbosely
 
 Common options:

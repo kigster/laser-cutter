@@ -10,7 +10,8 @@ module Laser
     class OptParse
       def self.parse(args)
         banner_text = <<-EOF
-Usage: laser-cutter [options]'
+Usage: laser-cutter [options]
+       laser-cutter --list-all-page-sizes --units in
 
 Examples:
   1. Create a box defined in inches, and open PDF in preview right after:
@@ -25,6 +26,7 @@ EOF
 
         options = Hashie::Mash.new
         options.verbose = false
+        options.units = 'mm'
 
         opt_parser = OptionParser.new do |opts|
           opts.banner = banner_text.cyan
@@ -48,11 +50,14 @@ EOF
           opts.on("-m", "--margin MARGIN", "Margins from the edge of the document") { |value|  options.margin = value }
           opts.on("-p", "--padding PADDING", "Space between the boxes on the page") { |value|  options.padding = value }
 
-          opts.on("-P", "--page_size LETTER", "Page size, see docs on Prawn for more options") { |value|  options.page_size = value }
+          opts.on("-P", "--page_size LETTER", "Page size, see --list-all-page-sizes for more info.") { |value|  options.page_size = value }
           opts.on("-L", "--page_layout portrait", "Page layout, other option is 'landscape' ") { |value|  options.page_layout = value }
           opts.on("-S", "--stroke WIDTH", "Numeric stroke width of the line") { |value|  options.stroke = value }
 
           opts.on("-O", "--open", "Open generated file with system viewer before exiting") { |v| options.open = v }
+
+          opts.on("-A", "--list-all-page-sizes", "Print all available page sizes with dimensions and exit") { |v| options.list_all_page_sizes = true }
+
           opts.on("-v", "--[no-]verbose", "Run verbosely") { |v| options.verbose = v }
 
           opts.separator ""
@@ -80,6 +85,21 @@ EOF
 end # class OptParse
 
 options = Laser::Cutter::OptParse.parse(ARGV)
+
+if options.list_all_page_sizes
+  puts
+  unit = 1.0 / 72.0 # PDF units per inch
+  multiplier = options.units == 'in' ? 1.0 : 25.4
+  hash = PDF::Core::PageGeometry::SIZES
+  hash.keys.sort.each do |k|
+    printf("\t%10s:\t%6.1f x %6.1f\n",
+           k,
+           multiplier * hash[k][0].to_f * unit,
+           multiplier * hash[k][1].to_f * unit )
+  end
+  exit 0
+end
+
 config = Laser::Cutter::Configuration.new(options.to_hash)
 
 if options.verbose
