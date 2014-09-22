@@ -1,7 +1,7 @@
 [![Gem Version](https://badge.fury.io/rb/laser-cutter.svg)](http://badge.fury.io/rb/laser-cutter)
 [![Build status](https://secure.travis-ci.org/kigster/laser-cutter.png)](http://travis-ci.org/kigster/laser-cutter)
 [![Code Climate](https://codeclimate.com/github/kigster/laser-cutter.png)](https://codeclimate.com/github/kigster/laser-cutter)
-[![Code Climate](https://codeclimate.com/github/kigster/laser-cutter/badges/gpa.svg)](https://codeclimate.com/github/kigster/laser-cutter)
+[![Test Coverage](https://codeclimate.com/github/kigster/laser-cutter/badges/coverage.svg)](https://codeclimate.com/github/kigster/laser-cutter)
 
 ## LaserCutter
 
