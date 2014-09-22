@@ -42,11 +42,11 @@ Below are two examples of boxes with identical dimensions produced with ```laser
 
 ![LaserCutter Example](doc/laser-cutter.jpg).
 
-## Intended Features
+## Future Features
 
-* Creating T-style holes and spacers for various sized nuts and bolts (such as common #4-40 and M2).
+* Creating T-style holes and spacers for various sized nuts and bolts (such as common #4-40 and M2)
 * Creating lids and front panels that are larger than the box
-* Your brilliant idea here!
+* Your brilliant idea can be here!  Please see [contributing](CONTRIBUTING.md) for more info.
 
 ## Installation
 
