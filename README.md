@@ -12,22 +12,36 @@ and calculating locations. This welcomes additional feature contributions from o
 as existing test suite offers confidence around not introducing bugs or regressions.
 
 BoxMaker's algorithm _ensures that the same notch length is across all sides, but sacrifices
-symmetry as a result_.  So you may have your font panel's left and right sides be pretty different.
+symmetry as a result_.  So you may have a front panel's left and right edges be simply non symmetric. 
+And that might be entirely OK with you :)
  
 ```laser-cutter```'s algorithm will create a _symmetric design for most panels_, but it might sacrifice
-identical notch length_. Depending on the box dimensions you may end up with a slightly different notch 
+identical notch length. Depending on the box dimensions you may end up with a slightly different notch 
 length on each side of the box.
 
-Finally, ```laser-cutter``` has a ton of options, that allow you to set stroke width, page size,
+Having said that, one of the design goals of this ruby version is to provide a highly extensible platform,
+where alternative algorithms can be implemented and supported by command line options.
+
+```laser-cutter``` has quite a few options that allow you to set stroke width, page size,
 layout, margins, padding (spacing between boxes), open the PDF file using system viewer right
-after generation, and many more are coming.
+after generation, and many more are coming soon.
 
 The choice ultimately comes down to the preference and feature set, so here I show you two boxes made with
-each program, so you can pick what you prefer.
+each program, so you can pick what you prefer. 
+
+#### Disclaimer
+
+Important quick note that the author believes that BoxMaker is a greatly useful piece of software 
+generously open sourced by the author, and so in no way this project disputes it's viability.  
+In fact BoxMaker was an inspiration for this project. This project simply attempts to advance 
+further and provide additional solutions to this complex problem of creating 3D designs on a 2D
+surface using laser cutter.
+
+### Example Outputs
 
 Below are two examples of boxes with identical dimensions produced with ```laser-cutter``` and ```boxmaker```:
 
-#### BoxMaker Example
+#### BoxMaker 
 
 ```bash
 > java -cp BOX.jar com.rahulbotics.boxmaker.BoxMaker -i -W 2.5 -H 2 -D 1 -T 0.25 -n 0.5 -f file.pdf
@@ -35,7 +49,7 @@ Below are two examples of boxes with identical dimensions produced with ```laser
 
 ![BoxMaker Example](doc/boxmaker.jpg).
 
-#### LaserCutter Example
+#### LaserCutter 
 
 ```bash
 > laser-cutter -u in -s 2.5x1x2/0.25/0.5 -o file.pdf
@@ -75,7 +89,7 @@ Examples:
      laser-cutter --units in -s 3x2x2/0.125/0.5  -O -o box.pdf
 
   2. Create a box defined in millimeters, print verbose info and set
-     page size to A3, and layout to landscape, and stroke width to 2mm:
+     page size to A3, and layout to landscape, and stroke width to 1/2mm:
 
      laser-cutter -w70 -h20 -d50 -t4.3 -n5 -PA3 -L landscape -S 0.5 -v -O -o box.pdf
 
