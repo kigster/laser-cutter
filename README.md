@@ -45,8 +45,9 @@ Below are two examples of boxes with identical dimensions produced with ```laser
 
 ## Future Features
 
-* Creating T-style holes and spacers for various sized nuts and bolts (such as common #4-40 and M2)
-* Creating lids and front panels that are larger than the box
+* Creating T-style joins, using various sized nuts and bolts (such as common #4-40 and M2 sizes)
+* Creating lids and front panels that are larger than the box 
+* Rendering to CSS to show live preview on a web app
 * Your brilliant idea can be here!  Please see [contributing](CONTRIBUTING.md) for more info.
 
 ## Installation
@@ -66,11 +67,17 @@ Or install it yourself as:
 ## Usage
 
 ```bash
-> laser-cutter --help
 Usage: laser-cutter [options]'
 
-   eg: laser-cutter --units in -s 2x3x2/0.125/0.5   -o box.pdf'
-       laser-cutter -w 30 -h 20 -d 10 -t 4.3 -n 10  -o box.pdf
+Examples:
+  1. Create a box defined in inches, and open PDF in preview right after:
+
+     laser-cutter --units in -s 3x2x2/0.125/0.5  -O -o box.pdf
+
+  2. Create a box defined in millimeters, print verbose info and set
+     page size to A3, and layout to landscape, and stroke width to 2mm:
+
+     laser-cutter -w70 -h20 -d50 -t4.3 -n5 -PA3 -L landscape -S 0.5 -v -O -o box.pdf
 
 
 Specific options:
