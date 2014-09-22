@@ -4,10 +4,7 @@ module Laser
   module Cutter
     module Renderer
       class BoxRenderer < AbstractRenderer
-
-        def box
-          subject
-        end
+        alias_method :box, :subject
 
         def render pdf = nil
           pdf = Prawn::Document.new(:margin => options.margin.send(options.units),
