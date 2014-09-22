@@ -1,9 +1,13 @@
 module Laser
   module Cutter
     module Renderer
-      class AbstractRenderer < Struct.new(:subject)
+      class AbstractRenderer < Struct.new(:subject, :options)
         def render pdf = nil
           raise 'Abstract method'
+        end
+
+        def units
+          options.units.to_sym || :mm
         end
       end
     end

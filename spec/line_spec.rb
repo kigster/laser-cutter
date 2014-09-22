@@ -6,13 +6,27 @@ module Laser
       describe Line do
         let(:p1) { Point.new(1, 1) }
         let(:p2) { Point.new(7, 11) }
-        let(:center) { Point.new((7+1)/2, (11+1)/2) }
+        let(:center) { Point.new( (7 + 1) / 2, (11 + 1) / 2) }
         let(:line) { Line.new(p1, p2) }
 
         context '#center' do
           it 'should calculate' do
             expect(line.center).to eql(center)
           end
+        end
+
+        context '#initialize' do
+          let(:line2) { Line.new(from: [1,1], to: [7,11])}
+          let(:line3) { Line.new(from: Point.new(1,1), to: Point.new(7,11))}
+          it 'should create' do
+            expect(line2.p1).to eql(Point.new(1,1))
+            expect(line2.p2).to eql(Point.new(7,11))
+          end
+          it 'should properly equal identical line' do
+            expect(line).to eql(line2)
+            expect(line).to eql(line3)
+          end
+
         end
 
         context '#length' do
@@ -24,6 +38,39 @@ module Laser
             expect(line2.length).to be_within(0.001).of(10)
             expect(line3.length).to be_within(0.001).of(5)
           end
+        end
+
+        context 'ordering and equality' do
+          let(:l1) { Line.new(Point[0,0], Point[10,10]) }
+          let(:l2) { Line.new(Point[0,1], Point[10,10]) }
+          let(:l3) { Line.new(Point[0,0], Point[11,10]) }
+          let(:l4) { Line.new(Point[20,20], Point[1,1]) }
+          let(:l5) { Line.new(Point[11,10], Point[0,0]) }
+          it 'should detect equality' do
+            expect(l1).to eql(Line.new(l1.p1, l1.p2))
+            expect(l1).to_not eql(Line.new(l1.p1, Point[2,4]))
+            expect(l5).to eql(l3)
+            expect(l5.hash).to eql(l3.hash)
+          end
+
+          it 'should properly compare' do
+            list = [l4,l3,l1,l2]
+            list.sort!
+            expect(list).to eql([l1,l3,l2,l4])
+          end
+
+          it 'should properly uniq' do
+            list = [l4, l1, l4, l2, l3, l3, l2, l1]
+            list.sort!.uniq!
+            expect(list).to eql([l1,l3,l2,l4])
+          end
+
+          it 'should properly deduplicate' do
+            list = [l1, l4, l2, l3, l5, l3, l1, l3, l3, l2]
+            new_list = PathGenerator.deduplicate(list)
+            expect(new_list).to eql([l4])
+          end
+
         end
 
       end

@@ -2,13 +2,11 @@ module Laser
   module Cutter
     module Renderer
       class RectRenderer < AbstractRenderer
-        def rect
-          subject
-        end
+        alias_method :rect, :subject
 
         def render pdf
           rect.sides.each do |side|
-            LineRenderer.new(side).render(pdf)
+            LineRenderer.new(side, options).render(pdf)
           end
         end
       end

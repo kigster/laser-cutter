@@ -2,35 +2,63 @@ module Laser
   module Cutter
     module Geometry
       class Line < Shape
-        attr_accessor :point1, :point2
+        attr_accessor :p1, :p2
 
-        def initialize(p1, p2)
-          self.point1 = p1
-          self.point2 = p2
+        def initialize(point1, point2 = nil)
+          if point1.is_a?(Hash)
+            options = point1
+            self.p1 = Point.new(options[:from])
+            self.p2 = Point.new(options[:to])
+          else
+            self.p1 = point1.clone
+            self.p2 = point2.clone
+          end
+          self.position = p1.clone
+          raise 'Both points are required for line definition' unless (p1 && p2)
         end
 
         def relocate!
-          dx = point2.x - point1.x
-          dy = point2.y - point1.y
+          dx = p2.x - p1.x
+          dy = p2.y - p1.y
 
-          point1 = position
-
-          point2.x = point1.x + dx
-          point2.y = point1.y + dy
+          self.p1 = position.clone
+          self.p2 = Point[p1.x + dx, p1.y + dy]
           self
         end
 
         def center
-          Point.new((point2.x + point1.x) / 2, (point2.y + point1.y) / 2)
+          Point.new((p2.x + p1.x) / 2, (p2.y + p1.y) / 2)
         end
 
         def length
-          Math.sqrt((point2.x - point1.x)**2 + (point2.y - point1.y)**2)
+          Math.sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2)
         end
 
         def to_s
-          "#{point1}->#{point2}"
+          "#{self.class.name.gsub(/.*::/,'').downcase} #{p1}=>#{p2}"
         end
+
+        def eql?(other)
+          (other.p1.eql?(p1) && other.p2.eql?(p2)) ||
+          (other.p2.eql?(p1) && other.p1.eql?(p2))
+        end
+
+        def normalized
+          p1 < p2 ? Line.new(p1, p2) : Line.new(p2, p1)
+        end
+
+        def <=>(other)
+          self.normalized.to_s <=> other.normalized.to_s
+        end
+
+        def hash
+          [p1.to_a, p2.to_a].sort.hash
+        end
+
+        def clone
+          self.class.new(p1, p2)
+        end
+
       end
 
     end
