@@ -5,6 +5,11 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
+if ENV['CODECLIMATE_REPO_TOKEN']
+  require 'codeclimate-test-reporter'
+  CodeClimate::TestReporter.start
+end
+
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __FILE__)
 require 'rubygems'
 require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
@@ -12,10 +17,6 @@ require 'laser-cutter'
 require "codeclimate-test-reporter"
 
 
-if ENV['CODECLIMATE_REPO_TOKEN']
-  require 'codeclimate-test-reporter'
-  CodeClimate::TestReporter.start
-end
 
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true
