@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = Laser::Cutter::VERSION
   spec.authors       = ['Konstantin Gredeskoul']
   spec.email         = ["kigster@gmail.com"]
-  spec.summary       = %q{Creates box outlines for laser-cut boxes.}
-  spec.description   = %q{}
-  spec.homepage      = ""
+  spec.summary       = %q{Creates notched box outlines for laser-cut boxes which are geometrically symmetric and pleasing to the eye.}
+  spec.description   = %q{Similar to the older BoxMaker, this ruby gem generates PDFs that can be used as a basis for cutting boxes on a typical laser cutter. The intention was to create an extensible, well tested, and modern ruby gem for generating PDF templates used in laser cutting.}
+  spec.homepage      = "https://github.com/kigster/laser-cutter"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
