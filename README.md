@@ -67,7 +67,7 @@ Or install it yourself as:
 ## Usage
 
 ```bash
-Usage: laser-cutter [options]'
+Usage: laser-cutter [options]
 
 Examples:
   1. Create a box defined in inches, and open PDF in preview right after:
