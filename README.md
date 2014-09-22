@@ -24,10 +24,7 @@ Or install it yourself as:
 ## Usage
 
 ```bash
-> gem install bundler
-> git clone https://github.com/kigster/laser-cutter.git
-> cd laser-cutter && bundle
-> bundle exec bin/laser-cutter --help
+> bundle exec laser-cutter --help
 Usage: laser-cutter [options]'
 
    eg: laser-cutter --units in -s 2x3x2/0.125/0.5   -o box.pdf'
