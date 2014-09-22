@@ -35,12 +35,24 @@ module Laser
         end
 
         def to_s
-          "#{self.class.name}:{#{p1}=>#{p2}}"
+          "#{self.class.name.gsub(/.*::/,'').downcase} #{p1}=>#{p2}"
         end
 
         def eql?(other)
           (other.p1.eql?(p1) && other.p2.eql?(p2)) ||
           (other.p2.eql?(p1) && other.p1.eql?(p2))
+        end
+
+        def normalized
+          p1 < p2 ? Line.new(p1, p2) : Line.new(p2, p1)
+        end
+
+        def <=>(other)
+          self.normalized.to_s <=> other.normalized.to_s
+        end
+
+        def hash
+          [p1.to_a, p2.to_a].sort.hash
         end
 
         def clone

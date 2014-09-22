@@ -19,31 +19,6 @@ module Laser
         end
       end
 
-      class Edge < Struct.new(:outside, :inside, :notch_width)
-        attr_accessor :notch_count
-
-        def initialize(*args)
-          super(*args)
-          adjust_notch(self.inside)
-        end
-
-        def adjust_notch(line)
-          d = (line.length / notch_width).to_f.ceil
-          pairs = d / 2
-          d = pairs * 2 + 1
-          d = MINIMUM_NOTCHES_PER_SIDE if d < MINIMUM_NOTCHES_PER_SIDE
-          self.notch_width = line.length / (1.0 * d)
-          self.notch_count = d
-        end
-
-        # face_setting determins if we want that face to have center notch
-        # facing out (for a hole, etc).  This works well when we have odd number
-        # of notches, but
-        def add_across_line?(face_setting)
-          notch_count % 4 == 1 ? face_setting : !face_setting
-        end
-      end
-
       # Alternating iterator
       class InfiniteIterator < Struct.new(:shift_array)
         attr_accessor :current_index
@@ -56,6 +31,20 @@ module Laser
       end
 
       class PathGenerator
+        # Removes the items from the list that appear more than once
+        # Unlike uniq-ing which keeps all elements, just ensures that are not
+        # repeated, here we remove elements completely if they are seen more than once.
+        # This is used to remove lines
+        def self.deduplicate list
+          new_list = []
+          list.sort!
+          list.each_with_index do |e, i|
+            next if i < (list.size - 1) && e.eql?(list[i + 1])
+            next if i > 0 && e.eql?(list[i - 1])
+            new_list << e
+          end
+          new_list
+        end
 
         attr_accessor :notch_width, :thickness
         attr_accessor :center_out, :fill_corners
@@ -67,7 +56,7 @@ module Laser
 
           # 2D array of booleans.  If true first or second end of the edge is
           # created with a corner filled in.
-          @fill_corners = options[:fill_corners] || [ false, false ]
+          @fill_corners = options[:fill_corners]
         end
 
         # Calculates a notched path that flows between the outer edge of the box
@@ -80,6 +69,14 @@ module Laser
           shifts = define_shifts(edge)
 
           path = NotchedPath.new
+
+          if fill_corners
+            r1 = Geometry::Rect.new(edge.inside.p1, edge.outside.p1)
+            r2 = Geometry::Rect.new(edge.inside.p2, edge.outside.p2)
+            path.corner_boxes << r1
+            path.corner_boxes << r2
+          end
+
           point = edge.inside.p1.clone
           vertices = [point]
           shifts.each do |shift|
@@ -89,7 +86,6 @@ module Laser
           path.vertices = vertices
           path
         end
-
 
         private
 

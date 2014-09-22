@@ -9,36 +9,57 @@ module Laser
         end
 
         def render pdf = nil
-          pdf = Prawn::Document.new(:page_size => options.page_size, :page_layout => options.page_layout.to_sym)
+          pdf = Prawn::Document.new(:margin => options.margin.send(options.units),
+                                    :page_size => options.page_size,
+                                    :page_layout => options.page_layout.to_sym)
 
           header = <<-EOF
-Made with love, using Laser Cutter Ruby Gem (v#{Laser::Cutter::VERSION})
-Credits to Prawn PDF gem and BoxMaker for inspiration.
 
-https://github.com/kigster/laser-cutter
+          Produced with Laser Cutter Ruby Gem (v#{Laser::Cutter::VERSION})
+          Credits to Prawn (for ruby PDF generation),
+          and BoxMaker (for the inspiration).
+          © 2014 Konstantin Gredeskoul, MIT license.
+          https://github.com/kigster/laser-cutter
+          Generated at #{Time.new}.
           EOF
-          pdf.float do
-            pdf.bounding_box([0, 700], :width => 200, :height => 100) do
-              pdf.font('Helvetica', :size => 6) do
-                pdf.text header, :color => "0050FF"
+
+          renderer = self
+
+          pdf.instance_eval do
+            self.line_width = renderer.options.stroke.send(renderer.options.units.to_sym)
+            float do
+              bounding_box([0, 50], :width => 150, :height => 40) do
+                stroke_color '0080FF'
+                stroke_bounds
+
+                indent 10 do
+                  font('Courier', :size => 5) do
+                    text header, :color => "0080FF"
+                  end
+                end
+              end
+              bounding_box([480, 120], :width => 110, :height => 110) do
+                stroke_color '00DF20'
+                stroke_bounds
+                indent 10 do
+                  font('Courier', :size => 6) do
+                    out = JSON.pretty_generate(renderer.options.to_hash).gsub(/[\{\}",]/,'')
+                    text out, :color => "00DF20"
+                  end
+                end
               end
             end
-            pdf.bounding_box([400, 710], :width => 200, :height => 300) do
-              pdf.font('Courier', :size => 6) do
-                pdf.text JSON.pretty_generate(options.to_hash), :color => "222222"
-              end
+
+            stroke_color "000000"
+            renderer.box.notches.each do |notch|
+              LineRenderer.new(notch, renderer.options).render(self)
             end
+
+            render_file(renderer.options.file)
           end
 
-          pdf.line_width = options.stroke.send(options.units.to_sym)
-          pdf.stroke_color "000000"
-          box.notches.each do |notch|
-            LineRenderer.new(notch, options).render(pdf)
-          end
-
-          pdf.render_file(options.file)
           if options.verbose
-            puts "File #{options.file} created."
+            puts "file #{options.file} has been written."
           end
         end
 

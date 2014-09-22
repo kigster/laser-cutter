@@ -24,7 +24,10 @@ Or install it yourself as:
 ## Usage
 
 ```bash
-± kg |master ✓| → be bin/laser-cutter --help
+> gem install bundler
+> git clone https://github.com/kigster/laser-cutter.git
+> cd laser-cutter && bundle
+> bundle exec bin/laser-cutter --help
 Usage: laser-cutter [options]'
 
    eg: laser-cutter --units in -s 2x3x2/0.125/0.5   -o box.pdf'
@@ -32,16 +35,22 @@ Usage: laser-cutter [options]'
 
 
 Specific options:
-    -s, --size WxHxD/T/N             Compact format for the dimension, T is thickness, N is notch length
-    -w, --width WIDTH                Width of the box
-    -h, --height HEIGHT              Height of the box
-    -d, --depth DEPTH                Depth of the box
-    -t, --thickness THICKNESS        Thickness of the box
-    -n, --notch NOTCH                Depth of the box
+    -s, --size WxHxD/T/N             Combined internal dimensions: W = width, H = height,
+                                     D = depth, T = thickness, N = notch length
+
+    -w, --width WIDTH                Internal width of the box
+    -h, --height HEIGHT              Internal height of the box
+    -d, --depth DEPTH                Internal depth of the box
+    -t, --thickness THICKNESS        Thickness of the box material
+    -n, --notch NOTCH                Preferred notch length (used only as a guide)
     -o, --file FILE                  Output filename of the PDF
-    -u, --units UNITS                Either 'mm' or 'in', metric is default
-    -m, --margin MARGIN              Margin from the edge of the document
-    -p, --padding PADDING            Space between boxes
+    -u, --units UNITS                Either 'mm' (default) or 'in'
+    -m, --margin MARGIN              Margins from the edge of the document
+    -p, --padding PADDING            Space between the boxes on the page
+    -P, --page_size LETTER           Page size, see docs on Prawn for more options
+    -L, --page_layout portrait       Page layout, other option is 'landscape'
+    -S, --stroke WIDTH               Numeric stroke width of the line
+    -O, --open                       Open generated file with system viewer before exiting
     -v, --[no-]verbose               Run verbosely
 
 Common options:

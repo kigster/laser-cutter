@@ -52,6 +52,22 @@ module Laser
             expect(p2.y).to be_within(0.001).of(0)
           end
         end
+
+        context 'ordering and equality' do
+          let(:p1) { Point[0,0]}
+          let(:p2) { Point[10,0]}
+          let(:p3) { Point[0,10]}
+          let(:p4) { Point[10,10]}
+          let(:p5) { Point[-1,-1]}
+          it 'should propertly sort' do
+            expect([p3,p2,p1,p4,p5].sort).to eql([p5,p1,p3,p2,p4])
+          end
+          it 'should detect equality' do
+            expect(p1).to_not eql(p2)
+            expect(p2).to eql(Point[10,0])
+          end
+        end
+
       end
     end
   end

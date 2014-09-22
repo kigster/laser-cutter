@@ -29,22 +29,27 @@ EOF
           opts.separator "Specific options:"
 
           opts.on("-s", "--size WxHxD/T/N",
-              "Compact format for the dimension, T is thickness, N is notch length") do |size|
+              "Combined internal dimensions: W = width, H = height,\n#{" " * 37}D = depth, T = thickness, N = notch length\n\n") do |size|
             options.size = size
           end
 
-          opts.on("-w", "--width WIDTH", "Width of the box") { |value|  options.width = value }
-          opts.on("-h", "--height HEIGHT", "Height of the box") { |value|  options.height = value }
-          opts.on("-d", "--depth DEPTH", "Depth of the box") { |value|  options.depth= value }
+          opts.on("-w", "--width WIDTH", "Internal width of the box") { |value|  options.width = value }
+          opts.on("-h", "--height HEIGHT", "Internal height of the box") { |value|  options.height = value }
+          opts.on("-d", "--depth DEPTH", "Internal depth of the box") { |value|  options.depth= value }
 
-          opts.on("-t", "--thickness THICKNESS", "Thickness of the box") { |value|  options.thickness = value }
-          opts.on("-n", "--notch NOTCH", "Depth of the box") { |value|  options.notch = value }
+          opts.on("-t", "--thickness THICKNESS", "Thickness of the box material") { |value|  options.thickness = value }
+          opts.on("-n", "--notch NOTCH", "Preferred notch length (used only as a guide)") { |value|  options.notch = value }
           opts.on("-o", "--file FILE", "Output filename of the PDF") { |value|  options.file = value }
 
-          opts.on("-u", "--units UNITS", "Either 'mm' or 'in', metric is default") { |value|  options.units = value }
-          opts.on("-m", "--margin MARGIN", "Margin from the edge of the document") { |value|  options.margin = value }
-          opts.on("-p", "--padding PADDING", "Space between boxes") { |value|  options.padding = value }
+          opts.on("-u", "--units UNITS", "Either 'mm' (default) or 'in'") { |value|  options.units = value }
+          opts.on("-m", "--margin MARGIN", "Margins from the edge of the document") { |value|  options.margin = value }
+          opts.on("-p", "--padding PADDING", "Space between the boxes on the page") { |value|  options.padding = value }
 
+          opts.on("-P", "--page_size LETTER", "Page size, see docs on Prawn for more options") { |value|  options.page_size = value }
+          opts.on("-L", "--page_layout portrait", "Page layout, other option is 'landscape' ") { |value|  options.page_layout = value }
+          opts.on("-S", "--stroke WIDTH", "Numeric stroke width of the line") { |value|  options.stroke = value }
+
+          opts.on("-O", "--open", "Open generated file with system viewer before exiting") { |v| options.open = v }
           opts.on("-v", "--[no-]verbose", "Run verbosely") { |v| options.verbose = v }
 
           opts.separator ""
@@ -61,7 +66,7 @@ EOF
         end
         opt_parser.parse!(args)
         options
-      rescue OptionParser::InvalidOption => e
+      rescue OptionParser::InvalidOption, OptionParser::MissingArgument => e
         puts opt_parser.help
         puts
         puts "#{e.message}".red
@@ -90,9 +95,16 @@ end
 begin
   box = Laser::Cutter::Box.new(config)
   Laser::Cutter::Renderer::BoxRenderer.new(box, config).render
+  if config.open
+    `open #{config.file}`
+  end
 rescue Exception => e
   puts "#{e}".red
-  STDERR.puts "Try --help for more info..."
+  STDERR.puts "Try --help for more info...".yellow
+  if options.verbose
+    STDERR.puts "Exception: #{e.inspect}".red
+    STDERR.puts e.backtrace.join("\n").red
+  end
 end
 
 

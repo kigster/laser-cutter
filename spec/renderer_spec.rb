@@ -14,7 +14,7 @@ module Laser
             renderer.render
             expect(File.exist?(filename))
             expect(File.size(filename) > 0)
-            #`open #{filename}`
+          ensure
             File.delete(filename)
             expect(!File.exists?(filename))
           end

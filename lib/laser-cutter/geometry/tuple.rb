@@ -3,6 +3,7 @@ module Laser
     module Geometry
       class Tuple
         attr_accessor :coords
+        PRECISION = 0.000001
 
         def initialize(*args)
           args = customize_args(args)
@@ -39,7 +40,7 @@ module Laser
         end
 
         def to_s
-          "{#{coords.map { |a| sprintf("%.0f", a) }.join(separator)}}"
+          "{#{coords.map { |a| sprintf("%.5f", a) }.join(separator)}}"
         end
 
         def valid?
@@ -49,7 +50,14 @@ module Laser
 
         def eql?(other)
           return false unless other.respond_to?(:coords)
-          self.coords.eql?(other.coords)
+          equal = true
+          self.coords.each_with_index do |c, i|
+            if (c - other.coords[i])**2 > PRECISION
+              equal = false
+              break
+            end
+          end
+          equal
         end
 
         def clone

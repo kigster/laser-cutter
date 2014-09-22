@@ -2,10 +2,11 @@ module Laser
   module Cutter
     module Geometry
       class NotchedPath
-        attr_accessor :lines, :vertices
+        attr_accessor :lines, :vertices, :corner_boxes
         def initialize(vertices = [])
           @vertices = vertices
           @lines = []
+          @corner_boxes = []
         end
 
         def << value
@@ -27,7 +28,13 @@ module Laser
               self.lines << Line.new(v, vertices[i+1])
             end
           end
-          lines
+          self.corner_boxes.each do |box|
+            box.relocate!
+            self.lines << box.sides
+          end
+
+          self.lines.flatten!
+          self.lines
         end
 
       end

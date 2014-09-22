@@ -40,6 +40,17 @@ module Laser
         def move_by w, h
           Point.new(x + w, y + h)
         end
+
+        def <=>(other)
+          self.x == other.x ? self.y <=> other.y : self.x <=> other.x
+        end
+
+        def < (other)
+          self.x == other.x ? self.y < other.y : self.x < other.x
+        end
+        def > (other)
+          self.x == other.x ? self.y > other.y : self.x > other.x
+        end
       end
     end
   end
