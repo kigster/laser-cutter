@@ -3,22 +3,50 @@
 
 ## LaserCutter
 
-Similar to BoxMaker (which is written in Java), this ruby gem generates PDFs that can be used as a 
-basis for cutting boxes on a typical laser cutter. 
+Similar to [BoxMaker](https://github.com/rahulbot/boxmaker/) (which is written in Java a long time ago), 
+this ruby gem generates PDFs that can be used as a basis for cutting boxes on a typical laser cutter. 
 
-Unlike BoxMaker, this gem has a lot of automated tests around creating the geometry of the notches
-and calculating locations. This welcomes additional feature contributions from others,
+Unlike ```BoxMaker```, this gem has a lot of automated tests around creating the geometry of the notches
+and calculating locations. This welcomes additional feature contributions from other developers,
 as existing test suite offers confidence around not introducing bugs or regressions.
 
-BoxMaker's algorithm ensures that the same notch length is across all sides, but sacrifices
-symmetry as a result.  So you may have your font panel's left and right sides be pretty different.
+BoxMaker's algorithm _ensures that the same notch length is across all sides, but sacrifices
+symmetry as a result_.  So you may have your font panel's left and right sides be pretty different.
  
-```laser-cutter```'s algorithm will attempt to create most symmetric design possible
-for your front panel. But it sacrifices identical notch length, and depending on box
-dimension you may end up with a slightly different notch length on each dimension.
+```laser-cutter```'s algorithm will create a _symmetric design for most panels_, but it might sacrifice
+identical notch length_. Depending on the box dimensions you may end up with a slightly different notch 
+length on each side of the box.
 
-The choice ultimately comes down to the preference, so here I show you two boxes made with
+Finally, ```laser-cutter``` has a ton of options, that allow you to set stroke width, page size,
+layout, margins, padding (spacing between boxes), open the PDF file using system viewer right
+after generation, and many more are coming.
+
+The choice ultimately comes down to the preference and feature set, so here I show you two boxes made with
 each program, so you can pick what you prefer.
+
+Below are two examples of boxes with identical dimensions produced with ```laser-cutter``` and ```boxmaker```:
+
+#### BoxMaker Example
+
+```bash
+> java -cp BOX.jar com.rahulbotics.boxmaker.BoxMaker -i -W 2.5 -H 2 -D 1 -T 0.25 -n 0.5 -f file.pdf
+```
+
+![BoxMaker Example](doc/boxmaker.jpg).
+
+#### LaserCutter Example
+
+```bash
+> laser-cutter -u in -s 2.5x1x2/0.25/0.5 -o file.pdf
+```
+
+![LaserCutter Example](doc/laser-cutter.jpg).
+
+## Intended Features
+
+* Creating T-style holes and spacers for various sized nuts and bolts (such as common #4-40 and M2).
+* Creating lids and front panels that are larger than the box
+* Your brilliant idea here!
 
 ## Installation
 
