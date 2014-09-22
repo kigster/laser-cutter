@@ -44,7 +44,10 @@ Below are two examples of boxes with identical dimensions produced with ```laser
 #### BoxMaker 
 
 ```bash
-> java -cp BOX.jar com.rahulbotics.boxmaker.BoxMaker -i -W 2.5 -H 2 -D 1 -T 0.25 -n 0.5 -f file.pdf
+git clone https://github.com/rahulbot/boxmaker.git && cd boxmaker
+ant
+java -cp BOX.jar com.rahulbotics.boxmaker.BoxMaker \
+      -i -W 2.5 -H 2 -D 1 -T 0.25 -n 0.5 -f file.pdf
 ```
 
 ![BoxMaker Example](doc/boxmaker.jpg).
@@ -52,7 +55,8 @@ Below are two examples of boxes with identical dimensions produced with ```laser
 #### LaserCutter 
 
 ```bash
-> laser-cutter -u in -s 2.5x1x2/0.25/0.5 -o file.pdf
+gem install laser-cutter
+laser-cutter -u in -s 2.5x1x2/0.25/0.5 -o file.pdf
 ```
 
 ![LaserCutter Example](doc/laser-cutter.jpg).
