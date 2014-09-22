@@ -20,7 +20,7 @@ Usage: laser-cutter [options]'
        laser-cutter -w 30 -h 20 -d 10 -t 4.3 -n 10  -o box.pdf
 EOF
 
-        options = OpenStruct.new
+        options = Hashie::Mash.new
         options.verbose = false
 
         opt_parser = OptionParser.new do |opts|
@@ -77,11 +77,11 @@ EOF
 end # class OptParse
 
 options = Laser::Cutter::OptParse.parse(ARGV)
-config = Laser::Cutter::Configuration.new(options.to_h)
+config = Laser::Cutter::Configuration.new(options.to_hash)
 
 if options.verbose
   puts "Starting with the following configuration:"
-  puts JSON.pretty_generate(config.to_h).green
+  puts JSON.pretty_generate(config.to_hash).green
 end
 
 begin
