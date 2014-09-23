@@ -1,5 +1,7 @@
 module Laser
   module Cutter
+    # Note: this class badly needs refactoring and tests.  Both are coming.
+
     class Box
       # Everything is in millimeters
 
@@ -7,7 +9,7 @@ module Laser
       attr_accessor :padding, :units
 
       attr_accessor :front, :back, :top, :bottom, :left, :right
-      attr_accessor :faces, :bounds, :conf
+      attr_accessor :faces, :bounds, :conf, :corner_face
 
       def initialize(config = {})
         self.dim = Geometry::Dimensions.new(config['width'], config['height'], config['depth'])
@@ -18,32 +20,35 @@ module Laser
         self.units = config['units']
 
         create_faces! # generates dimensions for each side
-        self.faces = [top, front, bottom, back, left, right]
+        self.faces =     [top, front, bottom, back, left, right]
 
         position_faces!
-        self.conf   = {
-            valign: [ :out, :out,  :out,  :out, :in, :in],
-            halign: [ :in,  :out,  :in,   :out, :in, :in],
-            corners:[ :no,  :yes,  :no,   :yes, :no, :no]
-        }
 
+        self.conf   = {
+            valign: [    :out, :out,  :out,   :out, :in, :in],
+            halign: [    :in,  :out,  :in,    :out, :in, :in],
+            corners: {
+                front: [ :no,  :yes,  :no,    :yes, :no, :no], # our default choice, but may not work
+                top:   [ :yes, :no,   :yes,   :no,  :no, :no]  # 2nd choice, has to work if 1st doesn't
+            },
+        }
         self
       end
+
 
       # Returns an flattened array of lines representing notched
       # rectangle.
       def notches
-        generate_bounding_boxes!
+        corner_face = pick_corners_face
 
         notches = []
-
         faces.each_with_index do |face, face_index|
-          bound = bounds[face_index]
+          bound = face_bounding_rect(face)
           bound.sides.each_with_index do |bounding_side, side_index |
             key = side_index.odd? ? :valign : :halign
             path = Geometry::PathGenerator.new(:notch_width => notch_width,
                                                :center_out => (self.conf[key][face_index] == :out) ,
-                                               :fill_corners => (self.conf[:corners][face_index] == :yes && side_index.odd?),
+                                               :fill_corners => (self.conf[:corners][corner_face][face_index] == :yes && side_index.odd?),
                                                :thickness => thickness
             ).path(Geometry::Edge.new(bounding_side, face.sides[side_index], self.notch_width))
             notches << path.create_lines
@@ -67,15 +72,11 @@ module Laser
 
       private
 
-      def generate_bounding_boxes!
-        self.bounds = []
-        self.bounds = faces.map do |face|
-          b = face.clone
-          b.move_to(b.position.move_by(-thickness, -thickness))
-          b.p2 = b.p2.move_by(2 * thickness, 2 * thickness)
-          b.relocate!
-          b
-        end
+      def face_bounding_rect(face)
+        b = face.clone
+        b.move_to(b.position.move_by(-thickness, -thickness))
+        b.p2 = b.p2.move_by(2 * thickness, 2 * thickness)
+        b.relocate!
       end
 
       #___________________________________________________________________
@@ -129,6 +130,15 @@ module Laser
 
         self.left = Geometry::Rect.create(zero, dim.d, dim.h, "left")
         self.right = Geometry::Rect.create(zero, dim.d, dim.h, "right")
+      end
+
+      def pick_corners_face
+        b = face_bounding_rect(front)
+        edges = []
+        front.sides[0..1].each_with_index do |face, index|
+          edges << Geometry::Edge.new(b.sides[index], face, notch_width)
+        end
+        edges.map(&:notch_count).all?{|c| c % 4 == 3} ? :top : :front
       end
 
     end

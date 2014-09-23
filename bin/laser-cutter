@@ -47,6 +47,7 @@ EOF
           opts.on("-o", "--file FILE", "Output filename of the PDF") { |value|  options.file = value }
 
           opts.on("-u", "--units UNITS", "Either 'mm' (default) or 'in'") { |value|  options.units = value }
+          opts.on("-i", "--inches", "Shortcut for 'in' measurements") { |value|  options.units = 'in' }
           opts.on("-m", "--margin MARGIN", "Margins from the edge of the document") { |value|  options.margin = value }
           opts.on("-p", "--padding PADDING", "Space between the boxes on the page") { |value|  options.padding = value }
 
