@@ -4,6 +4,8 @@ require 'pdf/core/page_geometry'
 
 module Laser
   module Cutter
+    class MissingOption < RuntimeError
+    end
     class Configuration < Hashie::Mash
       DEFAULTS = {
           units: 'mm',
@@ -49,7 +51,9 @@ module Laser
         REQUIRED.each do |k|
           missing << k if self[k].nil?
         end
-        raise "#{missing.join(', ')} #{missing.size > 1 ? 'are' : 'is'} required, but missing." unless missing.empty?
+        unless missing.empty?
+          raise MissingOption.new("#{missing.join(', ')} #{missing.size > 1 ? 'are' : 'is'} required, but missing.")
+        end
       end
 
       def all_page_sizes

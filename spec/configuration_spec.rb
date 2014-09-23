@@ -19,7 +19,7 @@ module Laser
         let(:opts) { {"height" => "23"} }
         it 'should be able to validate missing options' do
           expect(config.height).to eql(23.0)
-          expect { config.validate! }.to raise_error(RuntimeError)
+          expect { config.validate! }.to raise_error(Laser::Cutter::MissingOption)
         end
       end
       context '#list_page_sizes' do

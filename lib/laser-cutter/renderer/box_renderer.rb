@@ -5,12 +5,15 @@ module Laser
     module Renderer
       class BoxRenderer < AbstractRenderer
         alias_method :box, :subject
+        def initialize(options = {})
+          self.options = options
+          self.subject = Laser::Cutter::Box.new(options)
+        end
 
         def render pdf = nil
           pdf = Prawn::Document.new(:margin => options.margin.send(options.units),
                                     :page_size => options.page_size,
                                     :page_layout => options.page_layout.to_sym)
-
           header = <<-EOF
 
           Produced with Laser Cutter Ruby Gem (v#{Laser::Cutter::VERSION})

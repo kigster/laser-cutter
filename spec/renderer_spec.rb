@@ -6,7 +6,7 @@ module Laser
       describe 'BoxRenderer' do
         context '#render' do
           let(:box) { Laser::Cutter::Box.new(config) }
-          let(:renderer) { BoxRenderer.new(box, config) }
+          let(:renderer) { BoxRenderer.new(config) }
           let(:file) { File.expand_path("../../laser-cutter-pdf-test.#{$$}.pdf", __FILE__) }
 
           def render_file filename
