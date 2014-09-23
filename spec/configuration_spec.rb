@@ -23,10 +23,6 @@ module Laser
         end
       end
       context '#list_page_sizes' do
-        it 'should rely on existing external class' do
-          klass = Module.const_get 'PDF::Core::PageGeometry::SIZES' rescue nil
-          expect(klass).not_to be_nil
-        end
         context 'formatting of output' do
           context 'when using inches' do
             let(:opts) { {"units" => "in"} }
