@@ -1,6 +1,6 @@
 require 'hashie/mash'
 require 'prawn/measurement_extensions'
-
+require 'pdf/core/page_geometry'
 
 module Laser
   module Cutter
