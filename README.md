@@ -6,30 +6,23 @@
 ## LaserCutter
 
 Similar to [BoxMaker](https://github.com/rahulbot/boxmaker/) (which is written in Java a long time ago), 
-this ruby gem generates PDFs that can be used as a basis for cutting boxes on a typical laser cutter.
- 
-But unfortunately boxmaker codebase is pretty old, does not contain any tests or easy to use command
-line interface.  It works, and has a website in front of it, but I wanted something more flexible, 
-and more importantly – more symmetric. For more information on comparison with BoxMaker and motivation,
-see section at the end of this README.
+this ruby gem generates PDFs that can be used as a basis for creating a "snap-in" boxes with notched
+sides on a typical laser cutter, by providing dimensions, material thickness and output file name. 
 
-One of the design goals of this ruby version is to provide a highly extensible platform,
-where alternative strategies can be added over time, and supported by various command line options 
-and flags.  
+For more detailed comparison with BoxMaker and motivation behind this project, please see the section 
+at the bottom of this README.
 
-```laser-cutter``` already has many options that allow you to set options such as stroke width, page size,
-layout, margins, padding (spacing between boxes), and more.  They even do things like open the PDF file 
-using system viewer right after generation, and many more features are coming soon.
+One of the design goals of this project is to provide a highly extensible platform for creating 
+laser-cut designs, where alternative strategies can be added over time, and supported by various 
+command line options, and perhaps a light weight web application.  If you are interested in 
+contributing to the project, please see [contributing](CONTRIBUTING.md) for more details. 
 
-## Future Features
+```laser-cutter``` supports many flexible command line options that allow setting dimensions, 
+stroke width, page size, layout, margins, padding (spacing between the boxes), and many more.  
 
-* Extensibility with various layout strategies, notch drawing strategies, basically plug and play
-  model for adding new algorithms for path creation and box joining
-* Support more shapes than just box
-* Create T-style joins, using various standard sizes of nuts and bolts (such as common #4-40 and M2 sizes)
-* Supporting lids and front panels, that are larger than the box itself and have holes for notches. 
-* A web-app that uses the gem and renders box live in CSS using CSS 2D to show preview.
-* Your brilliant idea can be here too!  Please see [contributing](CONTRIBUTING.md) for more info.
+## Dependencies
+
+The gem depends primarily on [Prawn](http://prawnpdf.org) – a fantastic PDF generation library. 
 
 ## Installation
 
@@ -48,8 +41,6 @@ Or install it yourself as:
 ## Usage
 
 ```bash
-Laser-Cutter v0.3.2
-
 Usage: laser-cutter [options] -o filename.pdf
    eg: laser-cutter -i -s 1x1.5x2/0.125/0.125 -O -o box.pdf
 
@@ -99,6 +90,16 @@ Examples:
        laser-cutter --list-all-page-sizes --inches
 ```                 
 
+## Future Features
+
+* Extensibility with various layout strategies, notch drawing strategies, basically plug and play
+  model for adding new algorithms for path creation and box joining
+* Support more shapes than just box
+* Create T-style joins, using various standard sizes of nuts and bolts (such as common #4-40 and M2 sizes)
+* Supporting lids and front panels, that are larger than the box itself and have holes for notches. 
+* A web-app that uses the gem and renders box live in CSS using CSS 2D to show preview.
+* Your brilliant idea can be here too!  Please see [contributing](CONTRIBUTING.md) for more info.
+
 ## Comparison with BoxMaker
 
 It's important to note that the author believes that BoxMaker is a greatly useful piece of software 
@@ -123,32 +124,27 @@ length on each side of the box.
 The choice ultimately comes down to the preference and feature set, so here I show you two boxes made with
 each program, so you can pick what you prefer. 
 
-#### Disclaimer
-
-
 ### Example Outputs
 
 Below are two examples of boxes with identical dimensions produced with ```laser-cutter``` and ```boxmaker```:
 
-#### BoxMaker 
+This is how you would make a box with Adam Phelp's fork of BoxMaker (which adds flags and a lot of 
+niceties): 
 
 ```bash
-git clone https://github.com/aphelps/boxmaker && cd boxmaker
-ant
+git clone https://github.com/aphelps/boxmaker && cd boxmaker && ant
 java -cp BOX.jar com.rahulbotics.boxmaker.BoxMaker \
-      -i -W 2.5 -H 2 -D 1 -T 0.25 -n 0.5 -f file.pdf
+      -i -W 1 -H 2 -D 1.5 -T 0.125 -n 0.125 -f box.pdf
 ```
 
-![BoxMaker Example](doc/boxmaker.jpg).
-
-#### LaserCutter 
+And laser-cutter:
 
 ```bash
 gem install laser-cutter
-laser-cutter -u in -s 2.5x1x2/0.25/0.5 -o file.pdf
+laser-cutter -i -s 1x1.5x2/0.125/0.125 -O -o box.pdf
 ```
 
-![LaserCutter Example](doc/laser-cutter.jpg).
+![LaserCutter Comparison](doc/comparison.jpg).
 
 ## Contributing
 
