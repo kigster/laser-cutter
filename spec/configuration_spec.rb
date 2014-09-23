@@ -15,11 +15,25 @@ module Laser
           expect(config.notch).to eql(0.5)
         end
       end
-      context 'validate' do
+      context '#validate' do
         let(:opts)  {{ "height" => "23" }}
         it 'should be able to validate missing options' do
           expect(config.height).to eql(23.0)
           expect { config.validate! } .to raise_error(RuntimeError)
+        end
+      end
+      context '#list_page_sizes' do
+        context 'inches' do
+          let(:opts) { { "units" => "in" }}
+          it 'should return the list in inches' do
+            expect(config.all_page_sizes).to match %r(.*B10\:\s+1\.2\s+x\s+1\.7)
+          end
+        end
+        context 'mm' do
+          let(:opts) { { "units" => "mm" }}
+          it 'should return the list in mm' do
+            expect(config.all_page_sizes).to match %r(.*B10\:\s+31\.0\s+x\s+44\.0)
+          end
         end
       end
 

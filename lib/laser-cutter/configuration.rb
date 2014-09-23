@@ -51,6 +51,20 @@ module Laser
         end
         raise "#{missing.join(', ')} #{missing.size > 1 ? 'are' : 'is'} required, but missing." unless missing.empty?
       end
+
+      def all_page_sizes
+        unit = 1.0 / 72.0 # PDF units per inch
+        multiplier = (self.units == 'in') ? 1.0 : 25.4
+        h = PDF::Core::PageGeometry::SIZES
+        output = "\n"
+        h.keys.sort.each do |k|
+          output << sprintf("\t%10s:\t%6.1f x %6.1f\n",
+                 k,
+                 multiplier * h[k][0].to_f * unit,
+                 multiplier * h[k][1].to_f * unit )
+        end
+        output
+      end
     end
   end
 end

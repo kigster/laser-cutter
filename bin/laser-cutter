@@ -85,22 +85,13 @@ EOF
 end # class OptParse
 
 options = Laser::Cutter::OptParse.parse(ARGV)
+config = Laser::Cutter::Configuration.new(options.to_hash)
 
-if options.list_all_page_sizes
-  puts
-  unit = 1.0 / 72.0 # PDF units per inch
-  multiplier = options.units == 'in' ? 1.0 : 25.4
-  hash = PDF::Core::PageGeometry::SIZES
-  hash.keys.sort.each do |k|
-    printf("\t%10s:\t%6.1f x %6.1f\n",
-           k,
-           multiplier * hash[k][0].to_f * unit,
-           multiplier * hash[k][1].to_f * unit )
-  end
+if config.list_all_page_sizes
+  puts config.all_page_sizes
   exit 0
 end
 
-config = Laser::Cutter::Configuration.new(options.to_hash)
 
 if options.verbose
   puts "Starting with the following configuration:"
