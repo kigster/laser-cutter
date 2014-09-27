@@ -28,16 +28,19 @@ module Laser
 
       SIZE_REGEXP = /[\d\.]+x[\d\.]+x[\d\.]+\/[\d\.]+\/[\d\.]+/
 
-      FLOATS   = %w(width height depth thickness notch margin padding stroke)
+      FLOATS = %w(width height depth thickness notch margin padding stroke)
       REQUIRED = %w(width height depth thickness notch file)
 
       def initialize(options = {})
-        options.delete_if{|k,v| v.nil?}
+        options.delete_if { |k, v| v.nil? }
+        if options['units'] && !UNIT_SPECIFIC_DEFAULTS.keys.include?(options['units'])
+          options.delete('units')
+        end
         self.merge!(DEFAULTS)
         self.merge!(options)
         if self['size'] && self['size'] =~ SIZE_REGEXP
           dim, self['thickness'], self['notch'] = self['size'].split('/')
-          self['width'],self['height'],self['depth'] = dim.split('x')
+          self['width'], self['height'], self['depth'] = dim.split('x')
           delete('size')
         end
         FLOATS.each do |k|
@@ -63,11 +66,19 @@ module Laser
         output = "\n"
         h.keys.sort.each do |k|
           output << sprintf("\t%10s:\t%6.1f x %6.1f\n",
-                 k,
-                 multiplier * h[k][0].to_f * unit,
-                 multiplier * h[k][1].to_f * unit )
+                            k,
+                            multiplier * h[k][0].to_f * unit,
+                            multiplier * h[k][1].to_f * unit)
         end
         output
+      end
+
+      def change_units(new_units)
+        return if (self.units.eql?(new_units) || !UNIT_SPECIFIC_DEFAULTS.keys.include?(new_units))
+        k = (self.units == 'in') ? 25.4 : 0.039370079
+        FLOATS.each do |field|
+          self.send("#{field}=".to_sym, self.send(field.to_sym) * k)
+        end
       end
     end
   end

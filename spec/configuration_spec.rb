@@ -37,7 +37,38 @@ module Laser
             end
           end
         end
+      end
 
+      context "#default to mm for incorrect units" do
+        let(:opts) { {"size" => "2x3x2/0.125/0.5", "units" => 'xx'} }
+        it 'should default to millimeters' do
+          expect(config.units).to eql('mm')
+        end
+      end
+
+      context "#change_units" do
+        context "from inches" do
+          let(:opts) { {"size" => "2.0x3x2/0.125/0.5", 'padding' => '4.0', "units" => 'in'} }
+          it "should convert to mm" do
+            expect(config.width).to eql(2.0)
+            config.change_units('in')
+            expect(config.width).to eql(2.0)
+            config.change_units('mm')
+            expect(config.width).to eql(50.8)
+            expect(config.padding).to eql(101.6)
+          end
+        end
+        context "from mm" do
+          let(:opts) { {"size" => "20.0x30.0x40.0/5/5", 'margin' => '10.0', "units" => 'mm'} }
+          it "should convert to inches" do
+            expect(config.width).to eql(20.0)
+            config.change_units('mm')
+            expect(config.width).to eql(20.0)
+            config.change_units('in')
+            expect(config.width).to be_within(0.001).of(0.787401575)
+            expect(config.margin).to be_within(0.001).of(0.393700787)
+          end
+        end
       end
     end
   end
