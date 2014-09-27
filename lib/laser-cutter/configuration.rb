@@ -79,6 +79,7 @@ module Laser
         FLOATS.each do |field|
           self.send("#{field}=".to_sym, self.send(field.to_sym) * k)
         end
+        self.units = new_units
       end
     end
   end

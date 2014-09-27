@@ -56,6 +56,7 @@ module Laser
             config.change_units('mm')
             expect(config.width).to eql(50.8)
             expect(config.padding).to eql(101.6)
+            expect(config.units).to eql('mm')
           end
         end
         context "from mm" do
@@ -67,6 +68,7 @@ module Laser
             config.change_units('in')
             expect(config.width).to be_within(0.001).of(0.787401575)
             expect(config.margin).to be_within(0.001).of(0.393700787)
+            expect(config.units).to eql('in')
           end
         end
       end
