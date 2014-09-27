@@ -59,16 +59,23 @@ module Laser
         end
       end
 
-      def all_page_sizes
+      def page_size_values
         unit = 1.0 / 72.0 # PDF units per inch
         multiplier = (self.units == 'in') ? 1.0 : 25.4
         h = PDF::Core::PageGeometry::SIZES
-        output = "\n"
+        array = []
         h.keys.sort.each do |k|
-          output << sprintf("\t%10s:\t%6.1f x %6.1f\n",
-                            k,
-                            multiplier * h[k][0].to_f * unit,
-                            multiplier * h[k][1].to_f * unit)
+          array << [ k,
+                      multiplier * h[k][0].to_f * unit,
+                      multiplier * h[k][1].to_f * unit ]
+        end
+        array
+      end
+
+      def all_page_sizes
+        output = ""
+        page_size_values.each do |k|
+          output << sprintf("\t%10s:\t%6.1f x %6.1f\n", *k)
         end
         output
       end
