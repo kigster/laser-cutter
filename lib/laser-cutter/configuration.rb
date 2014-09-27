@@ -29,6 +29,7 @@ module Laser
       SIZE_REGEXP = /[\d\.]+x[\d\.]+x[\d\.]+\/[\d\.]+\/[\d\.]+/
 
       FLOATS = %w(width height depth thickness notch margin padding stroke)
+      NON_ZERO = %w(width height depth thickness stroke)
       REQUIRED = %w(width height depth thickness notch file)
 
       def initialize(options = {})
@@ -56,6 +57,12 @@ module Laser
         end
         unless missing.empty?
           raise MissingOption.new("#{missing.join(', ')} #{missing.size > 1 ? 'are' : 'is'} required, but missing.")
+        end
+
+        NON_ZERO.each do |k|
+          if self[k] == 0
+            raise MissingOption.new("#{missing.join(', ')} #{missing.size > 1 ? 'are' : 'is'} required, but is zero.")
+          end
         end
       end
 

@@ -11,7 +11,7 @@ module Laser
         end
 
         def render pdf = nil
-          pdf = Prawn::Document.new(:margin => options.margin.send(options.units),
+          pdf = Prawn::Document.new(:margin => options.margin.to_f.send(options.units.to_sym),
                                     :page_size => options.page_size,
                                     :page_layout => options.page_layout.to_sym)
           header = <<-EOF
