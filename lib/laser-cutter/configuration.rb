@@ -6,6 +6,8 @@ module Laser
   module Cutter
     class MissingOption < RuntimeError
     end
+    class ZeroValueNotAllowed < MissingOption
+    end
     class Configuration < Hashie::Mash
       DEFAULTS = {
           units: 'mm',
@@ -52,18 +54,12 @@ module Laser
 
       def validate!
         missing = []
-        REQUIRED.each do |k|
-          missing << k if self[k].nil?
-        end
-        unless missing.empty?
-          raise MissingOption.new("#{missing.join(', ')} #{missing.size > 1 ? 'are' : 'is'} required, but missing.")
-        end
+        REQUIRED.each { |k| missing << k if self[k].nil? }
+        raise MissingOption.new("#{missing.join(', ')} #{missing.size > 1 ? 'are' : 'is'} required, but missing.") unless missing.empty?
 
-        NON_ZERO.each do |k|
-          if self[k] == 0
-            raise MissingOption.new("#{missing.join(', ')} #{missing.size > 1 ? 'are' : 'is'} required, but is zero.")
-          end
-        end
+        zeros = []
+        NON_ZERO.each { |k| zeros << k if self[k] == 0 }
+        raise ZeroValueNotAllowed.new("#{zeros.join(', ')} #{zeros.size > 1 ? 'are' : 'is'} required, but is zero.") unless zeros.empty?
       end
 
       def page_size_values

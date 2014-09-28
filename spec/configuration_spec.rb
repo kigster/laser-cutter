@@ -16,10 +16,19 @@ module Laser
         end
       end
       context '#validate' do
+        context 'missing options' do
         let(:opts) { {"height" => "23"} }
         it 'should be able to validate missing options' do
           expect(config.height).to eql(23.0)
           expect { config.validate! }.to raise_error(Laser::Cutter::MissingOption)
+        end
+        end
+        context 'zero options' do
+        let(:opts) { {"size" => "2.0x0.0x2/0.125/0.5", "inches" => true, 'file' => '/tmp/a'} }
+        it 'should be able to validate missing options' do
+          expect(config.height).to eql(0.0)
+          expect { config.validate! }.to raise_error(Laser::Cutter::ZeroValueNotAllowed)
+        end
         end
       end
       context '#list_page_sizes' do
