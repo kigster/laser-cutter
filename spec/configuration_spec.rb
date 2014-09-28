@@ -48,14 +48,14 @@ module Laser
 
       context "#change_units" do
         context "from inches" do
-          let(:opts) { {"size" => "2.0x3x2/0.125/0.5", 'padding' => '4.0', "units" => 'in'} }
+          let(:opts) { {"size" => "2.0x3x2/0.125/0.5", 'padding' => '4.2', "units" => 'in'} }
           it "should convert to mm" do
             expect(config.width).to eql(2.0)
             config.change_units('in')
             expect(config.width).to eql(2.0)
             config.change_units('mm')
             expect(config.width).to eql(50.8)
-            expect(config.padding).to eql(101.6)
+            expect(config.padding).to eql(106.68)
             expect(config.units).to eql('mm')
           end
         end
@@ -66,8 +66,8 @@ module Laser
             config.change_units('mm')
             expect(config.width).to eql(20.0)
             config.change_units('in')
-            expect(config.width).to be_within(0.001).of(0.787401575)
-            expect(config.margin).to be_within(0.001).of(0.393700787)
+            expect(config.width).to be_within(0.00001).of(0.787401575)
+            expect(config.margin).to be_within(0.00001).of(0.393700787)
             expect(config.units).to eql('in')
           end
         end
