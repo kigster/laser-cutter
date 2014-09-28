@@ -5,6 +5,7 @@ module Laser
     module Renderer
       class BoxRenderer < AbstractRenderer
         alias_method :box, :subject
+
         def initialize(options = {})
           self.options = options
           self.subject = Laser::Cutter::Box.new(options)
@@ -16,41 +17,61 @@ module Laser
                                     :page_layout => options.page_layout.to_sym)
           header = <<-EOF
 
-          Produced with Laser Cutter Ruby Gem (v#{Laser::Cutter::VERSION})
-          Credits to Prawn (for ruby PDF generation),
-          and BoxMaker (for the inspiration).
-          © 2014 Konstantin Gredeskoul, MIT license.
+          Made with Laser Cutter Ruby Gem (v#{Laser::Cutter::VERSION})
+          Credits to Prawn for ruby PDF generation,
+          and BoxMaker for inspiration.
+
+          Online: http://makeabox.io/
           https://github.com/kigster/laser-cutter
-          Generated at #{Time.new}.
           EOF
 
           renderer = self
 
+          meta_color = "406080"
+          meta_top = 150
+          metadata = renderer.options.to_hash
+          metadata.delete_if { |k| %w(verbose metadata open).include?(k) }
           pdf.instance_eval do
             self.line_width = renderer.options.stroke.send(renderer.options.units.to_sym)
-            float do
-              bounding_box([0, 50], :width => 150, :height => 40) do
-                stroke_color '0080FF'
-                stroke_bounds
-
-                indent 10 do
-                  font('Courier', :size => 5) do
-                    text header, :color => "0080FF"
+            if renderer.options.metadata
+              float do
+                bounding_box([0, meta_top], :width => 140, :height => 150) do
+                  stroke_color meta_color
+                  stroke_bounds
+                  indent 10 do
+                    font('Helvetica', :size => 6) do
+                      text header, :color => meta_color
+                    end
                   end
-                end
-              end
-              bounding_box([480, 120], :width => 110, :height => 110) do
-                stroke_color '00DF20'
-                stroke_bounds
-                indent 10 do
-                  font('Courier', :size => 6) do
-                    out = JSON.pretty_generate(renderer.options.to_hash).gsub(/[\{\}",]/,'')
-                    text out, :color => "00DF20"
+                  float do
+                    bounding_box([0, 100], :width => 140, :height => 100) do
+                      stroke_color meta_color
+                      stroke_bounds
+                      float do
+                        bounding_box([0, 100], :width => 70, :height => 100) do
+                          indent 10 do
+                            font('Helvetica', :size => 6) do
+                              out = JSON.pretty_generate(metadata).gsub(/[\{\}",]/, '').gsub(/:.*\n/x, "\n")
+                              text out, :color => meta_color, align: :right
+                            end
+                          end
+                        end
+                      end
+                      float do
+                        bounding_box([60, 100], :width => 70, :height => 100) do
+                          indent 10 do
+                            font('Helvetica', :size => 6) do
+                              out = JSON.pretty_generate(metadata).gsub(/[\{\}",]/, '').gsub(/\n?.*:/x, "\n:")
+                              text out, :color => meta_color
+                            end
+                          end
+                        end
+                      end
+                    end
                   end
                 end
               end
             end
-
             stroke_color "000000"
             renderer.box.notches.each do |notch|
               LineRenderer.new(notch, renderer.options).render(self)

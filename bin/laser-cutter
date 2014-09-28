@@ -62,6 +62,7 @@ EOF
           opts.separator ""
           opts.on("-A", "--list-all-page-sizes", "Print all available page sizes with dimensions and exit") { |v| options.list_all_page_sizes = true }
           opts.on("-v", "--[no-]verbose", "Run verbosely") { |v| options.verbose = v }
+          opts.on("-m", "--[no-]metadata", "Print to the PDF metadata") { |value| options.metadata = value }
           opts.separator ""
           opts.on("--examples", "Show detailed usage examples") {  puts opts; puts examples.yellow; exit  }
           opts.on("--help", "Show this message") { puts opts; exit }

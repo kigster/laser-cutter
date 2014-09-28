@@ -12,7 +12,8 @@ module Laser
       DEFAULTS = {
           units: 'mm',
           page_size: 'LETTER',
-          page_layout: 'portrait'
+          page_layout: 'portrait',
+          metadata: true
       }
 
       UNIT_SPECIFIC_DEFAULTS = {
