@@ -45,22 +45,25 @@ Usage: laser-cutter [options] -o filename.pdf
    eg: laser-cutter -i -s 1x1.5x2/0.125/0.125 -O -o box.pdf
 
 Specific Options:
-    -w, --width WIDTH                Internal width of the box
+        --width WIDTH                Internal width of the box
     -h, --height HEIGHT              Internal height of the box
     -d, --depth DEPTH                Internal depth of the box
-    -t, --thickness THICKNESS        Thickness of the box material
+        --thickness THICKNESS        Thickness of the box material
     -n, --notch NOTCH                Preferred notch length (used only as a guide)
 
     -m, --margin MARGIN              Margins from the edge of the document
     -p, --padding PADDING            Space between the boxes on the page
-    -S, --stroke WIDTH               Numeric stroke width of the line
-    -P, --page_size LETTER           Page size, see --list-all-page-sizes for more info.
-    -L, --page_layout portrait       Page layout, other option is 'landscape'
+    -t, --stroke WIDTH               Numeric stroke width of the line
+    -z, --page_size LETTER           Page size, see --list-all-page-sizes for more info.
+    -y, --page_layout portrait       Page layout, other option is 'landscape'
 
     -O, --open                       Open generated file with system viewer before exiting
+    -w, --write FILE                 Save current configuration to a file, use '-' for STDOUT
+    -r, --read FILE                  Read configuration from a file, use '-' for STDIN
     -u, --units UNITS                Either 'mm' (default) or 'in'
 
-    -A, --list-all-page-sizes        Print all available page sizes with dimensions and exit
+    -l, --list-all-page-sizes        Print all available page sizes with dimensions and exit
+    -M, --no-metadata                Do not print box metadata on the PDF
     -v, --[no-]verbose               Run verbosely
 
         --examples                   Show detailed usage examples
