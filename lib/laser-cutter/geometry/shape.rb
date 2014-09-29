@@ -11,9 +11,15 @@ module Laser
         def x= value
           position.x = value
         end
+        def x
+          position.x
+        end
 
         def y= value
           position.y = value
+        end
+        def y
+          position.y
         end
 
         def move_to new_point

@@ -6,6 +6,8 @@ module Laser
       class BoxRenderer < AbstractRenderer
         alias_method :box, :subject
 
+        META_RECT = Geometry::Rect.create(Geometry::Point[0, 0], 140, 150)
+
         def initialize(options = {})
           self.options = options
           self.subject = Laser::Cutter::Box.new(options)
@@ -27,15 +29,19 @@ module Laser
 
           renderer = self
 
-          meta_color = "406080"
-          meta_top = 150
+          meta_color = "4090E0"
+          meta_top_height = 50
           metadata = renderer.options.to_hash
           metadata.delete_if { |k| %w(verbose metadata open file).include?(k) }
+          if options.metadata
+            coords = [ META_RECT.p2.x, META_RECT.p2.y ].map{|a| options.value_from_units(a)}
+            box.metadata = Geometry::Point.new(coords)
+          end
           pdf.instance_eval do
             self.line_width = renderer.options.stroke.send(renderer.options.units.to_sym)
             if renderer.options.metadata
               float do
-                bounding_box([0, meta_top], :width => 140, :height => 150) do
+                bounding_box([0, META_RECT.h], :width => META_RECT.w, :height => META_RECT.h) do
                   stroke_color meta_color
                   stroke_bounds
                   indent 10 do
@@ -44,11 +50,13 @@ module Laser
                     end
                   end
                   float do
-                    bounding_box([0, 100], :width => 140, :height => 100) do
+                    bounding_box([0, META_RECT.h - meta_top_height],
+                                 :width => META_RECT.w,
+                                 :height => META_RECT.h - meta_top_height) do
                       stroke_color meta_color
                       stroke_bounds
                       float do
-                        bounding_box([0, 100], :width => 70, :height => 100) do
+                        bounding_box([0, META_RECT.h - meta_top_height], :width => 70, :height => META_RECT.h - meta_top_height) do
                           indent 10 do
                             font('Helvetica', :size => 6) do
                               out = JSON.pretty_generate(metadata).gsub(/[\{\}",]/, '').gsub(/:.*\n/x, "\n")
@@ -58,7 +66,7 @@ module Laser
                         end
                       end
                       float do
-                        bounding_box([60, 100], :width => 70, :height => 100) do
+                        bounding_box([60, META_RECT.h - meta_top_height], :width => 70, :height => META_RECT.h - meta_top_height) do
                           indent 10 do
                             font('Helvetica', :size => 6) do
                               out = JSON.pretty_generate(metadata).gsub(/[\{\}",]/, '').gsub(/\n?.*:/x, "\n:")

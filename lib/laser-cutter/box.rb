@@ -10,6 +10,7 @@ module Laser
 
       attr_accessor :front, :back, :top, :bottom, :left, :right
       attr_accessor :faces, :bounds, :conf, :corner_face
+      attr_accessor :metadata
 
       def initialize(config = {})
         self.dim = Geometry::Dimensions.new(config['width'], config['height'], config['depth'])
@@ -19,10 +20,10 @@ module Laser
         self.padding = config['padding']
         self.units = config['units']
 
+        self.metadata = Geometry::Point[config['metadata_width'] || 0, config['metadata_height'] || 0]
+
         create_faces! # generates dimensions for each side
         self.faces =     [top, front, bottom, back, left, right]
-
-        position_faces!
 
         self.conf   = {
             valign: [    :out, :out,  :out,   :out, :in, :in],
@@ -39,6 +40,8 @@ module Laser
       # Returns an flattened array of lines representing notched
       # rectangle.
       def notches
+        position_faces!
+
         corner_face = pick_corners_face
 
         notches = []
@@ -93,7 +96,7 @@ module Laser
       #   |        |  |                 |  |        |
       #   | left   |  | front:    W x H |  | right  |
       #   | D x H  |  |                 |  | D x H  |
-      #   +--------+  +-----------------+  +--------+
+      #   +--------+  X-----------------+  +--------+
       #               +-----------------+
       #               | top   :   W x D |
       #               +-----------------+
@@ -102,22 +105,23 @@ module Laser
       #___________________________________________________________________
 
       def position_faces!
-        offset = padding + d + 3 * thickness
-        left.x = top.y = thickness
-        [bottom, front, top, back].each do |s|
-          s.x = offset
-        end
+        offset_x = [padding + d + 3 * thickness, metadata.x + 2 * thickness + padding].max
+        offset_y = [padding + d + 3 * thickness, metadata.y + 2 * thickness + padding].max
 
-        right.x = 2 * padding + w + d + 5 * thickness
-        [left, front, right].each do |s|
-          s.y = offset
-        end
+        # X Coordinate
+        left.x  = offset_x - d - 2 * thickness - padding
+        right.x = offset_x + w + 2 * thickness + padding
 
-        bottom.y = d + 2 * padding + h + 5 * thickness
-        back.y = 3 * padding + 2 * d + h + 7*thickness
+        [bottom, front, top, back].each { |s| s.x = offset_x }
+
+        # Y Coordinate
+        top.y    = offset_y - d - 2 * thickness - padding
+        bottom.y = offset_y + h + 2 * thickness + padding
+        back.y   = bottom.y + d + 2 * thickness + padding
+
+        [left, front, right].each { |s| s.y = offset_y }
 
         faces.each(&:relocate!)
-
       end
 
       def create_faces!

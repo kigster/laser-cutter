@@ -29,6 +29,7 @@ module Laser
           }
       }
 
+
       SIZE_REGEXP = /[\d\.]+x[\d\.]+x[\d\.]+\/[\d\.]+\/[\d\.]+/
 
       FLOATS = %w(width height depth thickness notch margin padding stroke)
@@ -64,16 +65,31 @@ module Laser
       end
 
       def page_size_values
-        unit = 1.0 / 72.0 # PDF units per inch
-        multiplier = (self.units == 'in') ? 1.0 : 25.4
         h = PDF::Core::PageGeometry::SIZES
         array = []
         h.keys.sort.each do |k|
-          array << [ k,
-                      multiplier * h[k][0].to_f * unit,
-                      multiplier * h[k][1].to_f * unit ]
+          array << [k, value_from_units(h[k][0].to_f), value_from_units(h[k][1].to_f)]
         end
         array
+      end
+
+      # if from_units is nil, we expect it to be in dots per inch (default
+      # measurements for Prawn
+      def value_from_units value, from_units = nil
+        multiplier = if from_units.nil?
+                       if units.eql?('in')
+                         1.0 / 72.0 # PDF units per inch
+                       else
+                         25.4 * 1.0 / 72.0
+                       end
+                     elsif self.units.eql?(from_units)
+                       1.0
+                     elsif self.units.eql?('in') && from_units.eql?('mm')
+                       (1.0 / 25.4)
+                     else
+                       25.4
+                     end
+        value.to_f * multiplier
       end
 
       def all_page_sizes
