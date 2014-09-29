@@ -30,7 +30,7 @@ module Laser
           meta_color = "406080"
           meta_top = 150
           metadata = renderer.options.to_hash
-          metadata.delete_if { |k| %w(verbose metadata open).include?(k) }
+          metadata.delete_if { |k| %w(verbose metadata open file).include?(k) }
           pdf.instance_eval do
             self.line_width = renderer.options.stroke.send(renderer.options.units.to_sym)
             if renderer.options.metadata
