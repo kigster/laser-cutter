@@ -31,22 +31,6 @@ module Laser
           end
         end
       end
-      context '#list_page_sizes' do
-        context 'formatting of output' do
-          context 'when using inches' do
-            let(:opts) { {"units" => "in"} }
-            it 'should return the list in inches' do
-              expect(config.all_page_sizes).to match %r(.*B10\:\s+1\.2\s+x\s+1\.7)
-            end
-          end
-          context 'when using mm' do
-            let(:opts) { {"units" => "mm"} }
-            it 'should return the list in mm' do
-              expect(config.all_page_sizes).to match %r(.*B10\:\s+31\.0\s+x\s+44\.0)
-            end
-          end
-        end
-      end
 
       context 'when invalid units are provided' do
         let(:opts) { {"size" => "2x3x2/0.125/0.5", "units" => 'xx'} }
@@ -56,24 +40,6 @@ module Laser
       end
 
       context 'when converting between units' do
-        context 'a single value' do
-          context 'to inches' do
-            let(:opts) { {'units' => 'in'} }
-            it 'should be correct' do
-              expect(config.value_from_units(150)).to be_within(0.0001).of(150.0/72.0)
-              expect(config.value_from_units(150, 'mm')).to be_within(0.0001).of(150.0/25.4)
-              expect(config.value_from_units(150, 'in')).to be_within(0.0001).of(150.0)
-            end
-          end
-          context 'to mm' do
-            let(:opts) { {'units' => 'mm'} }
-            it 'should be correct' do
-              expect(config.value_from_units(150)).to be_within(0.0001).of(25.4 * 150.0 / 72.0)
-              expect(config.value_from_units(150, 'in')).to be_within(0.0001).of(150.0 * 25.4)
-              expect(config.value_from_units(150, 'mm')).to be_within(0.0001).of(150.0)
-            end
-          end
-        end
         context 'all config values' do
           context "to mm" do
             let(:opts) { {'size' => "2.0x3x2/0.125/0.5", 'padding' => '4.2', "units" => 'in'} }

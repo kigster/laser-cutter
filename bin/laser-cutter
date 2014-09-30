@@ -87,7 +87,7 @@ Examples:
 
         config = Laser::Cutter::Configuration.new(options.to_hash)
         if config.list_all_page_sizes
-          puts config.all_page_sizes
+          puts PageManager.new(config.units).all_page_sizes
           exit 0
         end
 

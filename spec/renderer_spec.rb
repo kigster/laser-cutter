@@ -3,19 +3,22 @@ require_relative 'spec_helper'
 module Laser
   module Cutter
     module Renderer
-      describe 'BoxRenderer' do
+      describe LayoutRenderer do
         context '#render' do
-          let(:box) { Laser::Cutter::Box.new(config) }
           let(:renderer) { LayoutRenderer.new(config) }
           let(:file) { File.expand_path("../../laser-cutter-pdf-test.#{$$}.pdf", __FILE__) }
 
           def render_file filename
+            config.validate!
             expect(!File.exists?(filename))
             renderer.render
             expect(File.exist?(filename))
             expect(File.size(filename) > 0)
+          rescue Exception => e
+            STDERR.puts e.backtrace.join("\n")
+            fail e.message
           ensure
-            File.delete(filename)
+            File.delete(filename) rescue nil
             expect(!File.exists?(filename))
           end
 
@@ -38,7 +41,7 @@ module Laser
 
               it 'should be able to generate a PDF file' do
                 render_file file
-            end
+              end
             end
 
             context 'margins and padding are defaults' do

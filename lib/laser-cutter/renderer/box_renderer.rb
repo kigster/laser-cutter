@@ -6,17 +6,16 @@ module Laser
       class BoxRenderer < Base
         alias_method :box, :subject
 
-        META_RECT = Geometry::Rect.create(Geometry::Point[2, 2], 140, 150)
-
-        def initialize(config = {})
-          self.config = config
+        def initialize(config)
+          super(config)
           self.subject = Laser::Cutter::Box.new(config)
         end
 
         def ensure_space_for(rect)
-          coords = [ META_RECT.p2.x, META_RECT.p2.y ].map{|a| config.value_from_units(a)}
+          coords = [ rect.p2.x, rect.p2.y ].map{|a| page_manager.value_from_units(a)}
           box.metadata = Geometry::Point.new(coords)
         end
+
 
         def render pdf = nil
           renderer = self

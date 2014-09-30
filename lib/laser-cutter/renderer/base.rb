@@ -5,10 +5,12 @@ module Laser
         BLACK = "000000"
         BLUE = "4090E0"
 
-        attr_accessor :config, :subject, :enclosure
-        def initialize(config = {}, subject)
+        attr_accessor :config, :subject, :enclosure, :page_manager
+
+        def initialize(config, subject = nil)
           self.config = config
           self.subject = subject
+          self.page_manager = Laser::Cutter::PageManager.new(config.units)
         end
 
         def render
