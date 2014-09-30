@@ -150,14 +150,13 @@ end # class OptParse
 config = Laser::Cutter::OptParse.parse(ARGV)
 
 begin
-  Laser::Cutter::Renderer::BoxRenderer.new(config).render
+  Laser::Cutter::Renderer::LayoutRenderer.new(config).render
   if config.open
     `open #{config.file}`
   end
 rescue Exception => e
-  puts_error(e)
-  if options.verbose
-    STDERR.puts "Exception: #{e.inspect}".red
+  STDERR.puts "#{e.inspect}".red
+  if config.verbose
     STDERR.puts e.backtrace.join("\n").red
   end
 end
