@@ -34,8 +34,8 @@ module Laser
 
       context 'when invalid units are provided' do
         let(:opts) { {"size" => "2x3x2/0.125/0.5", "units" => 'xx'} }
-        it 'should default to millimeters' do
-          expect(config.units).to eql('mm')
+        it 'should default to inches' do
+          expect(config.units).to eql('in')
         end
       end
 

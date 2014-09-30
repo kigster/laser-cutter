@@ -10,8 +10,7 @@ module Laser
     end
     class Configuration < Hashie::Mash
       DEFAULTS = {
-          units: 'mm',
-          page_size: 'LETTER',
+          units: 'in',
           page_layout: 'portrait',
           metadata: true
       }

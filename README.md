@@ -18,7 +18,14 @@ command line options, and perhaps a light weight web application.  If you are in
 contributing to the project, please see [contributing](CONTRIBUTING.md) for more details. 
 
 ```laser-cutter``` supports many flexible command line options that allow setting dimensions, 
-stroke width, page size, layout, margins, padding (spacing between the boxes), and many more.  
+stroke width, page size, layout, margins, padding (spacing between the boxes), and many more.
+  
+## Web Front-End
+
+There is a web online application that uses this gem and allows you to generate PDFs with 
+a friendly UI.
+
+Please visit [http://makeabox.io](http://makeabox.io).
 
 ## Dependencies
 
@@ -42,25 +49,24 @@ Or install it yourself as:
 
 ```bash
 Usage: laser-cutter [options] -o filename.pdf
-   eg: laser-cutter -i -s 1x1.5x2/0.125/0.125 -O -o box.pdf
+   eg: laser-cutter -s 1x1.5x2/0.125/0.125 -O -o box.pdf
 
 Specific Options:
-        --width WIDTH                Internal width of the box
+    -w, --width WIDTH                Internal width of the box
     -h, --height HEIGHT              Internal height of the box
     -d, --depth DEPTH                Internal depth of the box
-        --thickness THICKNESS        Thickness of the box material
+    -t, --thickness THICKNESS        Thickness of the box material
     -n, --notch NOTCH                Preferred notch length (used only as a guide)
 
     -m, --margin MARGIN              Margins from the edge of the document
     -p, --padding PADDING            Space between the boxes on the page
-    -t, --stroke WIDTH               Numeric stroke width of the line
+    -k, --stroke WIDTH               Numeric stroke width of the line
     -z, --page_size LETTER           Page size, see --list-all-page-sizes for more info.
     -y, --page_layout portrait       Page layout, other option is 'landscape'
 
     -O, --open                       Open generated file with system viewer before exiting
-    -w, --write FILE                 Save current configuration to a file, use '-' for STDOUT
-    -r, --read FILE                  Read configuration from a file, use '-' for STDIN
-    -u, --units UNITS                Either 'mm' (default) or 'in'
+    -W, --write FILE                 Save provided configuration to a file, use '-' for STDOUT
+    -R, --read FILE                  Read configuration from a file, or use '-' for STDIN
 
     -l, --list-all-page-sizes        Print all available page sizes with dimensions and exit
     -M, --no-metadata                Do not print box metadata on the PDF
@@ -75,23 +81,42 @@ Common Options:
     -s, --size WxHxD/T/N             Combined internal dimensions: W = width, H = height,
                                      D = depth, T = thickness, N = notch length
 
-    -i, --inches                     Switch measurements to inches instead of millimeters
+    -u, --units UNITS                Either 'in' for inches (default) or 'mm'
+```
 
-Examples:
-  1. Create a box defined in inches, and open PDF in preview right after:
+### Examples
 
-       laser-cutter -i -s 3x2x2/0.125/0.5 -O -o box.pdf
+Create a box defined in inches, and open PDF in preview right after:
 
-  2. Create a box defined in millimeters, print verbose info and set
-     page size to A3, and layout to landscape, and stroke width to 1/2mm:
+```bash
+    laser-cutter -s 3x2x2/0.125/0.5 -O -o box.pdf
+```       
 
-       laser-cutter -w70 -h20 -d50 -t4.3 -n5 -PA3 -L landscape -S0.5 -v -O -o box.pdf
+Create a box defined in millimeters, print verbose info, and set
+page size to A3, and layout to landscape, and stroke width to 1/2mm:
 
-  3. List all possible page sizes in metric or imperial systems:
+```bash
+    laser-cutter -u mm -w70 -h20 -d50 -t4.3 -n5 -zA3 -y landscape -k0.5 -v -O -o box.pdf
+```   
 
-       laser-cutter --list-all-page-sizes
-       laser-cutter --list-all-page-sizes --inches
+List all possible page sizes in metric system:
+
+```bash
+    laser-cutter -l -u mm
 ```                 
+
+Create a box with provided dimensions, and save the config to a file for later use:
+
+```bash
+    laser-cutter -s 1.1x2.5x1.5/0.125/0.125 -p 0.1 -O -o box.pdf -W box-settings.json
+```    
+
+Read settings from a previously saved file:
+
+```bash
+    laser-cutter -O -o box.pdf -R box-settings.json
+    cat box-settings.json | laser-cutter -O -o box.pdf -R -
+```
 
 ## Future Features
 
@@ -100,7 +125,6 @@ Examples:
 * Support more shapes than just box
 * Create T-style joins, using various standard sizes of nuts and bolts (such as common #4-40 and M2 sizes)
 * Supporting lids and front panels, that are larger than the box itself and have holes for notches. 
-* A web-app that uses the gem and renders box live in CSS using CSS 2D to show preview.
 * Your brilliant idea can be here too!  Please see [contributing](CONTRIBUTING.md) for more info.
 
 ## Comparison with BoxMaker
@@ -137,14 +161,14 @@ niceties):
 ```bash
 git clone https://github.com/aphelps/boxmaker && cd boxmaker && ant
 java -cp BOX.jar com.rahulbotics.boxmaker.BoxMaker \
-      -i -W 1 -H 2 -D 1.5 -T 0.125 -n 0.125 -f box.pdf
+      -W 1 -H 2 -D 1.5 -T 0.125 -n 0.125 -o box.pdf
 ```
 
 And laser-cutter:
 
 ```bash
 gem install laser-cutter
-laser-cutter -i -s 1x1.5x2/0.125/0.125 -O -o box.pdf
+laser-cutter -s 1x1.5x2/0.125/0.125 -O -o box.pdf
 ```
 
 ![LaserCutter Comparison](doc/comparison.jpg).
