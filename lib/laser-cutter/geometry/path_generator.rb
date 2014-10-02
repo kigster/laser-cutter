@@ -34,7 +34,7 @@ module Laser
         # Removes the items from the list that appear more than once
         # Unlike uniq-ing which keeps all elements, just ensures that are not
         # repeated, here we remove elements completely if they are seen more than once.
-        # This is used to remove lines
+        # This is used to remove lines that join the same two points.
         def self.deduplicate list
           new_list = []
           list.sort!
@@ -53,9 +53,6 @@ module Laser
           @notch_width = options[:notch_width]    # only desired, will be adapted for each line
           @center_out = options[:center_out]      # when true, the notch in the middle of the edge is out, not in.
           @thickness = options[:thickness]
-
-          # 2D array of booleans.  If true first or second end of the edge is
-          # created with a corner filled in.
           @fill_corners = options[:fill_corners]
         end
 
