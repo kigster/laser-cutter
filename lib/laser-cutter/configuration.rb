@@ -28,7 +28,6 @@ module Laser
           }
       }
 
-
       SIZE_REGEXP = /[\d\.]+x[\d\.]+x[\d\.]+\/[\d\.]+\/[\d\.]+/
 
       FLOATS = %w(width height depth thickness notch margin padding stroke)
@@ -67,6 +66,7 @@ module Laser
         return if (self.units.eql?(new_units) || !UNIT_SPECIFIC_DEFAULTS.keys.include?(new_units))
         k = (self.units == 'in') ? 25.4 : 0.039370079
         FLOATS.each do |field|
+          next if self.send(field.to_sym).nil?
           self.send("#{field}=".to_sym, (self.send(field.to_sym) * k).round(5))
         end
         self.units = new_units
