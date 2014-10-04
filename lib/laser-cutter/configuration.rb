@@ -17,8 +17,8 @@ module Laser
 
       UNIT_SPECIFIC_DEFAULTS = {
           'mm' => {
-              margin: 5,
-              padding: 5,
+              margin: 3,
+              padding: 2,
               stroke: 0.0254,
           },
           'in' => {
