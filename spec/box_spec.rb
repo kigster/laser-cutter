@@ -3,7 +3,7 @@ require_relative 'spec_helper'
 module Laser
   module Cutter
     describe Box do
-      let(:config) { {'width' => 50, 'height' => 60, 'depth' => 70, 'margin' => 5, 'padding' => 3 } }
+      let(:config) { {'width' => 50, 'height' => 60, 'depth' => 70, 'margin' => 5, 'padding' => 3, 'units' => 'mm'} }
       let(:box1) { Box.new(config.merge('thickness' => 6, 'notch' => 10)) }
       let(:box2) { Box.new(config.merge('thickness' => 6, )) }
 
@@ -23,6 +23,11 @@ module Laser
         it 'should generate notches' do
           expect(box1.notches).to_not be_nil
           expect(box1.notches.size).to eql(320)
+        end
+
+        it 'should properly calculate enclosure' do
+          expect(box1.enclosure.to_a.flatten.map(&:round)).to eql([0,0, 232, 317])
+          expect(box2.enclosure.to_a.flatten.map(&:round)).to eql([0,0, 232, 317])
         end
       end
 

@@ -10,7 +10,7 @@ module Laser
 
       attr_accessor :front, :back, :top, :bottom, :left, :right
       attr_accessor :faces, :bounds, :conf, :corner_face
-      attr_accessor :metadata
+      attr_accessor :metadata, :notches
 
       def initialize(config = {})
         self.dim = Geometry::Dimensions.new(config['width'], config['height'], config['depth'])
@@ -19,6 +19,8 @@ module Laser
         self.notch_width = config['notch'] || (1.0 * self.longest / 5.0)
         self.padding = config['padding']
         self.units = config['units']
+
+        @notches = []
 
         self.metadata = Geometry::Point[config['metadata_width'] || 0, config['metadata_height'] || 0]
 
@@ -36,15 +38,31 @@ module Laser
         self
       end
 
+      def enclosure
+        p1 = notches.first.p1.to_a
+        p2 = notches.first.p2.to_a
 
-      # Returns an flattened array of lines representing notched
-      # rectangle.
+        notches.each do |notch|
+          n = notch.normalized
+          n.p1.to_a.each_with_index {|c, i| p1[i] = c if c < p1[i] }
+          n.p2.to_a.each_with_index {|c, i| p2[i] = c if c > p2[i] }
+        end
+
+        Geometry::Rect[Geometry::Point.new(p1), Geometry::Point.new(p2)]
+      end
+
+      # Returns an flattened array of lines representing notched lines
       def notches
+        generate_notches! if @notches.empty?
+        @notches
+      end
+
+      def generate_notches!
         position_faces!
 
         corner_face = pick_corners_face
 
-        notches = []
+        @notches = []
         faces.each_with_index do |face, face_index|
           bound = face_bounding_rect(face)
           bound.sides.each_with_index do |bounding_side, side_index |
@@ -54,11 +72,11 @@ module Laser
                                                :fill_corners => (self.conf[:corners][corner_face][face_index] == :yes && side_index.odd?),
                                                :thickness => thickness
             ).path(Geometry::Edge.new(bounding_side, face.sides[side_index], self.notch_width))
-            notches << path.create_lines
+            @notches << path.create_lines
           end
         end
 
-        Geometry::PathGenerator.deduplicate(notches.flatten.sort)
+        @notches = Geometry::PathGenerator.deduplicate(@notches.flatten.sort)
       end
 
       def w; dim.w; end

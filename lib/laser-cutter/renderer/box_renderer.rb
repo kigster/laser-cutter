@@ -16,6 +16,9 @@ module Laser
           box.metadata = Geometry::Point.new(coords)
         end
 
+        def enclosure
+          box.enclosure
+        end
 
         def render pdf = nil
           renderer = self

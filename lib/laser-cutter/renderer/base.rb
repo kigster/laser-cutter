@@ -1,6 +1,9 @@
 module Laser
   module Cutter
     module Renderer
+      # subject is what we are rendering
+      # enclosure is the rectangle enclosing our subject's rendered image
+      # page_manager contains access to units and page sizes
       class Base
         BLACK = "000000"
         BLUE = "4090E0"

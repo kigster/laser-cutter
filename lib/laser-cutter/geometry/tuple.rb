@@ -36,7 +36,7 @@ module Laser
         end
 
         def to_a
-          self.coords
+          self.coords.clone
         end
 
         def to_s

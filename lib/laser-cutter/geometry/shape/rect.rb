@@ -46,11 +46,13 @@ module Laser
           p2.y - p1.y
         end
 
-
         def to_s
           "#{sprintf "%3d", w}(w)x#{sprintf "%3d", h}(h) @ #{position.to_s}"
         end
 
+        def to_a
+          [[p1.x, p1.y], [p2.x, p2.y]]
+        end
       end
 
     end
