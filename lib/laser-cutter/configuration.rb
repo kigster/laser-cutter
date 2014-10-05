@@ -28,7 +28,7 @@ module Laser
           }
       }
 
-      SIZE_REGEXP = /[\d\.]+x[\d\.]+x[\d\.]+\/[\d\.]+\/[\d\.]+/
+      SIZE_REGEXP = /[\d\.]+x[\d\.]+x[\d\.]+\/[\d\.]+(\/[\d\.]+)?/
 
       FLOATS = %w(width height depth thickness notch margin padding stroke)
       NON_ZERO = %w(width height depth thickness stroke)
@@ -50,6 +50,7 @@ module Laser
           self[k] = self[k].to_f if (self[k] && self[k].is_a?(String))
         end
         self.merge!(UNIT_SPECIFIC_DEFAULTS[self['units']].merge(self))
+        self['notch'] = self['thickness'] * 3.0 if self['thickness'] && self['notch'].nil?
       end
 
       def validate!

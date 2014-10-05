@@ -23,11 +23,12 @@ class Laser::Cutter::Renderer::MetaRenderer < Laser::Cutter::Renderer::Base
 
     metadata = config.to_hash
     metadata.delete_if { |k| %w(verbose metadata open file).include?(k) }
+    metadata['page_size'] ||= 'custom'
 
     rect = self.enclosure
 
     pdf.instance_eval do
-      self.line_width = 0.5.mm
+      self.line_width = 0.2.mm
       float do
         bounding_box([rect.p1.x, rect.h + rect.p1.y], :width => rect.w, :height => rect.h) do
           stroke_color meta_color

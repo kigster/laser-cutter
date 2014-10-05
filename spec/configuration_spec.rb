@@ -24,11 +24,20 @@ module Laser
           end
         end
         context 'zero options' do
-          let(:opts) { {"size" => "2.0x0.0x2/0.125/0.5", "inches" => true, 'file' => '/tmp/a'} }
+          let(:opts) { {"size" => "2.0x0.0x2/0.125/0.5", 'file' => '/tmp/a'} }
           it 'should be able to validate missing options' do
             expect(config.height).to eql(0.0)
             expect { config.validate! }.to raise_error(Laser::Cutter::ZeroValueNotAllowed)
           end
+        end
+      end
+
+      context 'default values' do
+        let(:opts) { {"size" => "2.0x1.0x2/0.125", 'file' => '/tmp/a'} }
+        it 'should correctly default notch based on thickness' do
+          config.validate!
+          expect(config.thickness).to eql(0.125)
+          expect(config.notch).to eql(config.thickness * 3.0)
         end
       end
 
