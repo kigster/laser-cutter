@@ -6,7 +6,7 @@ module Laser
       # page_manager contains access to units and page sizes
       class Base
         BLACK = "000000"
-        BLUE = "4090E0"
+        BLUE = "0070E0"
 
         attr_accessor :config, :subject, :enclosure, :page_manager
 

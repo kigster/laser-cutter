@@ -50,7 +50,7 @@ module Laser
           self[k] = self[k].to_f if (self[k] && self[k].is_a?(String))
         end
         self.merge!(UNIT_SPECIFIC_DEFAULTS[self['units']].merge(self))
-        self['notch'] = self['thickness'] * 3.0 if self['thickness'] && self['notch'].nil?
+        self['notch'] = (self['thickness'] * 3.0).round(5) if self['thickness'] && self['notch'].nil?
       end
 
       def validate!

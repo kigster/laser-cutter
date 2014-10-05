@@ -1,6 +1,7 @@
 # encoding: utf-8
-require 'json'
 class Laser::Cutter::Renderer::MetaRenderer < Laser::Cutter::Renderer::Base
+
+  META_KEYS = %w(units width height depth thickness notch stroke padding margin page_size page_layout)
 
   def initialize(config = {})
     self.config = config
@@ -19,11 +20,14 @@ class Laser::Cutter::Renderer::MetaRenderer < Laser::Cutter::Renderer::Base
     EOF
 
     meta_color = BLUE
-    meta_top_height = 50
+    meta_top_height = 55
 
     metadata = config.to_hash
-    metadata.delete_if { |k| %w(verbose metadata open file).include?(k) }
     metadata['page_size'] ||= 'custom'
+    metadata.delete('page_layout') if metadata['page_size'].eql?('custom')
+
+    meta_fields = META_KEYS.find_all{|k| metadata[k]}.join(": \n") + ": \n"
+    meta_values = META_KEYS.find_all{|k| metadata[k]}.map{|k| metadata[k] }.join("\n")
 
     rect = self.enclosure
 
@@ -41,13 +45,8 @@ class Laser::Cutter::Renderer::MetaRenderer < Laser::Cutter::Renderer::Base
             end
           end
 
-          # print values of the config, in two parts – keys right aligned first,
-          # values left aligned second.
+          # print values of the config, in two parts – keys right aligned first, values left aligned second.
           float do
-            # parse out meta keys and then values
-            meta_fields = JSON.pretty_generate(metadata).gsub(/[\{\}",]/, '').gsub(/:.*\n/x, "\n")
-            meta_values = JSON.pretty_generate(metadata).gsub(/[\{\}",]/, '').gsub(/\n?.*:/x, "\n:")
-
             bounding_box([0, rect.h - meta_top_height],
                          :width => rect.w,
                          :height => rect.h - meta_top_height) do
