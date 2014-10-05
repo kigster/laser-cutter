@@ -3,14 +3,23 @@
 [![Code Climate](https://codeclimate.com/github/kigster/laser-cutter.png)](https://codeclimate.com/github/kigster/laser-cutter)
 [![Test Coverage](https://codeclimate.com/github/kigster/laser-cutter/badges/coverage.svg)](https://codeclimate.com/github/kigster/laser-cutter)
 
-## LaserCutter
+## LaserCutter and Make-A-Box.io
 
-Similar to [BoxMaker](https://github.com/rahulbot/boxmaker/) (which is written in Java a long time ago), 
-this ruby gem generates PDFs that can be used as a basis for creating a "snap-in" boxes with notched
-sides on a typical laser cutter, by providing dimensions, material thickness and output file name. 
+```laser-cutter``` is a ruby library for generating PDF designs for boxes of
+custom dimensions that suit your project, that can be cut from wood or acrylic 
+using a laser-cutter. The sides of the box snap together using alternating notches, 
+that are deliberately layed out in a symmetric form.
 
-For more detailed comparison with BoxMaker and motivation behind this project, please see the section 
-at the bottom of this README.
+To use ```laser-cutter``` you need to have a recent version of ruby interpreter, 
+install it as a gem, and use command line to generate PDFs.
+
+[Make-A-Box](http://makeabox.io) is a online web application that uses ```laser-cutter``` library
+and provides a straight-forward user interface for generating PDF designs without the need to install
+the gem or use command line.  
+
+Use whatever suites you better.
+
+### Design Goals
 
 One of the design goals of this project is to provide a highly extensible platform for creating 
 laser-cut designs, where alternative strategies can be added over time, and supported by various 
@@ -20,13 +29,6 @@ contributing to the project, please see [contributing](CONTRIBUTING.md) for more
 ```laser-cutter``` supports many flexible command line options that allow setting dimensions, 
 stroke width, page size, layout, margins, padding (spacing between the boxes), and many more.
   
-## Web Front-End
-
-There is a web online application that uses this gem and allows you to generate PDFs with 
-a friendly UI.
-
-Please visit [http://makeabox.io](http://makeabox.io).
-
 ## Dependencies
 
 The gem depends primarily on [Prawn](http://prawnpdf.org) – a fantastic PDF generation library. 
@@ -118,31 +120,32 @@ Read settings from a previously saved file:
     cat box-settings.json | laser-cutter -O -o box.pdf -R -
 ```
 
-## Future Features
+## Feature Wish List
 
+* Create T-style joins, using various standard sizes of nuts and bolts (such as common #4-40 and M2 sizes)
 * Extensibility with various layout strategies, notch drawing strategies, basically plug and play
   model for adding new algorithms for path creation and box joining
-* Support more shapes than just box
-* Create T-style joins, using various standard sizes of nuts and bolts (such as common #4-40 and M2 sizes)
+* Support more shapes than just box, such as prisms
 * Supporting lids and front panels, that are larger than the box itself and have holes for notches. 
 * Your brilliant idea can be here too!  Please see [contributing](CONTRIBUTING.md) for more info.
 
-## Comparison with BoxMaker
+## LaserCutter vs BoxMaker
 
-It's important to note that the author believes that BoxMaker is a greatly useful piece of software 
-generously open sourced by the author, and so in no way this project disputes BoxMaker's viability. 
-  
-In fact BoxMaker was an inspiration for this project. Laser-Cutter library attempts to further advance 
-concept of programmatically creating laser-cut boxes, provide additional tuning, options, strategies
-and most importantly – extensibility.  
+[Rahulbot](https://github.com/rahulbot/)-made [BoxMaker](https://github.com/rahulbot/boxmaker/) is a 
+functional generator of notched designs, similar to ```laser-cutter```, and generously open sourced 
+by the author, and so in no way this project disputes BoxMaker's viability. In fact BoxMaker was an 
+inspiration for this project. 
 
-Unlike ```BoxMaker```, this gem has a suit of automated tests (rspecs) around creating the geometry. 
-In addition, we welcome new feature contributions, or bug fixes from other developers, and in that 
-regard rspecs offer confidence that functionality still works.
+Laser-Cutter library attempts to further advance the concept of programmatically creating 
+laser-cut box designs, provides additional fine tuning, many more options, strategies and most 
+importantly – extensibility.  
 
-BoxMaker's algorithm _tries to ensures that the same notch length is across all sides, but sacrifices
-symmetry as a result_.  So you may have a front panel's left and right edges be simply non symmetric. 
-And that might be entirely OK with you :)
+Unlike ```BoxMaker```, this gem has a suit of automated tests (rspecs) around the core functionality.
+In addition, new feature contributions are highly encouraged, and in that 
+regard having existing test suit offers confidence against regressions, and thus welcomes colaboration.
+
+Finally, BoxMaker's notch-drawing algorithm generates non-symmetric and sometimes purely broken designs
+(see picture below). 
  
 ```laser-cutter```'s algorithm will create a _symmetric design for most panels_, but it might sacrifice
 identical notch length. Depending on the box dimensions you may end up with a slightly different notch 
