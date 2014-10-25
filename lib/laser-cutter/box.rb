@@ -5,7 +5,7 @@ module Laser
     class Box
       # Everything is in millimeters
 
-      attr_accessor :dim, :thickness, :notch_width
+      attr_accessor :dim, :thickness, :notch_width, :kerf
       attr_accessor :padding, :units
 
       attr_accessor :front, :back, :top, :bottom, :left, :right
@@ -17,6 +17,7 @@ module Laser
         self.thickness = config['thickness']
 
         self.notch_width = config['notch'] || (1.0 * self.longest / 5.0)
+        self.kerf = config['kerf'] || 0.0
         self.padding = config['padding']
         self.units = config['units']
 
@@ -60,6 +61,7 @@ module Laser
       def generate_notches!
         position_faces!
 
+        #
         corner_face = pick_corners_face
 
         @notches = []
@@ -67,11 +69,14 @@ module Laser
           bound = face_bounding_rect(face)
           bound.sides.each_with_index do |bounding_side, side_index |
             key = side_index.odd? ? :valign : :halign
-            path = Geometry::PathGenerator.new(:notch_width => notch_width,
-                                               :center_out => (self.conf[key][face_index] == :out) ,
-                                               :fill_corners => (self.conf[:corners][corner_face][face_index] == :yes && side_index.odd?),
-                                               :thickness => thickness
-            ).path(Geometry::Edge.new(bounding_side, face.sides[side_index], self.notch_width))
+            path = Geometry::PathGenerator.new(bounding_side, face.sides[side_index],
+                                               {:notch_width => notch_width,
+                                                :thickness => thickness,
+                                                :kerf => kerf,
+                                                :center_out => (self.conf[key][face_index] == :out),
+                                                :fill_corners => (self.conf[:corners][corner_face][face_index] == :yes && side_index.odd?)
+                                               }).
+                generate()
             @notches << path.create_lines
           end
         end
@@ -154,6 +159,8 @@ module Laser
         self.right = Geometry::Rect.create(zero, dim.d, dim.h, "right")
       end
 
+      # Choose which face will be responsible for filling out the little square overlap
+      # in the corners. Only one of the 3 possible sides need to be picked.
       def pick_corners_face
         b = face_bounding_rect(front)
         edges = []

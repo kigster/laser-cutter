@@ -11,7 +11,7 @@ module Laser
         let(:outside) { Line.new(from: [0, 0], to: [10, 0]) }
         let(:inside) { Line.new(from: [1, 1], to: [9, 1]) }
         let(:edge) { Edge.new(outside, inside, notch) }
-        let(:generator) { PathGenerator.new(notch_width: notch,
+        let(:generator) { PathGenerator.new(outside, inside, notch_width: notch,
                                             thickness: thickness,
                                             center_out: center_out,
                                             fill_edge: fill_edge) }
@@ -29,19 +29,20 @@ module Laser
         end
 
         context 'alternating iterator' do
-          let(:iterator) { InfiniteIterator.new([:a, :b, :c]) }
+          let(:a) { "hello" }
+          let(:b) { "again" }
+          let(:iterator) { InfiniteIterator.new([a,b]) }
           it 'returns things in alternating order' do
-            expect(iterator.next).to eq(:a)
-            expect(iterator.next).to eq(:b)
-            expect(iterator.next).to eq(:c)
-            expect(iterator.next).to eq(:a)
+            expect(iterator.next).to eq(a)
+            expect(iterator.next).to eq(b)
+            expect(iterator.next).to eq(a)
           end
         end
 
         context 'shift definition' do
 
           it 'correctly defines shifts' do
-            shifts = generator.send(:define_shifts, edge)
+            shifts = generator.send(:define_shifts)
             expect(edge.outside.length).to eql(10.0)
             expect(edge.inside.length).to eql(8.0)
             expect(edge.notch_width).to be_within(0.001).of(1.6)
@@ -60,7 +61,7 @@ module Laser
             it 'generates correct path vertices' do
               inside.freeze
               expect(inside.p1).to_not eql(inside.p2)
-              path = generator.path(edge)
+              path = generator.generate
               expect(path).to be_a_kind_of(NotchedPath)
               expect(path.size).to be > 5
 
@@ -73,7 +74,7 @@ module Laser
             end
 
             it 'generates correct lines' do
-              path = generator.path(edge)
+              path = generator.generate
               lines = path.create_lines
               expect(path.size).to eq(12)
               expect(lines.size).to be > 1
