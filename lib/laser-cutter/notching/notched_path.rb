@@ -1,6 +1,6 @@
 module Laser
   module Cutter
-    module Geometry
+    module Notching
       class NotchedPath
         attr_accessor :lines, :vertices, :corner_boxes
         def initialize(vertices = [])
@@ -25,7 +25,7 @@ module Laser
           self.lines = []
           self.vertices.each_with_index do |v, i|
             if v != vertices.last
-              self.lines << Line.new(v, vertices[i+1])
+              self.lines << Geometry::Line.new(v, vertices[i+1])
             end
           end
           self.corner_boxes.each do |box|

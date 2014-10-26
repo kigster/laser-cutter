@@ -1,3 +1,4 @@
+require 'matrix'
 module Laser
   module Cutter
     module Geometry
@@ -6,79 +7,123 @@ module Laser
         PRECISION = 0.000001
 
         def initialize(*args)
-          args = customize_args(args)
           x = args.first
-          if x.is_a?(String)
+          coordinates = if x.is_a?(String)
             parse_string(x)
           elsif x.is_a?(Hash)
             parse_hash(x)
           elsif x.is_a?(Array)
-            self.coords = x.clone
+            x.clone
+          elsif x.is_a?(Tuple) or x.is_a?(Vector)
+            x.to_a
           else
-            self.coords = args.clone
+            args.clone
           end
-
-          self.coords.map!(&:to_f)
+          coordinates.map!(&:to_f)
+          self.coords = Vector.[](*coordinates)
         end
 
-        def customize_args(args)
-          args
+        def move_by x, y = nil
+          shift = if x.is_a?(Vector)
+                    x
+                  elsif x.is_a?(Tuple)
+                    x.coords
+                  elsif y
+                    Vector.[](x,y)
+                  end
+          self.class.new(self.coords + shift)
         end
 
-        def separator
-          raise NotImplementedError
-          # 'x'
-        end
 
-        def hash_keys
-          raise NotImplementedError
-          # [:x, :y, :z] or [:h, :w, :d]
-        end
+        # Override in subclasses, eg:
+        # def separator
+        #   'x'
+        # end
+        #
+        # def hash_keys
+        #   [:x, :y, :z] or [:h, :w, :d]
+        # end
 
         def to_a
-          self.coords.clone
+          self.coords.to_a
         end
 
         def to_s
-          "{#{coords.map { |a| sprintf("%.5f", a) }.join(separator)}}"
+          "{#{coords.to_a.map { |a| sprintf("%.5f", a) }.join(separator)}}"
         end
 
         def valid?
-          raise "Have nil value: #{self.inspect}" if coords.any? { |c| c.nil? }
+          raise "Have nil value: #{self.inspect}" if coords.to_a.any? { |c| c.nil? }
           true
         end
 
+        def x= value
+          self.coords = Vector.[](value, coords.[](1))
+        end
+
+        def y= value
+          self.coords = Vector.[](coords.[](0), value)
+        end
+
+        def x
+          coords.[](0)
+        end
+
+        def y
+          coords.[](1)
+        end
+
+        def separator
+          ','
+        end
+
+        def hash_keys
+          [:x, :y]
+        end
+
+        # Identity, cloning and sorting/ordering
         def eql?(other)
           return false unless other.respond_to?(:coords)
           equal = true
           self.coords.each_with_index do |c, i|
-            if (c - other.coords[i])**2 > PRECISION
+            if (c - other.coords.to_a[i])**2 > PRECISION
               equal = false
               break
             end
           end
           equal
         end
-
+        def <=>(other)
+          self.x == other.x ? self.y <=> other.y : self.x <=> other.x
+        end
+        def < (other)
+          self.x == other.x ? self.y < other.y : self.x < other.x
+        end
+        def > (other)
+          self.x == other.x ? self.y > other.y : self.x > other.x
+        end
         def clone
           clone = super
           clone.coords = self.coords.clone
           clone
         end
 
+
+
+
         private
 
         #
-        # convert from, eg "100,50" to [100.0, 50.0],
-        # and then to a new instance.
+        # Convert from, eg "100,50" to [100.0, 50.0],
+        #
         #
         def parse_string string
-          self.coords = string.split(separator).map(&:to_f)
+          string.split(separator).map(&:to_f)
         end
 
+        # Return array of coordinates
         def parse_hash hash
-          self.coords = []
-          hash_keys.each { |k| self.coords << hash[k] }
+          hash_keys.map{ |k,v| hash[k] }
         end
 
       end

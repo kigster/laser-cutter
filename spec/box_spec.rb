@@ -20,6 +20,10 @@ module Laser
       end
 
       context '#notches' do
+        before do
+          box1.generate_notches
+          box2.generate_notches
+        end
         it 'should generate notches' do
           expect(box1.notches).to_not be_nil
           expect(box1.notches.size).to eql(320)

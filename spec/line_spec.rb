@@ -67,7 +67,7 @@ module Laser
 
           it 'should properly deduplicate' do
             list = [l1, l4, l2, l3, l5, l3, l1, l3, l3, l2]
-            new_list = PathGenerator.deduplicate(list)
+            new_list = Notching::PathGenerator.deduplicate(list)
             expect(new_list).to eql([l4])
           end
 

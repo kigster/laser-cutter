@@ -2,19 +2,23 @@ require_relative 'spec_helper'
 
 module Laser
   module Cutter
-    module Geometry
+    module Notching
       describe PathGenerator do
         let(:notch) { 2 }
         let(:thickness) { 1 }
         let(:center_out) { true }
-        let(:fill_edge) { true }
-        let(:outside) { Line.new(from: [0, 0], to: [10, 0]) }
-        let(:inside) { Line.new(from: [1, 1], to: [9, 1]) }
-        let(:edge) { Edge.new(outside, inside, notch) }
-        let(:generator) { PathGenerator.new(outside, inside, notch_width: notch,
-                                            thickness: thickness,
-                                            center_out: center_out,
-                                            fill_edge: fill_edge) }
+        let(:corners) { true }
+
+        let(:options) { {notch_width: notch,
+                         thickness: thickness,
+                         center_out: center_out,
+                         corners: corners} }
+
+        let(:outside) { Geometry::Line.new(from: [0, 0], to: [10, 0]) }
+        let(:inside)  { Geometry::Line.new(from: [1, 1], to: [9,  1]) }
+        let(:edge) { Edge.new(outside, inside, options) }
+        let(:generator) { PathGenerator.new(edge) }
+
         context 'edge' do
           it 'should properly calculate notch size' do
             expect(edge.notch_width).to be_within(0.001).of(1.6)
@@ -59,18 +63,17 @@ module Laser
 
           context 'center out' do
             it 'generates correct path vertices' do
-              inside.freeze
               expect(inside.p1).to_not eql(inside.p2)
               path = generator.generate
               expect(path).to be_a_kind_of(NotchedPath)
               expect(path.size).to be > 5
 
-              expect(Line.new(path.vertices.first, inside.p1).length).to be_within(0.001).of(0)
-              expect(Line.new(path.vertices.last, inside.p2).length).to be_within(0.001).of(0)
+              expect(Geometry::Line.new(path.vertices.first, inside.p1).length).to be_within(0.001).of(0)
+              expect(Geometry::Line.new(path.vertices.last, inside.p2).length).to be_within(0.001).of(0)
 
               # Sanity Check
-              expect(Point.new(1, 1)).to eql(inside.p1)
-              expect(Point.new(9, 1)).to eql(inside.p2)
+              expect(Geometry::Point.new(1, 1)).to eql(inside.p1)
+              expect(Geometry::Point.new(9, 1)).to eql(inside.p2)
             end
 
             it 'generates correct lines' do

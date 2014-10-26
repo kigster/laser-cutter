@@ -6,7 +6,7 @@ module Laser
       # Everything is in millimeters
 
       attr_accessor :dim, :thickness, :notch_width, :kerf
-      attr_accessor :padding, :units
+      attr_accessor :padding, :units, :inside_box
 
       attr_accessor :front, :back, :top, :bottom, :left, :right
       attr_accessor :faces, :bounds, :conf, :corner_face
@@ -20,8 +20,9 @@ module Laser
         self.kerf = config['kerf'] || 0.0
         self.padding = config['padding']
         self.units = config['units']
+        self.inside_box = config['inside_box']
 
-        @notches = []
+        self.notches = []
 
         self.metadata = Geometry::Point[config['metadata_width'] || 0, config['metadata_height'] || 0]
 
@@ -40,6 +41,7 @@ module Laser
       end
 
       def enclosure
+        generate_notches if self.notches.empty?
         p1 = notches.first.p1.to_a
         p2 = notches.first.p2.to_a
 
@@ -52,36 +54,34 @@ module Laser
         Geometry::Rect[Geometry::Point.new(p1), Geometry::Point.new(p2)]
       end
 
-      # Returns an flattened array of lines representing notched lines
-      def notches
-        generate_notches! if @notches.empty?
-        @notches
-      end
-
-      def generate_notches!
+      def generate_notches
         position_faces!
 
         #
         corner_face = pick_corners_face
 
-        @notches = []
+        self.notches = []
         faces.each_with_index do |face, face_index|
           bound = face_bounding_rect(face)
           bound.sides.each_with_index do |bounding_side, side_index |
             key = side_index.odd? ? :valign : :halign
-            path = Geometry::PathGenerator.new(bounding_side, face.sides[side_index],
-                                               {:notch_width => notch_width,
-                                                :thickness => thickness,
-                                                :kerf => kerf,
-                                                :center_out => (self.conf[key][face_index] == :out),
-                                                :fill_corners => (self.conf[:corners][corner_face][face_index] == :yes && side_index.odd?)
-                                               }).
-                generate()
-            @notches << path.create_lines
+            edge = Notching::Edge.new(bounding_side, face.sides[side_index],
+                            {:notch_width => notch_width,
+                             :thickness => thickness,
+                             :kerf => kerf,
+                             :center_out => (self.conf[key][face_index] == :out),
+                             :corners => (self.conf[:corners][corner_face][face_index] == :yes && side_index.odd?)
+                            })
+            path = Notching::PathGenerator.new(edge).generate
+            self.notches << path.create_lines
+            if inside_box
+              #self.notches << bounding_side
+              self.notches << face.sides[side_index]
+            end
           end
         end
 
-        @notches = Geometry::PathGenerator.deduplicate(@notches.flatten.sort)
+        self.notches = Notching::PathGenerator.deduplicate(self.notches.flatten.sort)
       end
 
       def w; dim.w; end
@@ -165,7 +165,7 @@ module Laser
         b = face_bounding_rect(front)
         edges = []
         front.sides[0..1].each_with_index do |face, index|
-          edges << Geometry::Edge.new(b.sides[index], face, notch_width)
+          edges << Notching::Edge.new(b.sides[index], face, :notch_width => notch_width )
         end
         edges.map(&:notch_count).all?{|c| c % 4 == 3} ? :top : :front
       end

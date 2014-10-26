@@ -76,6 +76,7 @@ Examples:
             opts.on("-L", "--list-all-page-sizes", "Print all available page sizes with dimensions and exit") { |v| options.list_all_page_sizes = true }
             opts.on("-M", "--no-metadata", "Do not print box metadata on the PDF") { |value| options.metadata = value }
             opts.on("-v", "--[no-]verbose", "Run verbosely") { |v| options.verbose = v }
+            opts.on("-B", "--inside-box", "Draw the inside boxes (helpful to verify kerfing)") { |v| options.inside_box = v }
             opts.on("-D", "--debug", "Show full exception stack trace on error") { |v| options.debug = v }
             opts.separator ""
             opts.on("--examples", "Show detailed usage examples") { puts opts; puts examples.yellow; exit }
