@@ -21,8 +21,8 @@ module Laser
           self.inside = inside.clone
 
           # two vectors representing directions going from beginning of each inside line to the outside
-          self.v1 = [inside.p1.x - outside.p1.x, inside.p1.y - outside.p1.y].map{|e| -(e / e.abs).to_i }
-          self.v2 = [inside.p2.x - outside.p2.x, inside.p2.y - outside.p2.y].map{|e| -(e / e.abs).to_i }
+          self.v1 = [inside.p1.x - outside.p1.x, inside.p1.y - outside.p1.y].map{|e| -(e / e.abs).to_f }
+          self.v2 = [inside.p2.x - outside.p2.x, inside.p2.y - outside.p2.y].map{|e| -(e / e.abs).to_f }
 
           self.v1 = Vector.[](*self.v1)
           self.v2 = Vector.[](*self.v2)
@@ -40,10 +40,10 @@ module Laser
         def adjust_for_kerf!
           if kerf?
             k = kerf / 2.0
-            inside.p1  = inside.p1.move_by(v1 * k)
-            inside.p2  = inside.p2.move_by(v1 * k)
-            outside.p1 = outside.p1.move_by(v2 * k)
-            outside.p2 = outside.p2.move_by(v2 * k)
+            inside.position = inside.p1.move_by(v1 * k)
+            outside.position = outside.p1.move_by(v2 * k)
+            inside.relocate!
+            outside.relocate!
           end
         end
 
