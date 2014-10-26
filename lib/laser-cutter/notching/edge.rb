@@ -9,7 +9,7 @@ module Laser
       class Edge
 
         attr_accessor :outside, :inside
-        attr_accessor :notch_width_inside, :notch_width_outside, :notch_width
+        attr_accessor :notch_width
         attr_accessor :thickness, :kerf
 
         attr_accessor :center_out, :corners
@@ -32,8 +32,6 @@ module Laser
           self.corners = options[:corners]
           self.kerf = options[:kerf] || 0
           self.notch_width = options[:notch_width]
-          self.notch_width_outside = self.notch_width + kerf
-          self.notch_width_inside = self.notch_width - kerf
 
           adjust_for_kerf!
           calculate_notch_width!
@@ -42,8 +40,8 @@ module Laser
         def adjust_for_kerf!
           if kerf?
             k = kerf / 2.0
-            inside.p1 = inside.p1.move_by(v1 * k)
-            inside.p2 = inside.p2.move_by(v1 * k)
+            inside.p1  = inside.p1.move_by(v1 * k)
+            inside.p2  = inside.p2.move_by(v1 * k)
             outside.p1 = outside.p1.move_by(v2 * k)
             outside.p2 = outside.p2.move_by(v2 * k)
           end
@@ -63,10 +61,9 @@ module Laser
         private
 
         def calculate_notch_width!
-          count = (self.inside.length / notch_width).to_f.ceil
-          count = (count / 2) * 2 + 1
+          count = (self.inside.length / notch_width).to_f.ceil + 1
           count = MINIMUM_NOTCHES_PER_SIDE if count < MINIMUM_NOTCHES_PER_SIDE
-          self.notch_width = self.notch_width_inside = self.notch_width_outside = self.inside.length / (1.0 * count)
+          self.notch_width = 1.0 * self.inside.length / count
           self.notch_count = count
         end
 

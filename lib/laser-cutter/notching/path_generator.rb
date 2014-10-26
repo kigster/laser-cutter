@@ -127,15 +127,21 @@ module Laser
           across_iter = create_iterator_across
 
           shifts = []
+          inner = true  # false when we are drawing outer notch, true when inner
 
-          shifts << across_iter.next if first_notch_out?
+          if first_notch_out?
+            shifts << across_iter.next
+            inner = !inner
+          end
 
           (1..edge.notch_count).to_a.each do |notch_number|
             shifts << along_iter.next do |shift, index|
-              shift.delta = shift.delta + (direction_along.abs * ((index.odd? && first_notch_out?) ? kerf : -kerf ))
-              if first_notch_out?
-                shift.delta = shift.delta - (kerf / (edge.notch_count.to_f / 2 + 1))
+              if inner && (notch_number > 1 && notch_number < edge.notch_count)
+                shift.delta -= kerf
+              elsif !inner
+                shift.delta += kerf
               end
+              inner = !inner
               shift
             end
             shifts << across_iter.next unless notch_number == edge.notch_count
