@@ -24,7 +24,7 @@ module Laser
           renderer = self
           pdf.instance_eval do
             self.line_width = renderer.config.stroke.send(renderer.config.units.to_sym)
-            stroke_color BLACK
+            stroke_color renderer.config[:color] || BLACK
             renderer.box.generate_notches.each do |notch|
               LineRenderer.new(renderer.config, notch).render(self)
             end

@@ -14,20 +14,23 @@ module Laser
 
           margin = config.margin.to_f.send(config.units.to_sym)
           meta_renderer = MetaRenderer.new(config)
-          box_renderer = BoxRenderer.new(config)
-          box_renderer.ensure_space_for(meta_renderer.enclosure) if config.metadata
+          box_renderer1 = BoxRenderer.new(config)
+          c2 = config.clone
+          c2.merge!(:kerf => nil, :color => "DD2200")
+          box_renderer2 = BoxRenderer.new(c2)
 
-          page_size = config.page_size || calculate_image_boundary(box_renderer, margin)
+          box_renderer1.ensure_space_for(meta_renderer.enclosure) if config.metadata
+
+          page_size = config.page_size || calculate_image_boundary(box_renderer1, margin)
 
           pdf = Prawn::Document.new(:margin => margin,
                                     :page_size => page_size,
-                                    :page_layout => config.page_layout.to_sym)
+                                    :page_layout => self.config.page_layout.to_sym)
 
           pdf.instance_eval do
-            if renderer.config.metadata
-              meta_renderer.render(self)
-            end
-            box_renderer.render(self)
+            meta_renderer.render(self) if renderer.config.metadata
+            box_renderer1.render(self)
+            box_renderer2.render(self)
             render_file(renderer.config.file)
           end
 

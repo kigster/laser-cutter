@@ -56,10 +56,7 @@ module Laser
 
       def generate_notches
         position_faces!
-
-        #
         corner_face = pick_corners_face
-
         self.notches = []
         faces.each_with_index do |face, face_index|
           bound = face_bounding_rect(face)
@@ -76,7 +73,7 @@ module Laser
             self.notches << path.create_lines
             if inside_box
               #self.notches << bounding_side
-              self.notches << face.sides[side_index]
+              #self.notches << face.sides[side_index]
             end
           end
         end

@@ -38,18 +38,11 @@ module Laser
         # repeated, here we remove elements completely if they are seen more than once.
         # This is used to remove lines that join the same two points.
         def self.deduplicate list
-          new_list = []
-          list.sort!
-          list.each_with_index do |e, i|
-            next if i < (list.size - 1) && e.eql?(list[i + 1])
-            next if i > 0 && e.eql?(list[i - 1])
-            new_list << e
-          end
-          new_list
+          Aggregator.new(list).dedup
         end
 
         extend Forwardable
-        %i(center_out thickness corners kerf notch_width corners).each do |method_name|
+        %i(center_out thickness corners kerf kerf? notch_width corners).each do |method_name|
           def_delegator :@edge, method_name, method_name
         end
 
@@ -72,16 +65,7 @@ module Laser
           shifts = define_shifts
 
           path = NotchedPath.new
-
-          if corners
-            r1 = Geometry::Rect.new(edge.inside.p1.clone, edge.outside.p1.clone)
-            r2 = Geometry::Rect.new(edge.inside.p2.clone, edge.outside.p2.clone)
-
-            path.corner_boxes << r1
-            path.corner_boxes << r2
-            path.corner_boxes.map(&:relocate!)
-          end
-
+          path.corner_boxes = corner_boxes if corners
           point = starting_point
 
           vertices = [point]
@@ -91,6 +75,29 @@ module Laser
           end
           path.vertices = vertices
           path
+        end
+
+        def corner_boxes
+
+          r1 = Geometry::Rect.new(edge.inside.p1.clone, edge.outside.p1.clone)
+          r2 = Geometry::Rect.new(edge.inside.p2.clone, edge.outside.p2.clone)
+
+          if kerf?
+            r1.position = r1.p1 = r1.p1.move_by(shift_vector)
+            r2.p2 = r2.p2.move_by(shift_vector)
+          end
+          # relocate returns the object
+          [r1, r2].map(&:relocate!)
+        end
+
+        # returns the vector representing delta shift due to kerfing
+        def shift_vector
+          @shift_vector ||= begin
+            shift = []
+            shift[dimension_across] = 0
+            shift[dimension_along] = - kerf * edge.v1.[](dimension_along)
+            Vector.[](*shift)
+          end
         end
 
         # True if the first notch should be a tab (sticking out), or false if it's a hole.

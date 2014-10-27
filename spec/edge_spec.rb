@@ -21,7 +21,7 @@ module Laser
           expect(edge.center_out).to be_truthy
           expect(edge.kerf).to be_within(0.0001).of(0.02)
           expect(edge.thickness).to be_within(0.0001).of(1)
-          expect(edge.notch_width).to be_within(0.0001).of(notch_width)
+          expect(edge.notch_width).to be_within(notch_width / 3.0).of(notch_width)
         end
 
         it 'should calculate notch width correctly' do
@@ -34,8 +34,8 @@ module Laser
         end
 
         it 'should correctly calculate v1 and v2' do
-          expect(edge.v1.to_a).to eql([1,1])
-          expect(edge.v2.to_a).to eql([1, -1])
+          expect(edge.v1.to_a).to eql([1.0,1.0])
+          expect(edge.v2.to_a).to eql([1.0,-1.0])
         end
       end
     end
