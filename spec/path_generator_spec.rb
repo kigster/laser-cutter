@@ -85,13 +85,6 @@ module Laser
           end
         end
 
-        context 'remove dupes' do
-          let(:a) { [1,5,3,1,2,2,2,2 ] }
-          it 'should remove dups' do
-            expect(PathGenerator.deduplicate(a)).to eql([3,5])
-          end
-        end
-
       end
     end
   end

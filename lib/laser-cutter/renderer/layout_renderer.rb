@@ -11,26 +11,34 @@ module Laser
 
         def render
           renderer = self
+          renderers = []
+
+          box_renderer = BoxRenderer.new(config)
+          renderers << box_renderer
+
+          if config.metadata
+            meta_renderer = MetaRenderer.new(config)
+            renderers << meta_renderer
+            box_renderer.ensure_space_for(meta_renderer.enclosure)
+          end
+
+          if config.debug
+            unkerfed_config = Laser::Cutter::Configuration.new(config.to_hash)
+            unkerfed_config.merge!(kerf: 0, color: 'DD2211')
+            unkerfed_box_renderer = BoxRenderer.new(unkerfed_config)
+            unkerfed_box_renderer.ensure_space_for(meta_renderer.enclosure) if meta_renderer
+            renderers << unkerfed_box_renderer
+          end
 
           margin = config.margin.to_f.send(config.units.to_sym)
-          meta_renderer = MetaRenderer.new(config)
-          box_renderer1 = BoxRenderer.new(config)
-          c2 = config.clone
-          c2.merge!(:kerf => nil, :color => "DD2200")
-          box_renderer2 = BoxRenderer.new(c2)
-
-          box_renderer1.ensure_space_for(meta_renderer.enclosure) if config.metadata
-
-          page_size = config.page_size || calculate_image_boundary(box_renderer1, margin)
+          page_size = config.page_size || calculate_image_boundary(box_renderer, margin)
 
           pdf = Prawn::Document.new(:margin => margin,
                                     :page_size => page_size,
                                     :page_layout => self.config.page_layout.to_sym)
 
           pdf.instance_eval do
-            meta_renderer.render(self) if renderer.config.metadata
-            box_renderer1.render(self)
-            box_renderer2.render(self)
+            renderers.each {|r|  r.render(self) }
             render_file(renderer.config.file)
           end
 

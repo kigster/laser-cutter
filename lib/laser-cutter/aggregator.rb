@@ -7,16 +7,51 @@ module Laser
         self.lines = array_of_lines.sort
       end
 
-      def dedup
-        new_list = []
-        lines.sort.each_with_index do |e, i|
-          next if i < (lines.size - 1) && e.eql?(lines[i + 1])
-          next if i > 0 && e.eql?(lines[i - 1])
-          new_list << e
+      # This method finds lines that are identical (same p1/p2)
+      def dedup!
+        lines_to_delete = []
+        count = lines.size
+        for i in 0..(count - 1) do
+          for j in (i + 1)..(count - 1) do
+            l1 = lines[i]
+            l2 = lines[j]
+            if l1.eql?(l2)
+              lines_to_delete << l1
+              lines_to_delete << l2
+            end
+          end
         end
-        new_list
+        self.lines = self.lines - lines_to_delete
+        self
       end
 
+      # Find overlapping (intersecting) sections of lines and
+      # remove them.
+      def deoverlap!
+        lines_to_delete = []
+        lines_to_add = []
+        count = lines.size
+        for i in 0..(count - 1) do
+          for j in (i + 1)..(count - 1) do
+            l1 = lines[i]
+            l2 = lines[j]
+            if l1.overlaps?(l2)
+              lines_to_delete << l1
+              lines_to_delete << l2
+              lines_to_add << l1.xor(l2)
+            end
+          end
+        end
+
+        lines_to_delete.uniq!
+        lines_to_delete.flatten!
+        lines_to_add.uniq!
+        lines_to_add.flatten!
+
+        self.lines = (self.lines - lines_to_delete + lines_to_add).flatten
+        self.lines.sort!
+        self
+      end
     end
   end
 end

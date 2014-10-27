@@ -26,7 +26,7 @@ module Laser
         end
         it 'should generate notches' do
           expect(box1.notches).to_not be_nil
-          expect(box1.notches.size).to eql(320)
+          expect(box1.notches.size).to eql(368)
         end
 
         it 'should properly calculate enclosure' do

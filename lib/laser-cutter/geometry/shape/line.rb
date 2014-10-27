@@ -17,6 +17,30 @@ module Laser
           raise 'Both points are required for line definition' unless (p1 && p2)
         end
 
+        def overlaps?(another)
+          xs, ys = sorted_coords(another)
+          return false unless xs.all?{|x| x == xs[0] } || ys.all?{|y| y == ys[0] }
+          return false if xs.first[1] < xs.last[0] || xs.first[0] > xs.last[1]
+          return false if ys.first[1] < ys.last[0] || ys.first[0] > ys.last[1]
+          true
+        end
+
+        def sorted_coords(another)
+          xs = [[p1.x, p2.x].sort, [another.p1.x, another.p2.x].sort]
+          ys = [[p1.y, p2.y].sort, [another.p1.y, another.p2.y].sort]
+          return xs, ys
+        end
+
+        def xor(another)
+          return nil unless overlaps?(another)
+          xs, ys = sorted_coords(another)
+          xs.flatten!.sort!
+          ys.flatten!.sort!
+
+          [ Line.new(Point[xs[0], ys[0]], Point[xs[1], ys[1]]),
+            Line.new(Point[xs[2], ys[2]], Point[xs[3], ys[3]])]
+        end
+
         def relocate!
           dx = p2.x - p1.x
           dy = p2.y - p1.y
@@ -48,7 +72,9 @@ module Laser
         end
 
         def <=>(other)
-          self.normalized.to_s <=> other.normalized.to_s
+          n1 = self.normalized
+          n2 = other.normalized
+          n1.p1.eql?(n2.p1) ? n1.p2 <=> n2.p2 : n1.p1 <=> n2.p1
         end
 
         def hash

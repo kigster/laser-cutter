@@ -60,25 +60,26 @@ module Laser
         self.notches = []
         faces.each_with_index do |face, face_index|
           bound = face_bounding_rect(face)
+          side_lines = []
           bound.sides.each_with_index do |bounding_side, side_index |
+            include_corners = (self.conf[:corners][corner_face][face_index] == :yes && side_index.odd?)
             key = side_index.odd? ? :valign : :halign
+            center_out = (self.conf[key][face_index] == :out)
             edge = Notching::Edge.new(bounding_side, face.sides[side_index],
                             {:notch_width => notch_width,
                              :thickness => thickness,
                              :kerf => kerf,
-                             :center_out => (self.conf[key][face_index] == :out),
-                             :corners => (self.conf[:corners][corner_face][face_index] == :yes && side_index.odd?)
+                             :center_out => center_out,
+                             :corners => include_corners
                             })
             path = Notching::PathGenerator.new(edge).generate
-            self.notches << path.create_lines
-            if inside_box
-              #self.notches << bounding_side
-              #self.notches << face.sides[side_index]
-            end
+            side_lines << path.create_lines
           end
+          aggregator = Aggregator.new(side_lines.flatten)
+          aggregator.dedup!.deoverlap!.dedup!
+          self.notches << aggregator.lines
         end
-
-        self.notches = Notching::PathGenerator.deduplicate(self.notches.flatten.sort)
+        self.notches.flatten!
       end
 
       def w; dim.w; end

@@ -61,7 +61,7 @@ Examples:
             opts.on("-d", "--depth DEPTH", "Internal depth of the box") { |value| options.depth= value }
             opts.on("-t", "--thickness THICKNESS", "Thickness of the box material") { |value| options.thickness = value }
             opts.on("-n", "--notch NOTCH", "Optional notch length (aka \"tab width\"), guide only") { |value| options.notch = value }
-            opts.on("-k", "--kerf KERF", "Optional kerf (cut) width (default depends on material thickness)") { |value| options.kerf = value }
+            opts.on("-k", "--kerf KERF", "Kerf - cut width (default is 0.007in)") { |value| options.kerf = value }
             opts.separator ""
             opts.on("-m", "--margin MARGIN", "Margins from the edge of the document") { |value| options.margin = value }
             opts.on("-p", "--padding PADDING", "Space between the boxes on the page") { |value| options.padding = value }

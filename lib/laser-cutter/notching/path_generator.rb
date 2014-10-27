@@ -33,13 +33,6 @@ module Laser
       end
 
       class PathGenerator
-        # Removes the items from the list that appear more than once
-        # Unlike uniq-ing which keeps all elements, just ensures that are not
-        # repeated, here we remove elements completely if they are seen more than once.
-        # This is used to remove lines that join the same two points.
-        def self.deduplicate list
-          Aggregator.new(list).dedup
-        end
 
         extend Forwardable
         %i(center_out thickness corners kerf kerf? notch_width corners).each do |method_name|
@@ -78,33 +71,33 @@ module Laser
         end
 
         def corner_boxes
-
-          r1 = Geometry::Rect.new(edge.inside.p1.clone, edge.outside.p1.clone)
-          r2 = Geometry::Rect.new(edge.inside.p2.clone, edge.outside.p2.clone)
+          r1 = Geometry::Rect[edge.inside.p1.clone, edge.outside.p1.clone]
+          r2 = Geometry::Rect[edge.inside.p2.clone, edge.outside.p2.clone]
 
           if kerf?
-            r1.position = r1.p1 = r1.p1.move_by(shift_vector)
-            r2.p2 = r2.p2.move_by(shift_vector)
+            v = shift_vector
+            v = (-1 * v) unless first_notch_out?
+            # because we shifted inside and outside without stretching them,
+            # we only need to adjust the 2nd corner box location: first one
+            # is already positioned correctly.
+            r1 = Geometry::Rect[edge.inside.p1.move_by(-1 * v), edge.outside.p1.clone]
+            r2 = Geometry::Rect[edge.inside.p2.clone, edge.outside.p2.move_by(-1 * v)]
           end
           # relocate returns the object
-          [r1, r2].map(&:relocate!)
+          [r1, r2]
         end
 
-        # returns the vector representing delta shift due to kerfing
         def shift_vector
-          @shift_vector ||= begin
-            shift = []
-            shift[dimension_across] = 0
-            shift[dimension_along] = - kerf * edge.v1.[](dimension_along)
-            Vector.[](*shift)
-          end
+          shift = []
+          shift[dimension_across] = 0
+          shift[dimension_along] = kerf / 2.0 * edge.v1.[](dimension_along)
+          Vector.[](*shift)
         end
 
         # True if the first notch should be a tab (sticking out), or false if it's a hole.
         def first_notch_out?
           edge.add_across_line?(center_out)
         end
-
 
         def starting_point
           edge.inside.p1.clone # start

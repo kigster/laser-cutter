@@ -41,6 +41,9 @@ module Laser
             outside.position = outside.p1.move_by(v1 * k)
             inside.relocate!
             outside.relocate!
+            # note – we have not increased the length of the sides to compensate
+            # for kerf – we simply shifted both lines. We'll compenensate for this
+            # in notch width calculations later, and also corner box inclusion.
           end
         end
 

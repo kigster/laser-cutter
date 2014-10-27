@@ -13,6 +13,7 @@ module Laser
           units: 'in',
           page_layout: 'portrait',
           metadata: true
+          #kerf: 0.007  # smallest kerf for thin material, usually it's more than that.
       }
 
       UNIT_SPECIFIC_DEFAULTS = {
