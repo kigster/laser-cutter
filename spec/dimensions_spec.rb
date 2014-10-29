@@ -1,5 +1,4 @@
 require_relative 'spec_helper'
-
 module Laser
   module Cutter
     module Geometry

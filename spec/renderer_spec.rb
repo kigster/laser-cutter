@@ -9,17 +9,26 @@ module Laser
           let(:file) { File.expand_path("../../laser-cutter-pdf-test.#{$$}.pdf", __FILE__) }
 
           def render_file filename
+            real_file = ENV['RSPEC_SAVE_PDF'] ? true : false
             config.validate!
-            expect(!File.exists?(filename))
+            expect(!File.exists?(filename)) if real_file
             renderer.render
-            expect(File.exist?(filename))
-            expect(File.size(filename) > 0)
+            expect(File.exist?(filename)) if real_file
+            expect(File.size(filename) > 0) if real_file
           rescue Exception => e
             STDERR.puts e.backtrace.join("\n")
             fail e.message
           ensure
-            File.delete(filename) rescue nil
-            expect(!File.exists?(filename))
+            if real_file
+              File.delete(filename) rescue nil
+              expect(!File.exists?(filename))
+            end
+          end
+
+          before do
+            unless ENV['RSPEC_SAVE_PDF']
+              expect_any_instance_of(Prawn::Document).to receive(:render_file).once
+            end
           end
 
           context 'metric' do

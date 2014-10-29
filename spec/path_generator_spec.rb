@@ -2,19 +2,23 @@ require_relative 'spec_helper'
 
 module Laser
   module Cutter
-    module Geometry
+    module Notching
       describe PathGenerator do
         let(:notch) { 2 }
         let(:thickness) { 1 }
         let(:center_out) { true }
-        let(:fill_edge) { true }
-        let(:outside) { Line.new(from: [0, 0], to: [10, 0]) }
-        let(:inside) { Line.new(from: [1, 1], to: [9, 1]) }
-        let(:edge) { Edge.new(outside, inside, notch) }
-        let(:generator) { PathGenerator.new(notch_width: notch,
-                                            thickness: thickness,
-                                            center_out: center_out,
-                                            fill_edge: fill_edge) }
+        let(:corners) { true }
+
+        let(:options) { {notch_width: notch,
+                         thickness: thickness,
+                         center_out: center_out,
+                         corners: corners} }
+
+        let(:outside) { Geometry::Line.new(from: [0, 0], to: [10, 0]) }
+        let(:inside)  { Geometry::Line.new(from: [1, 1], to: [9,  1]) }
+        let(:edge) { Edge.new(outside, inside, options) }
+        let(:generator) { PathGenerator.new(edge) }
+
         context 'edge' do
           it 'should properly calculate notch size' do
             expect(edge.notch_width).to be_within(0.001).of(1.6)
@@ -29,19 +33,20 @@ module Laser
         end
 
         context 'alternating iterator' do
-          let(:iterator) { InfiniteIterator.new([:a, :b, :c]) }
+          let(:a) { "hello" }
+          let(:b) { "again" }
+          let(:iterator) { InfiniteIterator.new([a,b]) }
           it 'returns things in alternating order' do
-            expect(iterator.next).to eq(:a)
-            expect(iterator.next).to eq(:b)
-            expect(iterator.next).to eq(:c)
-            expect(iterator.next).to eq(:a)
+            expect(iterator.next).to eq(a)
+            expect(iterator.next).to eq(b)
+            expect(iterator.next).to eq(a)
           end
         end
 
         context 'shift definition' do
 
           it 'correctly defines shifts' do
-            shifts = generator.send(:define_shifts, edge)
+            shifts = generator.send(:define_shifts)
             expect(edge.outside.length).to eql(10.0)
             expect(edge.inside.length).to eql(8.0)
             expect(edge.notch_width).to be_within(0.001).of(1.6)
@@ -53,38 +58,27 @@ module Laser
 
         context 'path generation' do
           # let(:outside) { Line.new(
-          #     from: inside.p1.move_by(-thickness, -thickness),
-          #     to: inside.p2.move_by(thickness, -thickness)) }
+          #     from: inside.p1.plus(-thickness, -thickness),
+          #     to: inside.p2.plus(thickness, -thickness)) }
 
           context 'center out' do
             it 'generates correct path vertices' do
-              inside.freeze
               expect(inside.p1).to_not eql(inside.p2)
-              path = generator.path(edge)
-              expect(path).to be_a_kind_of(NotchedPath)
-              expect(path.size).to be > 5
+              lines = generator.generate
+              expect(lines.size).to be > 5
 
-              expect(Line.new(path.vertices.first, inside.p1).length).to be_within(0.001).of(0)
-              expect(Line.new(path.vertices.last, inside.p2).length).to be_within(0.001).of(0)
+              expect(Geometry::Line.new(lines.first.p1, inside.p1).length).to be_within(0.001).of(0)
+              expect(Geometry::Line.new(lines.last.p2, inside.p2).length).to be_within(0.001).of(0)
 
               # Sanity Check
-              expect(Point.new(1, 1)).to eql(inside.p1)
-              expect(Point.new(9, 1)).to eql(inside.p2)
+              expect(Geometry::Point.new(1, 1)).to eql(inside.p1)
+              expect(Geometry::Point.new(9, 1)).to eql(inside.p2)
             end
 
             it 'generates correct lines' do
-              path = generator.path(edge)
-              lines = path.create_lines
-              expect(path.size).to eq(12)
-              expect(lines.size).to be > 1
+              lines = generator.generate
+              expect(lines.size).to eq(19)
             end
-          end
-        end
-
-        context 'remove dupes' do
-          let(:a) { [1,5,3,1,2,2,2,2 ] }
-          it 'should remove dups' do
-            expect(PathGenerator.deduplicate(a)).to eql([3,5])
           end
         end
 

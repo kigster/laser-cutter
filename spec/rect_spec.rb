@@ -28,7 +28,7 @@ module Laser
             expect(rect1.sides.first.p1).to eql(p1)
             expect(rect1.sides[0].p1.to_s).to eql("{1.00000,3.00000}")
             expect(rect1.sides[1].p1.to_s).to eql("{11.00000,3.00000}")
-            expect(rect1.sides[2].p1).to eql(p1.move_by(10, 20))
+            expect(rect1.sides[2].p1).to eql(p1.plus(10, 20))
           end
           it 'can be moved' do
             expect(rect1.sides[0].p1.to_s).to eql("{1.00000,3.00000}")

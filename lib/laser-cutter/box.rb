@@ -5,8 +5,8 @@ module Laser
     class Box
       # Everything is in millimeters
 
-      attr_accessor :dim, :thickness, :notch_width
-      attr_accessor :padding, :units
+      attr_accessor :dim, :thickness, :notch_width, :kerf
+      attr_accessor :padding, :units, :inside_box
 
       attr_accessor :front, :back, :top, :bottom, :left, :right
       attr_accessor :faces, :bounds, :conf, :corner_face
@@ -17,10 +17,12 @@ module Laser
         self.thickness = config['thickness']
 
         self.notch_width = config['notch'] || (1.0 * self.longest / 5.0)
+        self.kerf = config['kerf'] || 0.0
         self.padding = config['padding']
         self.units = config['units']
+        self.inside_box = config['inside_box']
 
-        @notches = []
+        self.notches = []
 
         self.metadata = Geometry::Point[config['metadata_width'] || 0, config['metadata_height'] || 0]
 
@@ -39,6 +41,7 @@ module Laser
       end
 
       def enclosure
+        generate_notches if self.notches.empty?
         p1 = notches.first.p1.to_a
         p2 = notches.first.p2.to_a
 
@@ -51,32 +54,40 @@ module Laser
         Geometry::Rect[Geometry::Point.new(p1), Geometry::Point.new(p2)]
       end
 
-      # Returns an flattened array of lines representing notched lines
-      def notches
-        generate_notches! if @notches.empty?
-        @notches
-      end
-
-      def generate_notches!
+      def generate_notches
         position_faces!
-
         corner_face = pick_corners_face
-
-        @notches = []
+        self.notches = []
         faces.each_with_index do |face, face_index|
           bound = face_bounding_rect(face)
+          side_lines = []
+          edges = []
           bound.sides.each_with_index do |bounding_side, side_index |
+            include_corners = (self.conf[:corners][corner_face][face_index] == :yes && side_index.odd?)
             key = side_index.odd? ? :valign : :halign
-            path = Geometry::PathGenerator.new(:notch_width => notch_width,
-                                               :center_out => (self.conf[key][face_index] == :out) ,
-                                               :fill_corners => (self.conf[:corners][corner_face][face_index] == :yes && side_index.odd?),
-                                               :thickness => thickness
-            ).path(Geometry::Edge.new(bounding_side, face.sides[side_index], self.notch_width))
-            @notches << path.create_lines
+            center_out = (self.conf[key][face_index] == :out)
+            edges << Notching::Edge.new(bounding_side, face.sides[side_index],
+                            {:notch_width => notch_width,
+                             :thickness => thickness,
+                             :kerf => kerf,
+                             :center_out => center_out,
+                             :corners => include_corners
+                            })
           end
-        end
 
-        @notches = Geometry::PathGenerator.deduplicate(@notches.flatten.sort)
+          if edges.any?{|e| e.corners} && !edges.all?{|e| e.first_notch_out? }
+            edges.each {|e| e.adjust_corners = true }
+          end
+
+          edges.each do |edge|
+            side_lines << Notching::PathGenerator.new(edge).generate
+          end
+
+          aggregator = Aggregator.new(side_lines.flatten)
+          aggregator.dedup!.deoverlap!.dedup!
+          self.notches << aggregator.lines
+        end
+        self.notches.flatten!
       end
 
       def w; dim.w; end
@@ -95,8 +106,8 @@ module Laser
 
       def face_bounding_rect(face)
         b = face.clone
-        b.move_to(b.position.move_by(-thickness, -thickness))
-        b.p2 = b.p2.move_by(2 * thickness, 2 * thickness)
+        b.move_to(b.position.plus(-thickness, -thickness))
+        b.p2 = b.p2.plus(2 * thickness, 2 * thickness)
         b.relocate!
       end
 
@@ -154,11 +165,13 @@ module Laser
         self.right = Geometry::Rect.create(zero, dim.d, dim.h, "right")
       end
 
+      # Choose which face will be responsible for filling out the little square overlap
+      # in the corners. Only one of the 3 possible sides need to be picked.
       def pick_corners_face
         b = face_bounding_rect(front)
         edges = []
         front.sides[0..1].each_with_index do |face, index|
-          edges << Geometry::Edge.new(b.sides[index], face, notch_width)
+          edges << Notching::Edge.new(b.sides[index], face, :notch_width => notch_width, :kerf => kerf )
         end
         edges.map(&:notch_count).all?{|c| c % 4 == 3} ? :top : :front
       end

@@ -13,6 +13,7 @@ module Laser
           units: 'in',
           page_layout: 'portrait',
           metadata: true
+          #kerf: 0.007  # smallest kerf for thin material, usually it's more than that.
       }
 
       UNIT_SPECIFIC_DEFAULTS = {
@@ -30,7 +31,7 @@ module Laser
 
       SIZE_REGEXP = /[\d\.]+x[\d\.]+x[\d\.]+\/[\d\.]+(\/[\d\.]+)?/
 
-      FLOATS = %w(width height depth thickness notch margin padding stroke)
+      FLOATS = %w(width height depth thickness notch margin padding stroke kerf)
       NON_ZERO = %w(width height depth thickness stroke)
       REQUIRED = %w(width height depth thickness notch file)
 

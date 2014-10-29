@@ -1,7 +1,7 @@
 # encoding: utf-8
 class Laser::Cutter::Renderer::MetaRenderer < Laser::Cutter::Renderer::Base
 
-  META_KEYS = %w(units width height depth thickness notch stroke padding margin page_size page_layout)
+  META_KEYS = %w(units width height depth thickness notch kerf stroke padding margin page_size page_layout)
 
   def initialize(config = {})
     self.config = config
