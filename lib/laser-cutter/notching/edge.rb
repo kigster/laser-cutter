@@ -37,8 +37,14 @@ module Laser
         def adjust_for_kerf!
           if kerf?
             k = kerf / 2.0
-            inside.position  = inside.p1.move_by(v1 * k)
-            outside.position = outside.p1.move_by(v1 * k)
+            p1 = inside.p1.plus(v1 * k)
+            p2 = inside.p2.plus(v2 * k)
+            self.inside = Geometry::Line.new(p1, p2)
+
+            p1 = outside.p1.plus(v1 * k)
+            p2 = outside.p2.plus(v2 * k)
+            self.outside = Geometry::Line.new(p1, p2)
+
             inside.relocate!
             outside.relocate!
             # note – we have not increased the length of the sides to compensate
@@ -61,10 +67,11 @@ module Laser
         private
 
         def calculate_notch_width!
-          count = (self.inside.length / notch_width).to_f.ceil + 1
+          length = kerf? ? self.inside.length - kerf : self.inside.length
+          count = (length / notch_width).to_f.ceil + 1
           count = (count / 2 * 2) + 1 # make count always an odd number
           count = [MINIMUM_NOTCHES_PER_SIDE, count].max
-          self.notch_width = 1.0 * self.inside.length / count
+          self.notch_width = 1.0 * length / count
           self.notch_count = count
         end
 

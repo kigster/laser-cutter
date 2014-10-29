@@ -6,7 +6,7 @@ module Laser
         def initialize(vertices = [])
           @vertices = vertices
           @lines = []
-          @corner_boxes = []
+          @corner_boxes= []
         end
 
         def << value
@@ -22,7 +22,6 @@ module Laser
         end
 
         def create_lines
-          self.lines = []
           self.vertices.each_with_index do |v, i|
             if v != vertices.last
               self.lines << Geometry::Line.new(v, vertices[i+1])

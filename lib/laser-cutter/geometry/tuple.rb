@@ -23,7 +23,7 @@ module Laser
           self.coords = Vector.[](*coordinates)
         end
 
-        def move_by x, y = nil
+        def + x, y = nil
           shift = if x.is_a?(Vector)
                     x
                   elsif x.is_a?(Tuple)
@@ -35,14 +35,7 @@ module Laser
         end
 
 
-        # Override in subclasses, eg:
-        # def separator
-        #   'x'
-        # end
-        #
-        # def hash_keys
-        #   [:x, :y, :z] or [:h, :w, :d]
-        # end
+        alias_method :plus, :+
 
         def to_a
           self.coords.to_a
@@ -77,6 +70,15 @@ module Laser
           ','
         end
 
+
+        # Override in subclasses, eg:
+        # def separator
+        #   ';'
+        # end
+        #
+        # def hash_keys
+        #   [:x, :y, :z] or [:h, :w, :d]
+        # end
         def hash_keys
           [:x, :y]
         end
@@ -108,15 +110,10 @@ module Laser
           clone
         end
 
-
-
-
         private
 
         #
         # Convert from, eg "100,50" to [100.0, 50.0],
-        #
-        #
         def parse_string string
           string.split(separator).map(&:to_f)
         end

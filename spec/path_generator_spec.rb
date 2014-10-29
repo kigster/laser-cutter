@@ -58,8 +58,8 @@ module Laser
 
         context 'path generation' do
           # let(:outside) { Line.new(
-          #     from: inside.p1.move_by(-thickness, -thickness),
-          #     to: inside.p2.move_by(thickness, -thickness)) }
+          #     from: inside.p1.plus(-thickness, -thickness),
+          #     to: inside.p2.plus(thickness, -thickness)) }
 
           context 'center out' do
             it 'generates correct path vertices' do

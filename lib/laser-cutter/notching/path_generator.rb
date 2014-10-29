@@ -9,7 +9,7 @@ module Laser
           shift = []
           shift[dim_index]           = delta * direction
           shift[(dim_index + 1) % 2] = 0
-          p.move_by *shift
+          p.plus *shift
         end
       end
 
@@ -56,18 +56,39 @@ module Laser
         # (for center_out = true) or dip in the middle (center_out = false)
         def generate
           shifts = define_shifts
-
+          vertices = []
           path = NotchedPath.new
-          path.corner_boxes = corner_boxes if corners
+
+          if corners
+            # path.corner_boxes = corner_boxes if corners
+            sides = corner_boxes.map(&:sides).flatten
+            sides.each do |s|
+              unless s.p1.coords.[](dimension_along) == edge.inside.p1.coords.[](dimension_along) &&
+                     s.p2.coords.[](dimension_along) == edge.inside.p2.coords.[](dimension_along)
+                  path.lines << s
+              end
+            end
+          end
+
           point = starting_point
 
-          vertices = [point]
+          vertices << point
+          adjust_for_kerf(vertices,-1)
           shifts.each do |shift|
             point = shift.next_point_after point
             vertices << point
           end
+          adjust_for_kerf(vertices, 1)
           path.vertices = vertices
           path
+        end
+
+        def adjust_for_kerf(vertices, direction)
+          if kerf?
+            point = vertices.pop
+            point = corners ? point.plus(2 * direction * shift_vector(1)) : point
+            vertices << point
+          end
         end
 
         def corner_boxes
@@ -75,22 +96,23 @@ module Laser
           r2 = Geometry::Rect[edge.inside.p2.clone, edge.outside.p2.clone]
 
           if kerf?
-            v = shift_vector
-            v = (-1 * v) unless first_notch_out?
-            # because we shifted inside and outside without stretching them,
-            # we only need to adjust the 2nd corner box location: first one
-            # is already positioned correctly.
-            r1 = Geometry::Rect[edge.inside.p1.move_by(-1 * v), edge.outside.p1.clone]
-            r2 = Geometry::Rect[edge.inside.p2.clone, edge.outside.p2.move_by(-1 * v)]
+            v1 = shift_vector(1)
+            v2 = shift_vector(2)
+            k = -1
+            unless first_notch_out?
+              k = -2
+            end
+            r1 = Geometry::Rect[edge.inside.p1.plus(k * v1), edge.outside.p1.clone]
+            r2 = Geometry::Rect[edge.inside.p2.plus(k * v2), edge.outside.p2.clone]
           end
           # relocate returns the object
-          [r1, r2]
+          [r1, r2].map(&:relocate!)
         end
 
-        def shift_vector
+        def shift_vector(index)
           shift = []
           shift[dimension_across] = 0
-          shift[dimension_along] = kerf / 2.0 * edge.v1.[](dimension_along)
+          shift[dimension_along] = kerf / 2.0 * edge.send("v#{index}".to_sym).[](dimension_along)
           Vector.[](*shift)
         end
 

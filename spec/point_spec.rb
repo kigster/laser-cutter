@@ -42,12 +42,12 @@ module Laser
 
         context 'move by' do
           it 'should move properly' do
-            p = p1.move_by(10, -2)
+            p = p1.plus(10, -2)
             expect(p.x).to be_within(0.001).of(11)
             expect(p.y).to be_within(0.001).of(0)
           end
           it 'should move cloned version properly' do
-            p2 = p1.clone.move_by(10, -2)
+            p2 = p1.clone.plus(10, -2)
             expect(p2.x).to be_within(0.001).of(11)
             expect(p2.y).to be_within(0.001).of(0)
           end

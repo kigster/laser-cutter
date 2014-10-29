@@ -74,6 +74,8 @@ module Laser
                             })
             path = Notching::PathGenerator.new(edge).generate
             side_lines << path.create_lines
+            # side_lines << bounding_side
+            # side_lines << face.sides[side_index]
           end
           aggregator = Aggregator.new(side_lines.flatten)
           aggregator.dedup!.deoverlap!.dedup!
@@ -98,8 +100,8 @@ module Laser
 
       def face_bounding_rect(face)
         b = face.clone
-        b.move_to(b.position.move_by(-thickness, -thickness))
-        b.p2 = b.p2.move_by(2 * thickness, 2 * thickness)
+        b.move_to(b.position.plus(-thickness, -thickness))
+        b.p2 = b.p2.plus(2 * thickness, 2 * thickness)
         b.relocate!
       end
 

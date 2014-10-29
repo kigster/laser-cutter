@@ -28,9 +28,9 @@ module Laser
           super
           self.vertices = []
           vertices << p1
-          vertices << p1.move_by(w, 0)
+          vertices << p1.plus(w, 0)
           vertices << p2
-          vertices << p1.move_by(0, h)
+          vertices << p1.plus(0, h)
           self.sides = []
           vertices.each_with_index do |v, index|
             sides << Line.new(v, vertices[(index + 1) % vertices.size])

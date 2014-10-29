@@ -1,4 +1,3 @@
 --color
 --format progress
 --require rspec/legacy_formatters
---profile

@@ -24,7 +24,7 @@ module Laser
 
           if config.debug
             unkerfed_config = Laser::Cutter::Configuration.new(config.to_hash)
-            unkerfed_config.merge!(kerf: 0, color: 'DD2211')
+            unkerfed_config.merge!(kerf: 0.0, color: 'DD2211')
             unkerfed_box_renderer = BoxRenderer.new(unkerfed_config)
             unkerfed_box_renderer.ensure_space_for(meta_renderer.enclosure) if meta_renderer
             renderers << unkerfed_box_renderer

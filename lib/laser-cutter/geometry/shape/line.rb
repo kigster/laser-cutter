@@ -77,6 +77,14 @@ module Laser
           n1.p1.eql?(n2.p1) ? n1.p2 <=> n2.p2 : n1.p1 <=> n2.p1
         end
 
+        def < (other)
+          self.p1 == other.p1 ? self.p2 < other.p2 : self.p1 < other.p1
+        end
+
+        def > (other)
+          self.p1 == other.p1 ? self.p2 > other.p2 : self.p1 > other.p1
+        end
+
         def hash
           [p1.to_a, p2.to_a].sort.hash
         end
