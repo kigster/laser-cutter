@@ -61,22 +61,28 @@ module Laser
         faces.each_with_index do |face, face_index|
           bound = face_bounding_rect(face)
           side_lines = []
+          edges = []
           bound.sides.each_with_index do |bounding_side, side_index |
             include_corners = (self.conf[:corners][corner_face][face_index] == :yes && side_index.odd?)
             key = side_index.odd? ? :valign : :halign
             center_out = (self.conf[key][face_index] == :out)
-            edge = Notching::Edge.new(bounding_side, face.sides[side_index],
+            edges << Notching::Edge.new(bounding_side, face.sides[side_index],
                             {:notch_width => notch_width,
                              :thickness => thickness,
                              :kerf => kerf,
                              :center_out => center_out,
                              :corners => include_corners
                             })
-            path = Notching::PathGenerator.new(edge).generate
-            side_lines << path.create_lines
-            # side_lines << bounding_side
-            # side_lines << face.sides[side_index]
           end
+
+          if edges.any?{|e| e.corners} && !edges.all?{|e| e.first_notch_out? }
+            edges.each {|e| e.adjust_corners = true }
+          end
+
+          edges.each do |edge|
+            side_lines << Notching::PathGenerator.new(edge).generate
+          end
+
           aggregator = Aggregator.new(side_lines.flatten)
           aggregator.dedup!.deoverlap!.dedup!
           self.notches << aggregator.lines
@@ -165,7 +171,7 @@ module Laser
         b = face_bounding_rect(front)
         edges = []
         front.sides[0..1].each_with_index do |face, index|
-          edges << Notching::Edge.new(b.sides[index], face, :notch_width => notch_width )
+          edges << Notching::Edge.new(b.sides[index], face, :notch_width => notch_width, :kerf => kerf )
         end
         edges.map(&:notch_count).all?{|c| c % 4 == 3} ? :top : :front
       end

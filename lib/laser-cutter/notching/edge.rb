@@ -10,8 +10,9 @@ module Laser
         attr_accessor :outside, :inside
         attr_accessor :notch_width
         attr_accessor :thickness, :kerf
-        attr_accessor :center_out, :corners
+        attr_accessor :center_out, :corners, :adjust_corners
         attr_accessor :notch_count, :v1, :v2
+
 
         def initialize(outside, inside, options = {})
           self.outside = outside.clone
@@ -29,6 +30,7 @@ module Laser
           self.corners = options[:corners]
           self.kerf = options[:kerf] || 0
           self.notch_width = options[:notch_width]
+          self.adjust_corners = options[:adjust_corners]
 
           adjust_for_kerf!
           calculate_notch_width!
@@ -64,6 +66,10 @@ module Laser
           notch_count % 4 == 1 ? face_setting : !face_setting
         end
 
+        # True if the first notch should be a tab (sticking out), or false if it's a hole.
+        def first_notch_out?
+          add_across_line?(center_out)
+        end
         private
 
         def calculate_notch_width!

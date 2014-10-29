@@ -64,12 +64,11 @@ module Laser
           context 'center out' do
             it 'generates correct path vertices' do
               expect(inside.p1).to_not eql(inside.p2)
-              path = generator.generate
-              expect(path).to be_a_kind_of(NotchedPath)
-              expect(path.size).to be > 5
+              lines = generator.generate
+              expect(lines.size).to be > 5
 
-              expect(Geometry::Line.new(path.vertices.first, inside.p1).length).to be_within(0.001).of(0)
-              expect(Geometry::Line.new(path.vertices.last, inside.p2).length).to be_within(0.001).of(0)
+              expect(Geometry::Line.new(lines.first.p1, inside.p1).length).to be_within(0.001).of(0)
+              expect(Geometry::Line.new(lines.last.p2, inside.p2).length).to be_within(0.001).of(0)
 
               # Sanity Check
               expect(Geometry::Point.new(1, 1)).to eql(inside.p1)
@@ -77,10 +76,8 @@ module Laser
             end
 
             it 'generates correct lines' do
-              path = generator.generate
-              lines = path.create_lines
-              expect(path.size).to eq(12)
-              expect(lines.size).to be > 1
+              lines = generator.generate
+              expect(lines.size).to eq(19)
             end
           end
         end

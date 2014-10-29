@@ -2,6 +2,11 @@ module Laser
   module Cutter
     module Geometry
       class Line < Shape
+
+        def self.[] *array
+          self.new *array
+        end
+
         attr_accessor :p1, :p2
 
         def initialize(point1, point2 = nil)

@@ -70,6 +70,10 @@ module Laser
           ','
         end
 
+        def [] value
+          coords.[](value)
+        end
+
 
         # Override in subclasses, eg:
         # def separator

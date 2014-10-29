@@ -1,4 +1,3 @@
-require_relative 'notched_path'
 
 module Laser
   module Cutter
@@ -7,7 +6,7 @@ module Laser
         def next_point_after point
           p = point.clone
           shift = []
-          shift[dim_index]           = delta * direction
+          shift[dim_index] = delta * direction
           shift[(dim_index + 1) % 2] = 0
           p.plus *shift
         end
@@ -16,6 +15,7 @@ module Laser
       # Alternating iterator
       class InfiniteIterator < Struct.new(:array)
         attr_accessor :array, :next_index, :calls
+
         def initialize(array)
           self.array = array
           self.calls = 0
@@ -35,7 +35,7 @@ module Laser
       class PathGenerator
 
         extend Forwardable
-        %i(center_out thickness corners kerf kerf? notch_width corners).each do |method_name|
+        %i(center_out thickness corners kerf kerf? notch_width first_notch_out? adjust_corners corners).each do |method_name|
           def_delegator :@edge, method_name, method_name
         end
 
@@ -57,30 +57,23 @@ module Laser
         def generate
           shifts = define_shifts
           vertices = []
-          path = NotchedPath.new
+          lines = []
 
           if corners
-            # path.corner_boxes = corner_boxes if corners
-            sides = corner_boxes.map(&:sides).flatten
-            sides.each do |s|
-              unless s.p1.coords.[](dimension_along) == edge.inside.p1.coords.[](dimension_along) &&
-                     s.p2.coords.[](dimension_along) == edge.inside.p2.coords.[](dimension_along)
-                  path.lines << s
-              end
-            end
+            lines << corner_box_sides
           end
 
           point = starting_point
 
           vertices << point
-          adjust_for_kerf(vertices,-1)
+          adjust_for_kerf(vertices,-1) if adjust_corners && !first_notch_out?
           shifts.each do |shift|
             point = shift.next_point_after point
             vertices << point
           end
-          adjust_for_kerf(vertices, 1)
-          path.vertices = vertices
-          path
+          adjust_for_kerf(vertices, 1) if adjust_corners && !first_notch_out?
+          lines << create_lines(vertices)
+          lines.flatten
         end
 
         def adjust_for_kerf(vertices, direction)
@@ -91,52 +84,108 @@ module Laser
           end
         end
 
-        def corner_boxes
-          r1 = Geometry::Rect[edge.inside.p1.clone, edge.outside.p1.clone]
-          r2 = Geometry::Rect[edge.inside.p2.clone, edge.outside.p2.clone]
+        def corner_box_sides
+          boxes = []
+          extra_lines = []
+          sides = []
+
+          # These two boxes occupy the corners of the 3D box. They do not match
+          # in width to our notches because they are usually merged with them.
+          # It's just an aesthetic choice I guess.
+          boxes << Geometry::Rect[edge.inside.p1.clone, edge.outside.p1.clone]
+          boxes << Geometry::Rect[edge.inside.p2.clone, edge.outside.p2.clone]
 
           if kerf?
-            v1 = shift_vector(1)
-            v2 = shift_vector(2)
-            k = -1
-            unless first_notch_out?
-              k = -2
+            if adjust_corners
+              if first_notch_out?
+                k = 2
+                direction = -1
+                dim_index = 1
+                extra_lines << add_corners_when_out(dim_index, direction, k)
+              else
+                k = -2
+                direction = 1
+                dim_index = 0
+                extra_lines << add_boxes_when_in(dim_index, direction, k)
+              end
             end
-            r1 = Geometry::Rect[edge.inside.p1.plus(k * v1), edge.outside.p1.clone]
-            r2 = Geometry::Rect[edge.inside.p2.plus(k * v2), edge.outside.p2.clone]
           end
-          # relocate returns the object
-          [r1, r2].map(&:relocate!)
+          sides = boxes.flatten.map(&:relocate!).map(&:sides)
+          sides << extra_lines if !extra_lines.empty?
+          sides.flatten
         end
 
-        def shift_vector(index)
+        def add_boxes_when_in(dim_index, direction, k)
+          v1 = k * direction * shift_vector(1, dim_index)
+          v2 = k * direction * shift_vector(2, dim_index)
+          p1 = edge.inside.p1.plus(v1)
+          coords = []
+          coords[d_index_along] = edge.inside.p1[d_index_along]
+          coords[d_index_across] = edge.outside.p1[d_index_across]
+          p2 = Geometry::Point[*coords]
+          r1 = Geometry::Rect[p1, p2]
+
+          p1 = edge.inside.p2.plus(v2)
+          coords = []
+          coords[d_index_along] = edge.inside.p2[d_index_along]
+          coords[d_index_across] = edge.outside.p2[d_index_across]
+          p2 = Geometry::Point[*coords]
+          r2 = Geometry::Rect[p1, p2]
+          lines = [r1, r2].map(&:sides).flatten
+          lines << Geometry::Line[edge.inside.p1.plus(v1), edge.inside.p1.clone]
+          lines << Geometry::Line[edge.inside.p2.plus(v2), edge.inside.p2.clone]
+          lines
+        end
+
+        def add_corners_when_out(dim_index, direction, k)
+          v1 = direction * k * shift_vector(1, dim_index)
+          v2 = direction * k * shift_vector(2, dim_index)
+          p1 = edge.inside.p1.plus(v1)
+          coords = []
+          coords[d_index_along] = edge.outside.p1[d_index_along]
+          coords[d_index_across] = edge.inside.p1[d_index_across]
+          p2 = Geometry::Point[*coords]
+          r1 = Geometry::Rect[p1, p2]
+
+          p1 = edge.inside.p2.plus(v2)
+          coords = []
+          coords[d_index_along] = edge.outside.p2[d_index_along]
+          coords[d_index_across] = edge.inside.p2[d_index_across]
+          p2 = Geometry::Point[*coords]
+          r2 = Geometry::Rect[p1, p2]
+          lines = [r1, r2].map(&:sides).flatten
+          lines << Geometry::Line[edge.inside.p1.plus(v1), edge.inside.p1.clone]
+          lines << Geometry::Line[edge.inside.p2.plus(v2), edge.inside.p2.clone]
+          lines
+        end
+
+        def shift_vector(index, dim_shift = 0)
           shift = []
-          shift[dimension_across] = 0
-          shift[dimension_along] = kerf / 2.0 * edge.send("v#{index}".to_sym).[](dimension_along)
+          shift[(d_index_across + dim_shift) % 2] = 0
+          shift[(d_index_along + dim_shift) % 2] = kerf / 2.0 * edge.send("v#{index}".to_sym).[]((d_index_along + dim_shift) % 2)
           Vector.[](*shift)
         end
 
-        # True if the first notch should be a tab (sticking out), or false if it's a hole.
-        def first_notch_out?
-          edge.add_across_line?(center_out)
-        end
 
         def starting_point
           edge.inside.p1.clone # start
         end
 
         # 0 = X, 1 = Y
-        def dimension_along
+        def d_index_along
           (edge.inside.p1.x == edge.inside.p2.x) ? 1 : 0
         end
-        def dimension_across
-          (dimension_along + 1) % 2
+
+        def d_index_across
+          (d_index_along + 1) % 2
         end
+
         def direction_along
-          (edge.inside.p1.coords.[](dimension_along) < edge.inside.p2.coords.[](dimension_along)) ? 1 : -1
+          (edge.inside.p1.coords.[](d_index_along) < edge.inside.p2.coords.[](d_index_along)) ? 1 : -1
         end
+
         def direction_across
-          (edge.inside.p1.coords.[](dimension_across) < edge.outside.p1.coords.[](dimension_across)) ? 1 : -1
+          (edge.inside.p1.coords.[](d_index_across) < edge.outside.p1.coords.[](d_index_across)) ? 1 : -1
         end
 
         private
@@ -149,7 +198,7 @@ module Laser
           across_iter = create_iterator_across
 
           shifts = []
-          inner = true  # false when we are drawing outer notch, true when inner
+          inner = true # false when we are drawing outer notch, true when inner
 
           if first_notch_out?
             shifts << across_iter.next
@@ -177,12 +226,22 @@ module Laser
         # to the next.  This method defines three types of movements we'll be doing:
         # one alongside the edge, and two across (towards the box and outward from the box)
         def create_iterator_along
-          InfiniteIterator.new([ Shift.new(notch_width, direction_along, dimension_along)])
+          InfiniteIterator.new([Shift.new(notch_width, direction_along, d_index_along)])
         end
 
         def create_iterator_across
-          InfiniteIterator.new([ Shift.new(thickness,  direction_across, dimension_across),
-                                 Shift.new(thickness, -direction_across, dimension_across)])
+          InfiniteIterator.new([Shift.new(thickness, direction_across, d_index_across),
+                                Shift.new(thickness, -direction_across, d_index_across)])
+        end
+
+        def create_lines(vertices)
+          lines = []
+          vertices.each_with_index do |v, i|
+            if v != vertices.last
+              lines << Geometry::Line.new(v, vertices[i+1])
+            end
+          end
+          lines.flatten
         end
       end
     end
