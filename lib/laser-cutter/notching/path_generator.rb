@@ -1,4 +1,4 @@
-
+require 'forwardable'
 module Laser
   module Cutter
     module Notching
@@ -34,7 +34,7 @@ module Laser
 
       class PathGenerator
 
-        extend Forwardable
+        extend ::Forwardable
         %i(center_out thickness corners kerf kerf? notch_width first_notch_out? adjust_corners corners).each do |method_name|
           def_delegator :@edge, method_name, method_name
         end
