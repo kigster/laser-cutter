@@ -13,7 +13,6 @@ module Laser
           units: 'in',
           page_layout: 'portrait',
           metadata: true
-          #kerf: 0.007  # smallest kerf for thin material, usually it's more than that.
       }
 
       UNIT_SPECIFIC_DEFAULTS = {
@@ -21,8 +20,10 @@ module Laser
               margin: 3,
               padding: 2,
               stroke: 0.0254,
+              kerf: 0.1778
           },
           'in' => {
+              kerf: 0.007, # smallest kerf for thin material, usually it's more than that.
               margin: 0.125,
               padding: 0.1,
               stroke: 0.001,
