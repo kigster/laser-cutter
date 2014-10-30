@@ -50,29 +50,33 @@ Or install it yourself as:
 ## Usage
 
 ```bash
+
 Usage: laser-cutter [options] -o filename.pdf
-   eg: laser-cutter -s 1x1.5x2/0.125/0.125 -O -o box.pdf
+   eg: laser-cutter -z 1x1.5x2/0.125 -O -o box.pdf
 
 Specific Options:
     -w, --width WIDTH                Internal width of the box
     -h, --height HEIGHT              Internal height of the box
     -d, --depth DEPTH                Internal depth of the box
     -t, --thickness THICKNESS        Thickness of the box material
-    -n, --notch NOTCH                Preferred notch length (used only as a guide)
+    -n, --notch NOTCH                Optional notch length (aka "tab width"), guide only
+    -k, --kerf KERF                  Kerf - cut width (default is 0.007in)
 
     -m, --margin MARGIN              Margins from the edge of the document
     -p, --padding PADDING            Space between the boxes on the page
-    -k, --stroke WIDTH               Numeric stroke width of the line
-    -z, --page_size LETTER           Page size, see --list-all-page-sizes for more info.
-    -y, --page_layout portrait       Page layout, other option is 'landscape'
+    -s, --stroke WIDTH               Numeric stroke width of the line
+    -i, --page_size LETTER           Document page size, default is autofit the box.
+    -l, --page_layout portrait       Page layout, other option is 'landscape'
 
     -O, --open                       Open generated file with system viewer before exiting
-    -W, --write FILE                 Save provided configuration to a file, use '-' for STDOUT
-    -R, --read FILE                  Read configuration from a file, or use '-' for STDIN
+    -W, --write CONFIG_FILE          Save provided configuration to a file, use '-' for STDOUT
+    -R, --read CONFIG_FILE           Read configuration from a file, or use '-' for STDIN
 
-    -l, --list-all-page-sizes        Print all available page sizes with dimensions and exit
+    -L, --list-all-page-sizes        Print all available page sizes with dimensions and exit
     -M, --no-metadata                Do not print box metadata on the PDF
     -v, --[no-]verbose               Run verbosely
+    -B, --inside-box                 Draw the inside boxes (helpful to verify kerfing)
+    -D, --debug                      Show full exception stack trace on error
 
         --examples                   Show detailed usage examples
         --help                       Show this message
@@ -80,37 +84,37 @@ Specific Options:
 
 Common Options:
     -o, --file FILE                  Required output filename of the PDF
-    -s, --size WxHxD/T/N             Combined internal dimensions: W = width, H = height,
-                                     D = depth, T = thickness, N = notch length
+    -z, --size WxHxD/T[/N]           Combined internal dimensions: W = width, H = height,
+                                     D = depth, T = thickness, and optional N = notch length
 
     -u, --units UNITS                Either 'in' for inches (default) or 'mm'
 ```
 
 ### Examples
 
-Create a box defined in inches, and open PDF in preview right after:
+Create a box defined in inches, with kerf (cut width) set to 0.008", and open PDF in preview right after:
 
 ```bash
-    laser-cutter -s 3x2x2/0.125/0.5 -O -o box.pdf
+    laser-cutter -z 3x2x2/0.125 -k 0.008 -O -o box.pdf
 ```       
 
 Create a box defined in millimeters, print verbose info, and set
 page size to A3, and layout to landscape, and stroke width to 1/2mm:
 
 ```bash
-    laser-cutter -u mm -w70 -h20 -d50 -t4.3 -n5 -zA3 -y landscape -k0.5 -v -O -o box.pdf
+    laser-cutter -u mm -w70 -h20 -d50 -t4.3 -n5 -iA3 -l landscape -s0.5 -v -O -o box.pdf
 ```   
 
 List all possible page sizes in metric system:
 
 ```bash
-    laser-cutter -l -u mm
+    laser-cutter -L -u mm
 ```                 
 
 Create a box with provided dimensions, and save the config to a file for later use:
 
 ```bash
-    laser-cutter -s 1.1x2.5x1.5/0.125/0.125 -p 0.1 -O -o box.pdf -W box-settings.json
+    laser-cutter -z 1.1x2.5x1.5/0.125/0.125 -p 0.1 -O -o box.pdf -W box-settings.json
 ```    
 
 Read settings from a previously saved file:
@@ -171,7 +175,7 @@ And laser-cutter:
 
 ```bash
 gem install laser-cutter
-laser-cutter -s 1x1.5x2/0.125/0.125 -O -o box.pdf
+laser-cutter -z 1x1.5x2/0.125/0.125 -O -o box.pdf
 ```
 
 ![LaserCutter Comparison](doc/comparison.jpg).

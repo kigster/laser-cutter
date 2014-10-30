@@ -25,14 +25,14 @@ Usage: laser-cutter [options] -o filename.pdf
           examples = <<-EOF
 
 Examples:
-  1. Create a box defined in inches, and open PDF in preview right after:
+  1. Create a box defined in inches, set kerf to 0.008" and open PDF in preview right after:
 
-       laser-cutter -z 3x2x2/0.125 -O -o box.pdf
+       laser-cutter -z 3x2x2/0.125 -k 0.008 -O -o box.pdf
 
   2. Create a box defined in millimeters, print verbose info, and set
      page size to A3, and layout to landscape, and stroke width to 1/2mm:
 
-       laser-cutter -u mm -w70 -h20 -d50 -t4.3 -n5 -iA3 -l landscape -k0.5 -v -O -o box.pdf
+       laser-cutter -u mm -w70 -h20 -d50 -t4.3 -n5 -iA3 -l landscape -s0.5 -v -O -o box.pdf
 
   3. List all possible page sizes in metric systems:
 
