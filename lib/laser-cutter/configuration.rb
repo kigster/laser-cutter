@@ -4,10 +4,18 @@ require 'pdf/core/page_geometry'
 
 module Laser
   module Cutter
-    class MissingOption < RuntimeError
+    class MissingOption < RuntimeError; end
+    class ZeroValueNotAllowed < MissingOption; end
+
+    class UnitsConverter
+      def self.mm2in value
+        0.039370079 * value
+      end
+      def self.in2mm value
+        25.4 * value
+      end
     end
-    class ZeroValueNotAllowed < MissingOption
-    end
+
     class Configuration < Hashie::Mash
       DEFAULTS = {
           units: 'in',
@@ -16,23 +24,19 @@ module Laser
       }
 
       UNIT_SPECIFIC_DEFAULTS = {
-          'mm' => {
-              margin: 3,
-              padding: 2,
-              stroke: 0.0254,
-              kerf: 0.1778
-          },
           'in' => {
-              kerf: 0.007, # smallest kerf for thin material, usually it's more than that.
+              kerf: 0.0024, # smallest kerf for thin material, usually it's more than that.
               margin: 0.125,
               padding: 0.1,
               stroke: 0.001,
           }
       }
 
+      UNIT_SPECIFIC_DEFAULTS['mm'] = UNIT_SPECIFIC_DEFAULTS['in'].map{|k, v| [k, UnitsConverter.in2mm(v)] }.to_h
+
       SIZE_REGEXP = /[\d\.]+x[\d\.]+x[\d\.]+\/[\d\.]+(\/[\d\.]+)?/
 
-      FLOATS = %w(width height depth thickness notch margin padding stroke kerf)
+      FLOATS   = %w(width height depth thickness notch margin padding stroke kerf)
       NON_ZERO = %w(width height depth thickness stroke)
       REQUIRED = %w(width height depth thickness notch file)
 
@@ -67,7 +71,7 @@ module Laser
 
       def change_units(new_units)
         return if (self.units.eql?(new_units) || !UNIT_SPECIFIC_DEFAULTS.keys.include?(new_units))
-        k = (self.units == 'in') ? 25.4 : 0.039370079
+        k = (self.units == 'in') ? UnitsConverter.in2mm(1.0) : UnitsConverter.mm2in(1.0)
         FLOATS.each do |field|
           next if self.send(field.to_sym).nil?
           self.send("#{field}=".to_sym, (self.send(field.to_sym) * k).round(5))
