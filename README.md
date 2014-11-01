@@ -60,7 +60,7 @@ Specific Options:
     -d, --depth DEPTH                Internal depth of the box
     -t, --thickness THICKNESS        Thickness of the box material
     -n, --notch NOTCH                Optional notch length (aka "tab width"), guide only
-    -k, --kerf KERF                  Kerf - cut width (default is 0.007in)
+    -k, --kerf KERF                  Kerf - cut width (default is 0.0024in)
 
     -m, --margin MARGIN              Margins from the edge of the document
     -p, --padding PADDING            Space between the boxes on the page
@@ -92,10 +92,10 @@ Common Options:
 
 ### Examples
 
-Create a box defined in inches, with kerf (cut width) set to 0.008", and open PDF in preview right after:
+Create a box defined in inches, with kerf (cut width) set to 0.005in, and open PDF in preview right after:
 
 ```bash
-    laser-cutter -z 3x2x2/0.125 -k 0.008 -O -o box.pdf
+    laser-cutter -z 3x2x2/0.125 -k 0.005 -O -o box.pdf
 ```       
 
 Create a box defined in millimeters, print verbose info, and set
