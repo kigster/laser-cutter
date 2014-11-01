@@ -38,21 +38,16 @@ module Laser
 
         def adjust_for_kerf!
           if kerf?
-            k = kerf / 2.0
-            p1 = inside.p1.plus(v1 * k)
-            p2 = inside.p2.plus(v2 * k)
-            self.inside = Geometry::Line.new(p1, p2)
-
-            p1 = outside.p1.plus(v1 * k)
-            p2 = outside.p2.plus(v2 * k)
-            self.outside = Geometry::Line.new(p1, p2)
-
-            inside.relocate!
-            outside.relocate!
-            # note – we have not increased the length of the sides to compensate
-            # for kerf – we simply shifted both lines. We'll compenensate for this
-            # in notch width calculations later, and also corner box inclusion.
+            self.inside  = move_line_for_kerf(inside)
+            self.outside = move_line_for_kerf(outside)
           end
+        end
+
+        def move_line_for_kerf line
+          k = kerf / 2.0
+          p1 = line.p1.plus(v1 * k)
+          p2 = line.p2.plus(v2 * k)
+          Geometry::Line.new(p1, p2).relocate!
         end
 
         def kerf?
