@@ -32,6 +32,17 @@ module Laser
         end
       end
 
+      # One of the key "tricks" that this algorithm applies, is that it converts everything into
+      # pure set of lines in the end. It then tries to find all intersections of the lines so that
+      # we can remove duplicates.  So any segment of any line that is covered by 2 lines or more is removed,
+      # cleared completely for an empty space.  This turns out to be very useful indeed, because we can
+      # paint with wide brush strokes to get the carcass, and then fine tune it by adding or removing line
+      # segments.  Some of the lines below are added to actually remove the lines that might have otherwise
+      # been there.
+      #
+      # This comes especially handy when drawing corner boxes, which are deliberately made not to match the notch
+      # width, but to match thickness of the material.  The corner notces for these sides will therefore have
+      # length equal to the thickness + regular notch length.
       class PathGenerator
 
         extend ::Forwardable
@@ -146,6 +157,9 @@ module Laser
 
           lines = [r1, r2].map(&:sides).flatten
 
+          # Our clever algorithm removes automatically duplicate lines. These lines
+          # below are added to actually clear out this space and remove the existing
+          # lines that are already there.
           lines << Geometry::Line[edge.inside.p1.plus(v1), edge.inside.p1.clone]
           lines << Geometry::Line[edge.inside.p2.plus(v2), edge.inside.p2.clone]
           lines
