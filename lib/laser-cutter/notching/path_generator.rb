@@ -84,79 +84,21 @@ module Laser
           end
         end
 
+        # These two boxes occupy the corners of the 3D box. They do not match
+        # in width to our notches because they are usually merged with them. Their
+        # size is equal to the thickness of the material (adjusted for kerf)
+        # It's just an aesthetic choice I guess.
         def corner_box_sides
           boxes = []
           extra_lines = []
-          sides = []
 
-          # These two boxes occupy the corners of the 3D box. They do not match
-          # in width to our notches because they are usually merged with them.
-          # It's just an aesthetic choice I guess.
           boxes << Geometry::Rect[edge.inside.p1.clone, edge.outside.p1.clone]
           boxes << Geometry::Rect[edge.inside.p2.clone, edge.outside.p2.clone]
 
-          if kerf?
-            if adjust_corners
-              if first_notch_out?
-                k = 2
-                direction = -1
-                dim_index = 1
-                extra_lines << add_corners_when_out(dim_index, direction, k)
-              else
-                k = -2
-                direction = 1
-                dim_index = 0
-                extra_lines << add_boxes_when_in(dim_index, direction, k)
-              end
-            end
-          end
+          extra_lines << add_corners if adjust_corners && kerf?
           sides = boxes.flatten.map(&:relocate!).map(&:sides)
           sides << extra_lines if !extra_lines.empty?
           sides.flatten
-        end
-
-        def add_boxes_when_in(dim_index, direction, k)
-          v1 = k * direction * shift_vector(1, dim_index)
-          v2 = k * direction * shift_vector(2, dim_index)
-          p1 = edge.inside.p1.plus(v1)
-          coords = []
-          coords[d_index_along] = edge.inside.p1[d_index_along]
-          coords[d_index_across] = edge.outside.p1[d_index_across]
-          p2 = Geometry::Point[*coords]
-          r1 = Geometry::Rect[p1, p2]
-
-          p1 = edge.inside.p2.plus(v2)
-          coords = []
-          coords[d_index_along] = edge.inside.p2[d_index_along]
-          coords[d_index_across] = edge.outside.p2[d_index_across]
-          p2 = Geometry::Point[*coords]
-          r2 = Geometry::Rect[p1, p2]
-          lines = [r1, r2].map(&:sides).flatten
-          lines << Geometry::Line[edge.inside.p1.plus(v1), edge.inside.p1.clone]
-          lines << Geometry::Line[edge.inside.p2.plus(v2), edge.inside.p2.clone]
-          lines
-        end
-
-        def add_corners_when_out(dim_index, direction, k)
-          v1 = direction * k * shift_vector(1, dim_index)
-          v2 = direction * k * shift_vector(2, dim_index)
-          p1 = edge.inside.p1.plus(v1)
-          coords = []
-          coords[d_index_along] = edge.outside.p1[d_index_along]
-          coords[d_index_across] = edge.inside.p1[d_index_across]
-          p2 = Geometry::Point[*coords]
-          r1 = Geometry::Rect[p1, p2]
-
-          p1 = edge.inside.p2.plus(v2)
-          coords = []
-          coords[d_index_along] = edge.outside.p2[d_index_along]
-          coords[d_index_across] = edge.inside.p2[d_index_across]
-          p2 = Geometry::Point[*coords]
-          r2 = Geometry::Rect[p1, p2]
-          lines = [r1, r2].map(&:sides).flatten
-          lines << Geometry::Line[edge.inside.p1.plus(v1), edge.inside.p1.clone]
-          lines << Geometry::Line[edge.inside.p2.plus(v2), edge.inside.p2.clone]
-          lines
         end
 
         def shift_vector(index, dim_shift = 0)
@@ -189,6 +131,35 @@ module Laser
         end
 
         private
+        # Helper method to calculate dimensions of our corners.
+        def add_corners
+          k, direction, dim_index, edge_along, edge_across = if first_notch_out?
+            [2, -1, 1, :inside, :outside]
+          else
+            [-2, 1, 0, :outside, :inside]
+          end
+          v1 = direction * k * shift_vector(1, dim_index)
+          v2 = direction * k * shift_vector(2, dim_index)
+
+          r1 = define_corner_rect(:p1, v1, edge_along, edge_across)
+          r2 = define_corner_rect(:p2, v2, edge_along, edge_across)
+
+          lines = [r1, r2].map(&:sides).flatten
+
+          lines << Geometry::Line[edge.inside.p1.plus(v1), edge.inside.p1.clone]
+          lines << Geometry::Line[edge.inside.p2.plus(v2), edge.inside.p2.clone]
+          lines
+        end
+
+        def define_corner_rect(point, delta, edge_along, edge_across)
+          p1 = edge.inside.send(point).plus(delta)
+          coords = []
+          coords[d_index_along] = edge.send(edge_along).send(point)[d_index_along]
+          coords[d_index_across] = edge.send(edge_across).send(point)[d_index_across]
+          p2 = Geometry::Point[*coords]
+          Geometry::Rect[p1, p2]
+        end
+
 
         # This method has the bulk of the logic: we create the list of path deltas
         # to be applied when we walk the edge next.
