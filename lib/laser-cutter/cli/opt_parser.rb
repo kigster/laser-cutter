@@ -1,5 +1,6 @@
 require 'optparse'
-require 'colored'
+require 'colored2'
+require 'colored2/version'
 require 'json'
 require 'hashie/mash'
 require 'laser-cutter'
@@ -11,15 +12,23 @@ module Laser
       class OptParser
         def self.puts_error(e)
           STDERR.puts "Whoops, #{e}".red
-          STDERR.puts "Try --help or --examples for more info...".yellow
+          STDERR.puts 'Try --help or --examples for more info...'.yellow
         end
 
         def self.parse(args)
           banner_text = <<-EOF
-#{('Laser-Cutter v'+ Laser::Cutter::VERSION).bold}
 
-Usage: laser-cutter [options] -o filename.pdf
-   eg: laser-cutter -z 1x1.5x2/0.125 -O -o box.pdf
+     #{'___     ___     ___'.blue}
+#{'____|   |___|   |___|   |_____'.blue}              ruby gem laser-cutter v#{Laser::Cutter::VERSION.bold.cyan}
+#{'|'.blue + ' L A S E R®'.yellow + ' —— '.red + 'C U T T E R© '.green + '|'.blue}              PDF gen by prawn v#{Prawn::VERSION.bold.cyan}
+                                            techno-color by colored2 v#{Colored2::VERSION.bold.cyan}
+
+  Make Boxes Online!      ➩   #{'http://makeabox.io/'.bold.blue}
+  Contribute to source!   ➩   #{'https://github.com/kigster/laser-cutter'.bold.blue}
+#{'⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽'.bold.red.underlined}
+
+Usage: #{'laser-cutter [options] -o filename.pdf'.bold.green}
+   eg: #{'laser-cutter -z 1x1.5x2/0.125 -O -o box.pdf'.bold.green}
           EOF
 
           examples = <<-EOF
@@ -55,41 +64,42 @@ Examples:
 
           opt_parser = OptionParser.new do |opts|
             opts.banner = banner_text.blue
-            opts.separator "Specific Options:"
-            opts.on("-w", "--width WIDTH", "Internal width of the box") { |value| options.width = value }
-            opts.on("-h", "--height HEIGHT", "Internal height of the box") { |value| options.height = value }
-            opts.on("-d", "--depth DEPTH", "Internal depth of the box") { |value| options.depth= value }
-            opts.on("-t", "--thickness THICKNESS", "Thickness of the box material") { |value| options.thickness = value }
-            opts.on("-n", "--notch NOTCH", "Optional notch length (aka \"tab width\"), guide only") { |value| options.notch = value }
-            opts.on("-k", "--kerf KERF", "Kerf - cut width (default is #{Laser::Cutter::Configuration::UNIT_SPECIFIC_DEFAULTS['in'][:kerf]}in)") { |value| options.kerf = value }
-            opts.separator ""
-            opts.on("-m", "--margin MARGIN", "Margins from the edge of the document") { |value| options.margin = value }
-            opts.on("-p", "--padding PADDING", "Space between the boxes on the page") { |value| options.padding = value }
-            opts.on("-s", "--stroke WIDTH", "Numeric stroke width of the line") { |value| options.stroke = value }
-            opts.on("-i", "--page_size LETTER", "Document page size, default is autofit the box.") { |value| options.page_size = value }
-            opts.on("-l", "--page_layout portrait", "Page layout, other option is 'landscape' ") { |value| options.page_layout = value }
-            opts.separator ""
-            opts.on("-O", "--open", "Open generated file with system viewer before exiting") { |v| options.open = v }
-            opts.on("-W", "--write CONFIG_FILE", "Save provided configuration to a file, use '-' for STDOUT") { |v| options.write_file = v }
-            opts.on("-R", "--read CONFIG_FILE", "Read configuration from a file, or use '-' for STDIN") { |v| options.read_file = v }
-            opts.separator ""
-            opts.on("-L", "--list-all-page-sizes", "Print all available page sizes with dimensions and exit") { |v| options.list_all_page_sizes = true }
-            opts.on("-M", "--no-metadata", "Do not print box metadata on the PDF") { |value| options.metadata = value }
-            opts.on("-v", "--[no-]verbose", "Run verbosely") { |v| options.verbose = v }
-            opts.on("-B", "--inside-box", "Draw the inside boxes (helpful to verify kerfing)") { |v| options.inside_box = v }
-            opts.on("-D", "--debug", "Show full exception stack trace on error") { |v| options.debug = v }
-            opts.separator ""
-            opts.on("--examples", "Show detailed usage examples") { puts opts; puts examples.yellow; exit }
-            opts.on("--help", "Show this message") { puts opts; exit }
-            opts.on("--version", "Show version") { puts Laser::Cutter::VERSION; exit }
-            opts.separator ""
-            opts.separator "Common Options:"
-            opts.on_tail("-o", "--file FILE", "Required output filename of the PDF") { |value| options.file = value }
-            opts.on_tail("-z", "--size WxHxD/T[/N]",
-                         "Combined internal dimensions: W = width, H = height,\n#{" " * 37}D = depth, T = thickness, and optional N = notch length\n\n") do |size|
+            opts.separator 'Specific Options:'
+            opts.on('-w', '--width WIDTH', 'Internal width of the box') { |value| options.width = value }
+            opts.on('-h', '--height HEIGHT', 'Internal height of the box') { |value| options.height = value }
+            opts.on('-d', '--depth DEPTH', 'Internal depth of the box') { |value| options.depth= value }
+            opts.on('-t', '--thickness THICKNESS', 'Thickness of the box material') { |value| options.thickness = value }
+            opts.on('-n', '--notch NOTCH', 'Optional notch length (aka \'tab width\'), guide only') { |value| options.notch = value }
+            opts.on('-N', '--notch-strategy STRATEGY', "Instead of hard-coding, use either '#{Laser::Cutter::Notching::DefaultNotchStrategy.strategies.map(&:to_s).join("'' or '")}'") { |value| options.notch_strategy = value }
+            opts.on('-k', '--kerf KERF', "Kerf - cut width (default is #{Laser::Cutter::Configuration::DEFAULT_FLOATS[:in][:kerf]}in)") { |value| options.kerf = value }
+            opts.separator ''
+            opts.on('-m', '--margin MARGIN', 'Margins from the edge of the document') { |value| options.margin = value }
+            opts.on('-p', '--padding PADDING', 'Space between the boxes on the page') { |value| options.padding = value }
+            opts.on('-s', '--stroke WIDTH', 'Numeric stroke width of the line') { |value| options.stroke = value }
+            opts.on('-i', '--page_size LETTER', 'Document page size, default is autofit the box.') { |value| options.page_size = value }
+            opts.on('-l', '--page_layout portrait', 'Page layout, other option is \'landscape\' ') { |value| options.page_layout = value }
+            opts.separator ''
+            opts.on('-O', '--open', 'Open generated file with system viewer before exiting') { |v| options.open = v }
+            opts.on('-W', '--write CONFIG_FILE', 'Save provided configuration to a file, use \'-\' for STDOUT') { |v| options.write_file = v }
+            opts.on('-R', '--read CONFIG_FILE', 'Read configuration from a file, or use \'-\' for STDIN') { |v| options.read_file = v }
+            opts.separator ''
+            opts.on('-L', '--list-all-page-sizes', 'Print all available page sizes with dimensions and exit') { |v| options.list_all_page_sizes = true }
+            opts.on('-M', '--no-metadata', 'Do not print box metadata on the PDF') { |value| options.print_metadata = value }
+            opts.on('-v', '--[no-]verbose', 'Run verbosely') { |v| options.verbose = v }
+            opts.on('-B', '--inside-box', 'Draw the inside boxes (helpful to verify kerfing)') { |v| options.inside_box = v }
+            opts.on('-D', '--debug', 'Show full exception stack trace on error') { |v| options.debug = true }
+            opts.separator ''
+            opts.on('--examples', 'Show detailed usage examples') { puts opts; puts examples.yellow; exit }
+            opts.on('--help', 'Show this message') { puts opts; exit }
+            opts.on('--version', 'Show version') { puts Laser::Cutter::VERSION; exit }
+            opts.separator ''
+            opts.separator 'Common Options:'
+            opts.on_tail('-o', '--file FILE', 'Required output filename of the PDF') { |value| options.file = value }
+            opts.on_tail('-z', '--size WxHxD/T[/N]',
+                         "Combined internal dimensions: W = width, H = height,\n#{' ' * 37}D = depth, T = thickness, and optional N = notch length\n\n") do |size|
               options.size = size
             end
-            opts.on_tail("-u", "--units UNITS", "Either 'in' for inches (default) or 'mm'") { |value| options.units = value }
+            opts.on_tail('-u', '--units UNITS', "Either 'in' for inches (default) or 'mm'") { |value| options.units = value }
           end
 
           opt_parser.parse!(args)
@@ -109,7 +119,7 @@ Examples:
           end
 
           if options.verbose
-            puts "Starting with the following configuration:"
+            puts 'Starting with the following configuration:'
             puts JSON.pretty_generate(config.to_hash).green
           end
 

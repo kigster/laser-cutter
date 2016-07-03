@@ -1,15 +1,12 @@
-require 'laser-cutter/version'
-require 'laser-cutter/configuration'
-require 'laser-cutter/geometry'
-require 'laser-cutter/box'
-require 'laser-cutter/renderer'
-require 'laser-cutter/page_manager'
-require 'laser-cutter/notching'
-require 'laser-cutter/aggregator'
 require 'prawn'
 require 'prawn/measurement_extensions'
-
+require 'require_dir'
 module Laser
   module Cutter
+    extend RequireDir
+    init_from_source __FILE__
   end
 end
+
+Laser::Cutter.dir_r('laser-cutter/geometry')
+Laser::Cutter.dir('laser-cutter')

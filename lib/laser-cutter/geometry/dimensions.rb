@@ -1,3 +1,4 @@
+require_relative 'tuple'
 module Laser
   module Cutter
     module Geometry

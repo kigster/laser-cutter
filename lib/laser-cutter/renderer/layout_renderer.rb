@@ -10,13 +10,16 @@ module Laser
         end
 
         def render
+          STDOUT.puts 'Layout: Rendering BEGIN'.blue.bold if config.debug
+
           renderer = self
           renderers = []
 
           box_renderer = BoxRenderer.new(config)
           renderers << box_renderer
 
-          if config.metadata
+          # noinspection RubyResolve
+          if config.print_metadata
             meta_renderer = MetaRenderer.new(config)
             renderers << meta_renderer
             box_renderer.ensure_space_for(meta_renderer.enclosure)
@@ -45,6 +48,8 @@ module Laser
           if config.verbose
             puts "PDF saved to #{config.file}."
           end
+          STDERR.puts 'Layout: Rendering END'.bold.blue if config.debug
+
         end
 
         def calculate_image_boundary(box_renderer, margin)

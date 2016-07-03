@@ -1,5 +1,5 @@
 module Laser
   module Cutter
-    VERSION = '1.0.4'
+    VERSION = '2.0.0.pre.alpha.1'
   end
 end

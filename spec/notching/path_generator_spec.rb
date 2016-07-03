@@ -1,4 +1,4 @@
-require_relative 'spec_helper'
+require 'spec_helper'
 
 module Laser
   module Cutter
@@ -9,25 +9,25 @@ module Laser
         let(:center_out) { true }
         let(:corners) { true }
 
-        let(:options) { {notch_width: notch,
+        let(:options) { {notch: notch,
                          thickness: thickness,
                          center_out: center_out,
                          corners: corners} }
 
-        let(:outside) { Geometry::Line.new(from: [0, 0], to: [10, 0]) }
-        let(:inside)  { Geometry::Line.new(from: [1, 1], to: [9,  1]) }
+        let(:outer) { Geometry::Line.new(from: [0, 0], to: [10, 0]) }
+        let(:inner)  { Geometry::Line.new(from: [1, 1], to: [9, 1]) }
         let(:edge) { Edge.new(outside, inside, options) }
         let(:generator) { PathGenerator.new(edge) }
 
         context 'edge' do
           it 'should properly calculate notch size' do
-            expect(edge.notch_width).to be_within(0.001).of(1.6)
+            expect(edge.notch).to be_within(0.001).of(1.6)
           end
           context 'edge cases with the edge :)' do
             let(:notch) { 15 } # too big
             it 'should properly handle edge cases' do
               # 3 is the minimum number of notches we support per side
-              expect(edge.notch_width).to be_within(0.001).of(8.0/3.0)
+              expect(edge.notch).to be_within(0.001).of(8.0/3.0)
             end
           end
         end
@@ -47,9 +47,9 @@ module Laser
 
           it 'correctly defines shifts' do
             shifts = generator.send(:define_shifts)
-            expect(edge.outside.length).to eql(10.0)
-            expect(edge.inside.length).to eql(8.0)
-            expect(edge.notch_width).to be_within(0.001).of(1.6)
+            expect(edge.outer.length).to eql(10.0)
+            expect(edge.inner.length).to eql(8.0)
+            expect(edge.notch).to be_within(0.001).of(1.6)
             expect(edge.notch_count).to eql(5)
             expect(shifts.size).to eql(11)
           end

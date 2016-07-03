@@ -46,7 +46,7 @@ module Laser
       class PathGenerator
 
         extend ::Forwardable
-        %i(center_out thickness corners kerf kerf? notch_width first_notch_out? adjust_corners corners).each do |method_name|
+        %i(center_out thickness corners kerf kerf? notch first_notch_out? adjust_corners corners).each do |method_name|
           def_delegator :@edge, method_name, method_name
         end
 
@@ -84,7 +84,9 @@ module Laser
           end
           adjust_for_kerf(vertices, 1) if adjust_corners && !first_notch_out?
           lines << create_lines(vertices)
-          lines.flatten
+          aggregator = Aggregator.new(lines.flatten)
+          aggregator.dedup!.deoverlap!.dedup!
+          aggregator.lines.flatten
         end
 
         def adjust_for_kerf(vertices, direction)
@@ -103,8 +105,8 @@ module Laser
           boxes = []
           extra_lines = []
 
-          boxes << Geometry::Rect[edge.inside.p1.clone, edge.outside.p1.clone]
-          boxes << Geometry::Rect[edge.inside.p2.clone, edge.outside.p2.clone]
+          boxes << Geometry::Rect[edge.inner.p1.clone, edge.outer.p1.clone]
+          boxes << Geometry::Rect[edge.inner.p2.clone, edge.outer.p2.clone]
 
           extra_lines << add_corners if adjust_corners && kerf?
           sides = boxes.flatten.map(&:relocate!).map(&:sides)
@@ -121,12 +123,12 @@ module Laser
 
 
         def starting_point
-          edge.inside.p1.clone # start
+          edge.inner.p1.clone # start
         end
 
         # 0 = X, 1 = Y
         def d_index_along
-          (edge.inside.p1.x == edge.inside.p2.x) ? 1 : 0
+          (edge.inner.p1.x == edge.inner.p2.x) ? 1 : 0
         end
 
         def d_index_across
@@ -134,20 +136,20 @@ module Laser
         end
 
         def direction_along
-          (edge.inside.p1.coords.[](d_index_along) < edge.inside.p2.coords.[](d_index_along)) ? 1 : -1
+          (edge.inner.p1.coords.[](d_index_along) < edge.inner.p2.coords.[](d_index_along)) ? 1 : -1
         end
 
         def direction_across
-          (edge.inside.p1.coords.[](d_index_across) < edge.outside.p1.coords.[](d_index_across)) ? 1 : -1
+          (edge.inner.p1.coords.[](d_index_across) < edge.outer.p1.coords.[](d_index_across)) ? 1 : -1
         end
 
         private
         # Helper method to calculate dimensions of our corners.
         def add_corners
           k, direction, dim_index, edge_along, edge_across = if first_notch_out?
-            [2, -1, 1, :inside, :outside]
+            [2, -1, 1, :inner, :outer]
           else
-            [-2, 1, 0, :outside, :inside]
+            [-2, 1, 0, :outer, :inner]
           end
           v1 = direction * k * shift_vector(1, dim_index)
           v2 = direction * k * shift_vector(2, dim_index)
@@ -160,13 +162,13 @@ module Laser
           # Our clever algorithm removes automatically duplicate lines. These lines
           # below are added to actually clear out this space and remove the existing
           # lines that are already there.
-          lines << Geometry::Line[edge.inside.p1.plus(v1), edge.inside.p1.clone]
-          lines << Geometry::Line[edge.inside.p2.plus(v2), edge.inside.p2.clone]
+          lines << Geometry::Line[edge.inner.p1.plus(v1), edge.inner.p1.clone]
+          lines << Geometry::Line[edge.inner.p2.plus(v2), edge.inner.p2.clone]
           lines
         end
 
         def define_corner_rect(point, delta, edge_along, edge_across)
-          p1 = edge.inside.send(point).plus(delta)
+          p1 = edge.inner.send(point).plus(delta)
           coords = []
           coords[d_index_along] = edge.send(edge_along).send(point)[d_index_along]
           coords[d_index_across] = edge.send(edge_across).send(point)[d_index_across]
@@ -211,7 +213,7 @@ module Laser
         # to the next.  This method defines three types of movements we'll be doing:
         # one alongside the edge, and two across (towards the box and outward from the box)
         def create_iterator_along
-          InfiniteIterator.new([Shift.new(notch_width, direction_along, d_index_along)])
+          InfiniteIterator.new([Shift.new(notch, direction_along, d_index_along)])
         end
 
         def create_iterator_across

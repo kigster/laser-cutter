@@ -1,17 +1,17 @@
-require_relative 'spec_helper'
+require 'spec_helper'
 
 module Laser
   module Cutter
 
     describe "Notching::Edge" do
       context 'left vertical side' do
-        let(:notch_width) { 2 }
-        let(:inside)  { Geometry::Line.new(Geometry::Point[1, 1], Geometry::Point[1, 9])}
-        let(:outside) { Geometry::Line.new(Geometry::Point[0, 0], Geometry::Point[0, 10]) }
+        let(:notch) { 2 }
+        let(:inner)  { Geometry::Line.new(Geometry::Point[1, 1], Geometry::Point[1, 9])}
+        let(:outer) { Geometry::Line.new(Geometry::Point[0, 0], Geometry::Point[0, 10]) }
         let(:edge) { Notching::Edge.new(inside, outside,
                                         center_out: true,
                                         fill_corners: true,
-                                        notch_width: notch_width,
+                                        notch: notch,
                                         kerf: 0.02,
                                         thickness: 1) }
 
@@ -21,7 +21,7 @@ module Laser
           expect(edge.center_out).to be_truthy
           expect(edge.kerf).to be_within(0.0001).of(0.02)
           expect(edge.thickness).to be_within(0.0001).of(1)
-          expect(edge.notch_width).to be_within(notch_width / 3.0).of(notch_width)
+          expect(edge.notch).to be_within(notch / 3.0).of(notch)
         end
 
         it 'should calculate notch width correctly' do

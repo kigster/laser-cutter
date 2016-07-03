@@ -11,16 +11,16 @@ module Laser
       def dedup!
         lines_to_delete = []
         count = lines.size
-        for i in 0..(count - 1) do
-          for j in (i + 1)..(count - 1) do
+        (0..(count - 1)).each { |i|
+          ((i + 1)..(count - 1)).each { |j|
             l1 = lines[i]
             l2 = lines[j]
             if l1.eql?(l2)
               lines_to_delete << l1
               lines_to_delete << l2
             end
-          end
-        end
+          }
+        }
         self.lines = self.lines - lines_to_delete
         self
       end
@@ -48,8 +48,7 @@ module Laser
         lines_to_add.uniq!
         lines_to_add.flatten!
 
-        self.lines = (self.lines - lines_to_delete + lines_to_add).flatten
-        self.lines.sort!
+        self.lines = (self.lines - lines_to_delete + lines_to_add).flatten.sort
         self
       end
     end

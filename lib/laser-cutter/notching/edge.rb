@@ -2,49 +2,63 @@ module Laser
   module Cutter
     module Notching
       MINIMUM_NOTCHES_PER_SIDE = 3
-      # This class represents a single edge of one side: both inside
-      # and outside edge of the material.  It's also responsible
-      # for calculating the "perfect" notch width.
+      # +Edge+ represents one edge (out of four total, representing one face
+      # of a box).
+      #
+      # Internally we chose to think of an notched edge as an alternating
+      # path that bends at right angles and is weaves in between two parallel
+      # lines:
+      #
+      #  * the __outer__ line is the line that represents physical bounds of one side
+      #    of the face of the box
+      #  * the __inner__ line is the line on the face that is exactly
+      #    below the outer line, but shifted by the amount equal to the material
+      #    thickness.
+      #
+      # The distance between the outer and inner lines, is therefore equal to the
+      # height of the teeth (a.k.a. notches).
+      #
+      # +Edge+ is additionally responsible for calculating the "perfect" notch width.
       class Edge
 
-        attr_accessor :outside, :inside
-        attr_accessor :notch_width
+        attr_accessor :outer, :inner
+        attr_accessor :notch
         attr_accessor :thickness, :kerf
         attr_accessor :center_out, :corners, :adjust_corners
         attr_accessor :notch_count, :v1, :v2
 
 
         def initialize(outside, inside, options = {})
-          self.outside = outside.clone
-          self.inside = inside.clone
+          self.outer = outside.clone
+          self.inner = inside.clone
 
           # two vectors representing directions going from beginning of each inside line to the outside
-          self.v1 = [inside.p1.x - outside.p1.x, inside.p1.y - outside.p1.y].map{|e| -(e / e.abs).to_f }
-          self.v2 = [inside.p2.x - outside.p2.x, inside.p2.y - outside.p2.y].map{|e| -(e / e.abs).to_f }
+          self.v1    = [inside.p1.x - outside.p1.x, inside.p1.y - outside.p1.y].map { |e| -(e / e.abs).to_f }
+          self.v2    = [inside.p2.x - outside.p2.x, inside.p2.y - outside.p2.y].map { |e| -(e / e.abs).to_f }
 
           self.v1 = Vector.[](*self.v1)
           self.v2 = Vector.[](*self.v2)
 
-          self.center_out = options[:center_out] || false
-          self.thickness = options[:thickness]
-          self.corners = options[:corners]
-          self.kerf = options[:kerf] || 0
-          self.notch_width = options[:notch_width]
+          self.center_out     = options[:center_out] || false
+          self.thickness      = options[:thickness]
+          self.corners        = options[:corners]
+          self.kerf           = options[:kerf] || 0
+          self.notch    = options[:notch]
           self.adjust_corners = options[:adjust_corners]
 
           adjust_for_kerf!
-          calculate_notch_width!
+          calculate_notch!
         end
 
         def adjust_for_kerf!
           if kerf?
-            self.inside  = move_line_for_kerf(inside)
-            self.outside = move_line_for_kerf(outside)
+            self.inner = move_line_for_kerf(inner)
+            self.outer = move_line_for_kerf(outer)
           end
         end
 
-        def move_line_for_kerf line
-          k = kerf / 2.0
+        def move_line_for_kerf(line)
+          k  = kerf / 2.0
           p1 = line.p1.plus(v1 * k)
           p2 = line.p2.plus(v2 * k)
           Geometry::Line.new(p1, p2).relocate!
@@ -65,14 +79,15 @@ module Laser
         def first_notch_out?
           add_across_line?(center_out)
         end
+
         private
 
-        def calculate_notch_width!
-          length = kerf? ? self.inside.length - kerf : self.inside.length
-          count = (length / notch_width).to_f.ceil + 1
-          count = (count / 2 * 2) + 1 # make count always an odd number
-          count = [MINIMUM_NOTCHES_PER_SIDE, count].max
-          self.notch_width = 1.0 * length / count
+        def calculate_notch!
+          length           = kerf? ? self.inner.length - kerf : self.inner.length
+          count            = (length / notch).to_f.ceil + 1
+          count            = (count / 2 * 2) + 1 # make count always an odd number
+          count            = [MINIMUM_NOTCHES_PER_SIDE, count].max
+          self.notch = 1.0 * length / count
           self.notch_count = count
         end
 

@@ -4,7 +4,7 @@ module Laser
     module Geometry
       class Tuple
         attr_accessor :coords
-        PRECISION = 0.000001
+        PRECISION = 0.00001
 
         def initialize(*args)
           x = args.first
@@ -23,13 +23,13 @@ module Laser
           self.coords = Vector.[](*coordinates)
         end
 
-        def + x, y = nil
+        def +(x, y = nil)
           shift = if x.is_a?(Vector)
                     x
                   elsif x.is_a?(Tuple)
                     x.coords
                   elsif y
-                    Vector.[](x,y)
+                    Vector.[](x, y)
                   end
           self.class.new(self.coords + shift)
         end
@@ -42,7 +42,7 @@ module Laser
         end
 
         def to_s
-          "{#{coords.to_a.map { |a| sprintf("%.5f", a) }.join(separator)}}"
+          "[#{coords.to_a.map { |a| sprintf('%8.6f', a) }.join(separator)}]"
         end
 
         def valid?
@@ -67,13 +67,12 @@ module Laser
         end
 
         def separator
-          ','
+          ', '
         end
 
         def [] value
           coords.[](value)
         end
-
 
         # Override in subclasses, eg:
         # def separator
@@ -91,14 +90,18 @@ module Laser
         def eql?(other)
           return false unless other.respond_to?(:coords)
           equal = true
-          self.coords.each_with_index do |c, i|
-            if (c - other.coords.to_a[i])**2 > PRECISION
+          coords1 = self.coords.to_a
+          coords2 = other.coords.to_a
+
+          coords1.each_with_index do |c, i|
+            if (c - coords2[i]).abs > PRECISION
               equal = false
               break
             end
           end
           equal
         end
+
         def <=>(other)
           self.x == other.x ? self.y <=> other.y : self.x <=> other.x
         end

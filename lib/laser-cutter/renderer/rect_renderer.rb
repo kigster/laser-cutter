@@ -3,7 +3,7 @@ module Laser
     module Renderer
       class RectRenderer < Base
         alias_method :rect, :subject
-        def render pdf
+        def render(pdf)
           rect.sides.each do |side|
             LineRenderer.new(config, side).render(pdf)
           end

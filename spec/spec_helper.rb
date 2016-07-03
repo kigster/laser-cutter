@@ -14,8 +14,7 @@ ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __FILE__)
 require 'rubygems'
 require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
 require 'laser-cutter'
-require "codeclimate-test-reporter"
-
+require 'codeclimate-test-reporter'
 
 
 RSpec.configure do |config|

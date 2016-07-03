@@ -1,62 +1,76 @@
 require 'hashie/mash'
+require 'hashie/extensions/symbolize_keys'
 require 'prawn/measurement_extensions'
 require 'pdf/core/page_geometry'
 
+require_relative 'notching/default_notch_strategy'
+require_relative 'units'
+
 module Laser
   module Cutter
-    class MissingOption < RuntimeError; end
+    class MissingOption < RuntimeError;  end
     class ZeroValueNotAllowed < MissingOption; end
 
-    class UnitsConverter
-      def self.mm2in value
-        0.039370079 * value
-      end
-      def self.in2mm value
-        25.4 * value
-      end
-    end
-
     class Configuration < Hashie::Mash
+      include Hashie::Extensions::SymbolizeKeys
+
       DEFAULTS = {
-          units: 'in',
-          page_layout: 'portrait',
-          metadata: true
+        units:          :in,
+        page_layout:    :portrait,
+        print_metadata: true,
+        auto_notch_method: :from_sides
       }
 
-      UNIT_SPECIFIC_DEFAULTS = {
-          'in' => {
-              kerf: 0.0024, # smallest kerf for thin material, usually it's more than that.
-              margin: 0.125,
-              padding: 0.1,
-              stroke: 0.001,
-          }
+      DEFAULT_FLOATS = {
+        :in => {
+          kerf:    0.0035, # smallest kerf for thin material, usually it's more than that.
+          margin:  0.1250,
+          padding: 0.1000,
+          stroke:  0.0010,
+        }
       }
 
-      UNIT_SPECIFIC_DEFAULTS['mm'] = UNIT_SPECIFIC_DEFAULTS['in'].map{|k, v| [k, UnitsConverter.in2mm(v)] }.to_h
+      DEFAULT_FLOATS[:mm] = DEFAULT_FLOATS[:in].map { |k, v| [k, Units::Converter[:in][v]] }.to_h
 
       SIZE_REGEXP = /[\d\.]+x[\d\.]+x[\d\.]+\/[\d\.]+(\/[\d\.]+)?/
 
-      FLOATS   = %w(width height depth thickness notch margin padding stroke kerf)
-      NON_ZERO = %w(width height depth thickness stroke)
-      REQUIRED = %w(width height depth thickness notch file)
+      FLOATS    = %i(width height depth thickness notch margin padding stroke kerf)
+      NON_ZERO  = %i(width height depth thickness stroke)
+      REQUIRED  = %i(width height depth thickness notch file)
+
+      SYMBOLIZE = %i(units page_layout notch_strategy)
 
       def initialize(options = {})
         options.delete_if { |k, v| v.nil? }
-        if options['units'] && !UNIT_SPECIFIC_DEFAULTS.keys.include?(options['units'])
-          options.delete('units')
+
+        merge!(DEFAULTS.merge(options))
+
+        SYMBOLIZE.each { |k| self[k] = self[k].to_sym if self[k] }
+
+        unless DEFAULT_FLOATS.keys.include?(self[:units])
+          raise ArgumentError.new("Unrecognized units #{options[:units]}")
         end
-        self.merge!(DEFAULTS)
-        self.merge!(options)
-        if self['size'] && self['size'] =~ SIZE_REGEXP
-          dim, self['thickness'], self['notch'] = self['size'].split('/')
-          self['width'], self['height'], self['depth'] = dim.split('x')
-          delete('size')
+
+        if self[:size] =~ SIZE_REGEXP
+          dim, self[:thickness], self[:notch]       = self[:size].split('/')
+          self[:width], self[:height], self[:depth] = dim.split('x')
+          delete(:size)
         end
+
+        self.merge!(DEFAULT_FLOATS[self[:units]].merge(self.to_hash))
+
         FLOATS.each do |k|
           self[k] = self[k].to_f if (self[k] && self[k].is_a?(String))
         end
-        self.merge!(UNIT_SPECIFIC_DEFAULTS[self['units']].merge(self))
-        self['notch'] = (self['thickness'] * 3.0).round(5) if self['thickness'] && self['notch'].nil?
+
+
+        if self[:notch].nil?
+          self[:notch] = Laser::Cutter::Notching::DefaultNotchStrategy.
+          new(self).
+          strategy(:from_sides)
+        end
+        validate!
+
       end
 
       def validate!
@@ -69,8 +83,12 @@ module Laser
         raise ZeroValueNotAllowed.new("#{zeros.join(', ')} #{zeros.size > 1 ? 'are' : 'is'} required, but is zero.") unless zeros.empty?
       end
 
+      def longest_side
+        [self[:width], self[:height], self[:depth]].max()
+      end
+
       def change_units(new_units)
-        return if (self.units.eql?(new_units) || !UNIT_SPECIFIC_DEFAULTS.keys.include?(new_units))
+        return if (self.units.eql?(new_units) || !DEFAULT_FLOATS.keys.include?(new_units))
         k = (self.units == 'in') ? UnitsConverter.in2mm(1.0) : UnitsConverter.mm2in(1.0)
         FLOATS.each do |field|
           next if self.send(field.to_sym).nil?

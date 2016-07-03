@@ -1,9 +1,10 @@
+require_relative '../shape'
 module Laser
   module Cutter
     module Geometry
       class Line < Shape
 
-        def self.[] *array
+        def self.[](*array)
           self.new *array
         end
 
@@ -82,12 +83,33 @@ module Laser
           n1.p1.eql?(n2.p1) ? n1.p2 <=> n2.p2 : n1.p1 <=> n2.p1
         end
 
+        def reverse
+          self.class.new(p2, p1)
+        end
+
+
         def < (other)
-          self.p1 == other.p1 ? self.p2 < other.p2 : self.p1 < other.p1
+          compare(self, other)
         end
 
         def > (other)
-          self.p1 == other.p1 ? self.p2 > other.p2 : self.p1 > other.p1
+          compare(other, self)
+        end
+
+        def compare(one, another)
+          n1 = one
+          n2 = another
+          if n1.p2 == n2.p1 then
+            (n1.p1 - n2.p2) / (n1.p1 - n2.p2).abs <=> 0
+          elsif n1.p1 == n2.p2 then
+            (n1.p2 - n2.p1) / (n1.p2 - n2.p1).abs <=> 0
+          else
+            1000 * (n1.p1 - n2.p1) / (n1.p1 - n2.p1).abs <=>
+            1000 * (n1.p2 - n2.p2) / (n1.p2 - n2.p2).abs
+            # distance here must always be greater than if the lines
+            # are joined – so that we can sort to get a contiguous shape.
+            # (n1.p1 - n2.p1).abs > (n1.p2 - n2.p2).abs
+          end
         end
 
         def hash
