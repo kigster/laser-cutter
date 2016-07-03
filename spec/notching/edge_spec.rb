@@ -3,7 +3,7 @@ require 'spec_helper'
 module Laser
   module Cutter
 
-    describe "Notching::Edge" do
+    describe 'Notching::Edge' do
       context 'left vertical side' do
         let(:notch) { 2 }
         let(:inner)  { Geometry::Line.new(Geometry::Point[1, 1], Geometry::Point[1, 9])}
