@@ -1,7 +1,10 @@
-[![Gem Version](https://badge.fury.io/rb/laser-cutter.svg)](http://badge.fury.io/rb/laser-cutter)
+[![Gem Version](https://badge.fury.io/rb/laser-cutter.svg)](https://badge.fury.io/rb/laser-cutter)
+[![Downloads](http://ruby-gem-downloads-badge.herokuapp.com/laser-cutter?type=total)](https://rubygems.org/gems/laser-cutter)
+
 [![Build status](https://secure.travis-ci.org/kigster/laser-cutter.png)](http://travis-ci.org/kigster/laser-cutter)
 [![Code Climate](https://codeclimate.com/github/kigster/laser-cutter.png)](https://codeclimate.com/github/kigster/laser-cutter)
 [![Test Coverage](https://codeclimate.com/github/kigster/laser-cutter/badges/coverage.svg)](https://codeclimate.com/github/kigster/laser-cutter)
+[![Issue Count](https://codeclimate.com/github/kigster/laser-cutter/badges/issue_count.svg)](https://codeclimate.com/github/kigster/laser-cutter    )
 
 ## LaserCutter and Make-A-Box.io
 
