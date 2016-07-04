@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'laser-cutter/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "laser-cutter"
+  spec.name          = 'laser-cutter'
   spec.version       = Laser::Cutter::VERSION
   spec.authors       = ['Konstantin Gredeskoul']
   spec.email         = ['kigster@gmail.com']

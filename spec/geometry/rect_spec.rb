@@ -26,26 +26,27 @@ module Laser
             expect(rect1.sides.size).to eql(4)
             expect(rect1.sides.first).to be_kind_of(Line)
             expect(rect1.sides.first.p1).to eql(p1)
-            expect(rect1.sides[0].p1.to_s).to eql("{1.00000,3.00000}")
-            expect(rect1.sides[1].p1.to_s).to eql("{11.00000,3.00000}")
+            expect(rect1.sides[0].p1.to_s).to eql('[1.000000, 3.000000]')
+            expect(rect1.sides[1].p1.to_s).to eql('[11.000000, 3.000000]')
             expect(rect1.sides[2].p1).to eql(p1.plus(10, 20))
           end
           it 'can be moved' do
-            expect(rect1.sides[0].p1.to_s).to eql("{1.00000,3.00000}")
+            expect(rect1.sides[0].p1.to_s).to eql('[1.000000, 3.000000]')
             rect1.x = 1000
             rect1.y = 100
             rect1.relocate!
 
-            expect(rect1.sides[0].p1.to_s).to eql("{1000.00000,100.00000}")
-            expect(rect1.sides[1].p1.to_s).to eql("{1010.00000,100.00000}")
-            expect(rect1.sides[2].p1.to_s).to eql("{1010.00000,120.00000}")
-            expect(rect1.sides[3].p1.to_s).to eql("{1000.00000,120.00000}")
+            expect(rect1.sides[0].p1.to_s).to eql('[1000.000000, 100.000000]')
+            expect(rect1.sides[1].p1.to_s).to eql('[1010.000000, 100.000000]')
+            expect(rect1.sides[2].p1.to_s).to eql('[1010.000000, 120.000000]')
+            expect(rect1.sides[3].p1.to_s).to eql('[1000.000000, 120.000000]')
 
-            expect(rect1.sides[0].p2.to_s).to eql("{1010.00000,100.00000}")
-            expect(rect1.sides[1].p2.to_s).to eql("{1010.00000,120.00000}")
-            expect(rect1.sides[2].p2.to_s).to eql("{1000.00000,120.00000}")
-            expect(rect1.sides[3].p2.to_s).to eql("{1000.00000,100.00000}")
+            expect(rect1.sides[0].p2.to_s).to eql('[1010.000000, 100.000000]')
+            expect(rect1.sides[1].p2.to_s).to eql('[1010.000000, 120.000000]')
+            expect(rect1.sides[2].p2.to_s).to eql('[1000.000000, 120.000000]')
+            expect(rect1.sides[3].p2.to_s).to eql('[1000.000000, 100.000000]')
           end
+
         end
       end
     end

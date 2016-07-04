@@ -47,8 +47,8 @@ module Laser
 
         SYMBOLIZE.each { |k| self[k] = self[k].to_sym if self[k] }
 
-        unless DEFAULT_FLOATS.keys.include?(self[:units])
-          raise ArgumentError.new("Unrecognized units #{options[:units]}")
+        if self[:units] && !DEFAULT_FLOATS.keys.include?(self[:units])
+          self[:units] = :in
         end
 
         if self[:size] =~ SIZE_REGEXP
@@ -63,14 +63,11 @@ module Laser
           self[k] = self[k].to_f if (self[k] && self[k].is_a?(String))
         end
 
-
         if self[:notch].nil?
           self[:notch] = Laser::Cutter::Notching::DefaultNotchStrategy.
           new(self).
           strategy(:from_sides)
         end
-        validate!
-
       end
 
       def validate!
@@ -84,17 +81,18 @@ module Laser
       end
 
       def longest_side
-        [self[:width], self[:height], self[:depth]].max()
+        (self[:width] && self[:height] && self[:depth]) ? [self[:width], self[:height], self[:depth]].max() : 0
       end
 
       def change_units(new_units)
+        new_units = new_units.to_sym
         return if (self.units.eql?(new_units) || !DEFAULT_FLOATS.keys.include?(new_units))
-        k = (self.units == 'in') ? UnitsConverter.in2mm(1.0) : UnitsConverter.mm2in(1.0)
+        k = (self.units == :in) ? Units::Converter[:in][1.0] : Units::Converter[:mm][1.0]
         FLOATS.each do |field|
           next if self.send(field.to_sym).nil?
           self.send("#{field}=".to_sym, (self.send(field.to_sym) * k).round(5))
         end
-        self.units = new_units
+        self[:units]= new_units
       end
     end
   end

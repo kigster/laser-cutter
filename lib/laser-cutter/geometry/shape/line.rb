@@ -97,12 +97,12 @@ module Laser
         end
 
         def compare(one, another)
-          n1 = one
-          n2 = another
-          if n1.p2 == n2.p1 then
-            (n1.p1 - n2.p2) / (n1.p1 - n2.p2).abs <=> 0
-          elsif n1.p1 == n2.p2 then
-            (n1.p2 - n2.p1) / (n1.p2 - n2.p1).abs <=> 0
+          n1 = one.normalize
+          n2 = another.normalize
+          if n1.p1 == n2.p1 then
+            n1.p2 <=> n2.p2
+          elsif n1.p2 == n2.p2 then
+            n1.p1 <=> n2.p1
           else
             1000 * (n1.p1 - n2.p1) / (n1.p1 - n2.p1).abs <=>
             1000 * (n1.p2 - n2.p2) / (n1.p2 - n2.p2).abs

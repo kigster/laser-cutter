@@ -16,7 +16,7 @@ module Laser
 
         let(:outer) { Geometry::Line.new(from: [0, 0], to: [10, 0]) }
         let(:inner)  { Geometry::Line.new(from: [1, 1], to: [9, 1]) }
-        let(:edge) { Edge.new(outside, inside, options) }
+        let(:edge) { Edge.new(outer, inner, options) }
         let(:generator) { PathGenerator.new(edge) }
 
         context 'edge' do
@@ -57,22 +57,22 @@ module Laser
 
 
         context 'path generation' do
-          # let(:outside) { Line.new(
-          #     from: inside.p1.plus(-thickness, -thickness),
-          #     to: inside.p2.plus(thickness, -thickness)) }
+          # let(:outer) { Line.new(
+          #     from: inner.p1.plus(-thickness, -thickness),
+          #     to: inner.p2.plus(thickness, -thickness)) }
 
           context 'center out' do
             it 'generates correct path vertices' do
-              expect(inside.p1).to_not eql(inside.p2)
+              expect(inner.p1).to_not eql(inner.p2)
               lines = generator.generate
               expect(lines.size).to be > 5
 
-              expect(Geometry::Line.new(lines.first.p1, inside.p1).length).to be_within(0.001).of(0)
-              expect(Geometry::Line.new(lines.last.p2, inside.p2).length).to be_within(0.001).of(0)
+              expect(Geometry::Line.new(lines.first.p1, inner.p1).length).to be_within(0.001).of(0)
+              expect(Geometry::Line.new(lines.last.p2, inner.p2).length).to be_within(0.001).of(0)
 
               # Sanity Check
-              expect(Geometry::Point.new(1, 1)).to eql(inside.p1)
-              expect(Geometry::Point.new(9, 1)).to eql(inside.p2)
+              expect(Geometry::Point.new(1, 1)).to eql(inner.p1)
+              expect(Geometry::Point.new(9, 1)).to eql(inner.p2)
             end
 
             it 'generates correct lines' do
