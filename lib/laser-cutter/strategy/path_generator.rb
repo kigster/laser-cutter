@@ -1,36 +1,12 @@
 require 'forwardable'
+require_relative 'path/infinite_iterator'
+require_relative 'path/shift'
+require_relative 'aggregator'
+require 'laser-cutter/geometry'
+require 'laser-cutter/helpers/shapes'
 module Laser
   module Cutter
-    module Notching
-      class Shift < Struct.new(:delta, :direction, :dim_index)
-        def next_point_after point
-          p = point.clone
-          shift = []
-          shift[dim_index] = delta * direction
-          shift[(dim_index + 1) % 2] = 0
-          p.plus *shift
-        end
-      end
-
-      # Alternating iterator
-      class InfiniteIterator < Struct.new(:array)
-        attr_accessor :array, :next_index, :calls
-
-        def initialize(array)
-          self.array = array
-          self.calls = 0
-          self.next_index = 0
-        end
-
-        def next
-          item = self.array[next_index].clone
-          self.next_index += 1
-          self.next_index %= array.size
-          self.calls += 1
-          item = yield item, self.calls if block_given?
-          item
-        end
-      end
+    module Strategy
 
       # One of the key "tricks" that this algorithm applies, is that it converts everything into
       # pure set of lines in the end. It then tries to find all intersections of the lines so that
@@ -44,7 +20,8 @@ module Laser
       # width, but to match thickness of the material.  The corner notces for these sides will therefore have
       # length equal to the thickness + regular notch length.
       class PathGenerator
-
+        include Laser::Cutter::Helpers::Shapes
+        
         extend ::Forwardable
         %i(center_out thickness corners kerf kerf? notch first_notch_out? adjust_corners corners).each do |method_name|
           def_delegator :@edge, method_name, method_name
@@ -52,15 +29,15 @@ module Laser
 
         attr_accessor :edge
 
-        # This class generates lines that zigzag between two lines: the outside line, and the
-        # inside line of a single edge. Edge class encapsulates both of them with additional
+        # This class generates lines that zigzag between two lines: the outer line, and the
+        # inner line of a single edge. Edge class encapsulates both of them with additional
         # properties.
         def initialize(edge)
           @edge = edge
         end
 
         # Calculates a notched path that flows between the outer edge of the box
-        # (outside_line) and inner (inside_line).  Relative location of these lines
+        # (outer_line) and inner (inner_line).  Relative location of these lines
         # also defines the direction and orientation of the box, and hence the notches.
         #
         # We always want to create a symmetric path that has a notch in the middle
@@ -105,12 +82,12 @@ module Laser
           boxes = []
           extra_lines = []
 
-          boxes << Geometry::Rect[edge.inner.p1.clone, edge.outer.p1.clone]
-          boxes << Geometry::Rect[edge.inner.p2.clone, edge.outer.p2.clone]
+          boxes << _rect(edge.inner.p1.clone, edge.outer.p1.clone)
+          boxes << _rect(edge.inner.p2.clone, edge.outer.p2.clone)
 
           extra_lines << add_corners if adjust_corners && kerf?
           sides = boxes.flatten.map(&:relocate!).map(&:sides)
-          sides << extra_lines if !extra_lines.empty?
+          sides << extra_lines unless extra_lines.empty?
           sides.flatten
         end
 
@@ -162,8 +139,8 @@ module Laser
           # Our clever algorithm removes automatically duplicate lines. These lines
           # below are added to actually clear out this space and remove the existing
           # lines that are already there.
-          lines << Geometry::Line[edge.inner.p1.plus(v1), edge.inner.p1.clone]
-          lines << Geometry::Line[edge.inner.p2.plus(v2), edge.inner.p2.clone]
+          lines << _line(edge.inner.p1.plus(v1), edge.inner.p1.clone)
+          lines << _line(edge.inner.p2.plus(v2), edge.inner.p2.clone)
           lines
         end
 
@@ -172,8 +149,8 @@ module Laser
           coords = []
           coords[d_index_along] = edge.send(edge_along).send(point)[d_index_along]
           coords[d_index_across] = edge.send(edge_across).send(point)[d_index_across]
-          p2 = Geometry::Point[*coords]
-          Geometry::Rect[p1, p2]
+          p2 = _point(*coords)
+          _rect(p1, p2)
         end
 
 
@@ -213,19 +190,19 @@ module Laser
         # to the next.  This method defines three types of movements we'll be doing:
         # one alongside the edge, and two across (towards the box and outward from the box)
         def create_iterator_along
-          InfiniteIterator.new([Shift.new(notch, direction_along, d_index_along)])
+          Path::InfiniteIterator.new([Path::Shift.new(notch, direction_along, d_index_along)])
         end
 
         def create_iterator_across
-          InfiniteIterator.new([Shift.new(thickness, direction_across, d_index_across),
-                                Shift.new(thickness, -direction_across, d_index_across)])
+          Path::InfiniteIterator.new([Path::Shift.new(thickness, direction_across, d_index_across),
+                                      Path::Shift.new(thickness, -direction_across, d_index_across)])
         end
 
         def create_lines(vertices)
           lines = []
           vertices.each_with_index do |v, i|
             if v != vertices.last
-              lines << Geometry::Line.new(v, vertices[i+1])
+              lines << _line(v, vertices[i+1])
             end
           end
           lines.flatten

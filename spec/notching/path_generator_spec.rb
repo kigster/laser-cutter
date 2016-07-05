@@ -1,22 +1,26 @@
 require 'spec_helper'
-
+require 'laser-cutter/strategy/path_generator'
+require 'laser-cutter/helpers/shapes'
 module Laser
   module Cutter
-    module Notching
+    module Strategy
+
+
       describe PathGenerator do
+        include Laser::Cutter::Helpers::Shapes
         let(:notch) { 2 }
         let(:thickness) { 1 }
         let(:center_out) { true }
         let(:corners) { true }
 
-        let(:options) { {notch: notch,
-                         thickness: thickness,
-                         center_out: center_out,
-                         corners: corners} }
+        let(:options) { { notch:      notch,
+                          thickness:  thickness,
+                          center_out: center_out,
+                          corners:    corners } }
 
-        let(:outer) { Geometry::Line.new(from: [0, 0], to: [10, 0]) }
-        let(:inner)  { Geometry::Line.new(from: [1, 1], to: [9, 1]) }
-        let(:edge) { Edge.new(outer, inner, options) }
+        let(:outer) { _line(from: [0, 0], to: [10, 0]) }
+        let(:inner) { _line(from: [1, 1], to: [9, 1]) }
+        let(:edge) {  _edge(outer, inner, options) }
         let(:generator) { PathGenerator.new(edge) }
 
         context 'edge' do
@@ -35,7 +39,7 @@ module Laser
         context 'alternating iterator' do
           let(:a) { "hello" }
           let(:b) { "again" }
-          let(:iterator) { InfiniteIterator.new([a,b]) }
+          let(:iterator) { Path::InfiniteIterator.new([a, b]) }
           it 'returns things in alternating order' do
             expect(iterator.next).to eq(a)
             expect(iterator.next).to eq(b)

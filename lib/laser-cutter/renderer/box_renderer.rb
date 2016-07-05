@@ -1,19 +1,22 @@
 # encoding: utf-8
 require 'json'
+require_relative '../helpers/shapes'
 module Laser
   module Cutter
     module Renderer
-      class BoxRenderer < Base
+      class BoxRenderer < BaseRenderer
+        include Laser::Cutter::Helpers::Shapes
+
         alias_method :box, :subject
 
         def initialize(config)
           super(config)
-          self.subject = Laser::Cutter::Box.new(config)
+          self.subject = _box(config)
         end
 
         def ensure_space_for(rect)
           coords              = [rect.p2.x, rect.p2.y].map { |a| page_manager.value_from_units(a) }
-          box.position_offset = Geometry::Point.new(coords)
+          box.position_offset = _point(coords)
         end
 
         def enclosure

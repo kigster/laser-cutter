@@ -8,7 +8,7 @@ module Laser
           let(:renderer) { LayoutRenderer.new(config) }
           let(:file) { File.expand_path("../../laser-cutter-pdf-test.#{$$}.pdf", __FILE__) }
 
-          def render_file filename
+          def render_file(filename)
             real_file = ENV['RSPEC_SAVE_PDF'] ? true : false
             config.validate!
             expect(!File.exists?(filename)) if real_file
@@ -32,7 +32,7 @@ module Laser
           end
 
           context 'metric' do
-            let(:config) { Laser::Cutter::Configuration.new(
+            let(:config) { Laser::Cutter::Model::Configuration.new(
                 'width' => 50, 'height' => 60, 'depth' => 20, 'thickness' => 6,
                 'margin' => 5, 'padding' => 3, 'notch' => 10, 'file' => file) }
 
@@ -43,7 +43,7 @@ module Laser
 
           context 'imperial' do
             context 'margins and padding provided' do
-              let(:config) { Laser::Cutter::Configuration.new(
+              let(:config) { Laser::Cutter::Model::Configuration.new(
                   'width' => 2.5, 'height' => 3.5, 'depth' => 2.0, 'thickness' => 0.125,
                   'margin' => 0, 'padding' => 0.125, 'notch' => 0.25, 'file' => file,
                   'units' => 'in') }
@@ -54,7 +54,7 @@ module Laser
             end
 
             context 'margins and padding are defaults' do
-              let(:config) { Laser::Cutter::Configuration.new(
+              let(:config) { Laser::Cutter::Model::Configuration.new(
                   'width' => 2.5, 'height' => 2, 'depth' => 2.0, 'thickness' => 0.125,
                   'notch' => 0.25, 'file' => file, 'units' => 'in') }
 

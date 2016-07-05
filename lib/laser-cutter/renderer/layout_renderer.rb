@@ -3,7 +3,7 @@ require 'json'
 module Laser
   module Cutter
     module Renderer
-      class LayoutRenderer < Base
+      class LayoutRenderer < BaseRenderer
         def initialize(config)
           self.config = config
           super(config)
@@ -26,7 +26,7 @@ module Laser
           end
 
           if config.debug
-            unkerfed_config = Laser::Cutter::Configuration.new(config.to_hash)
+            unkerfed_config = Laser::Cutter::Model::Configuration.new(config.to_hash)
             unkerfed_config.merge!(kerf: 0.0, color: 'DD2211')
             unkerfed_box_renderer = BoxRenderer.new(unkerfed_config)
             unkerfed_box_renderer.ensure_space_for(meta_renderer.enclosure) if meta_renderer

@@ -78,7 +78,7 @@ Specific Options:
     -L, --list-all-page-sizes        Print all available page sizes with dimensions and exit
     -M, --no-metadata                Do not print box metadata on the PDF
     -v, --[no-]verbose               Run verbosely
-    -B, --inside-box                 Draw the inside boxes (helpful to verify kerfing)
+    -B, --inner-box                  Draw the inner boxes (helpful to verify kerfing)
     -D, --debug                      Show full exception stack trace on error
 
         --examples                   Show detailed usage examples

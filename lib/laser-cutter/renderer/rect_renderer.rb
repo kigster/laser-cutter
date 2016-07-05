@@ -1,7 +1,7 @@
 module Laser
   module Cutter
     module Renderer
-      class RectRenderer < Base
+      class RectRenderer < BaseRenderer
         alias_method :rect, :subject
         def render(pdf)
           rect.sides.each do |side|

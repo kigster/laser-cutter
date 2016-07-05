@@ -2,7 +2,7 @@ require 'laser-cutter/geometry/shape/line'
 module Laser
   module Cutter
     module Geometry
-      class Rect < Laser::Cutter::Geometry::Line
+      class Rect < Line
 
         attr_accessor :sides, :vertices
 

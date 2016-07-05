@@ -1,7 +1,7 @@
 module Laser
   module Cutter
     module Renderer
-      class LineRenderer < Base
+      class LineRenderer < BaseRenderer
         alias_method :line, :subject
         def render(pdf = nil)
            pdf.line [line.p1.x, line.p1.y].map { |p| p.send(units) },

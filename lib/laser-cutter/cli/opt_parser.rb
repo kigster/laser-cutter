@@ -70,8 +70,8 @@ Examples:
             opts.on('-d', '--depth DEPTH', 'Internal depth of the box') { |value| options.depth= value }
             opts.on('-t', '--thickness THICKNESS', 'Thickness of the box material') { |value| options.thickness = value }
             opts.on('-n', '--notch NOTCH', 'Optional notch length (aka \'tab width\'), guide only') { |value| options.notch = value }
-            opts.on('-N', '--notch-strategy STRATEGY', "Instead of hard-coding, use either '#{Laser::Cutter::Notching::DefaultNotchStrategy.strategies.map(&:to_s).join("'' or '")}'") { |value| options.notch_strategy = value }
-            opts.on('-k', '--kerf KERF', "Kerf - cut width (default is #{Laser::Cutter::Configuration::DEFAULT_FLOATS[:in][:kerf]}in)") { |value| options.kerf = value }
+            #opts.on('-N', '--notch-strategy STRATEGY', "Instead of hard-coding, use either '#{Laser::Cutter::Strategy::NotchLength.strategies.map(&:to_s).join("'' or '")}'") { |value| options.notch_strategy = value }
+            opts.on('-k', '--kerf KERF', "Kerf - cut width (default is #{Laser::Cutter::Model::Configuration::DEFAULT_FLOATS[:in][:kerf]}in)") { |value| options.kerf = value }
             opts.separator ''
             opts.on('-m', '--margin MARGIN', 'Margins from the edge of the document') { |value| options.margin = value }
             opts.on('-p', '--padding PADDING', 'Space between the boxes on the page') { |value| options.padding = value }
@@ -86,7 +86,7 @@ Examples:
             opts.on('-L', '--list-all-page-sizes', 'Print all available page sizes with dimensions and exit') { |v| options.list_all_page_sizes = true }
             opts.on('-M', '--no-metadata', 'Do not print box metadata on the PDF') { |value| options.print_metadata = value }
             opts.on('-v', '--[no-]verbose', 'Run verbosely') { |v| options.verbose = v }
-            opts.on('-B', '--inside-box', 'Draw the inside boxes (helpful to verify kerfing)') { |v| options.inside_box = v }
+            opts.on('-B', '--inner-box', 'Draw the inner boxes (helpful to verify kerfing)') { |v| options.inner_box = v }
             opts.on('-D', '--debug', 'Show full exception stack trace on error') { |v| options.debug = true }
             opts.separator ''
             opts.on('--examples', 'Show detailed usage examples') { puts opts; puts examples.yellow; exit }
@@ -112,7 +112,7 @@ Examples:
             options.merge!(keep)
           end
 
-          config = Laser::Cutter::Configuration.new(options.to_hash)
+          config = Laser::Cutter::Model::Configuration.new(options.to_hash)
           if config.list_all_page_sizes
             puts PageManager.new(config.units).all_page_sizes
             exit 0

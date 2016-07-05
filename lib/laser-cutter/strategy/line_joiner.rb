@@ -1,12 +1,12 @@
 module Laser
   module Cutter
-    module Geometry
+    module Strategy
       class LineJoiner
         # This class is an algorithm that takes in a set of lines that are supposed
         # to form a fully connected shape, but may not be ordered. It then organizes
         # the lines in a way that the next line starts at the end of the previous line.
         # This allows PDF drawing to use #line_to method, allowing the lines to be generated
-        # in a joint fashion, and appear as a single "group" inside of an editing software,
+        # in a joint fashion, and appear as a single "group" inner of an editing software,
         # such as Adobe® Illustrator™, which, obviously, is © 2016 Adobe, Inc. ROFL.
         #
         # The algorithm may throw a +NonContiguousPolygonError+ in case not all lines have

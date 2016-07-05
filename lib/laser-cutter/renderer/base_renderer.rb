@@ -4,7 +4,7 @@ module Laser
       # subject is what we are rendering
       # enclosure is the rectangle enclosing our subject's rendered image
       # page_manager contains access to units and page sizes
-      class Base
+      class BaseRenderer
         attr_accessor :config, :subject, :enclosure, :page_manager
         attr_accessor :color_dict
 
@@ -12,7 +12,7 @@ module Laser
           self.config = config
           self.subject = subject
           self.color_dict = dict
-          self.page_manager = Laser::Cutter::PageManager.new(config.units)
+          self.page_manager = Laser::Cutter::Helpers::PageManager.new(config.units)
         end
 
         def color(name)

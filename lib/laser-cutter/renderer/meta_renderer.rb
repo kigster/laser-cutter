@@ -1,7 +1,7 @@
 # encoding: utf-8
 require 'laser-cutter/helpers/colors'
 
-class Laser::Cutter::Renderer::MetaRenderer < Laser::Cutter::Renderer::Base
+class Laser::Cutter::Renderer::MetaRenderer < Laser::Cutter::Renderer::BaseRenderer
 
   META_KEYS = %w(units width height depth thickness notch kerf stroke padding margin page_size page_layout)
 
