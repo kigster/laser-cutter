@@ -65,7 +65,7 @@ module Laser
           self.merge!(DEFAULT_FLOATS[self[:units]].merge(self.to_hash))
 
           FLOATS.each do |k|
-            self[k] = self[k].to_f if (self[k] && self[k].is_a?(String))
+            self[k] = self[k].to_f if self[k]
           end
 
           if self[:notch].nil?

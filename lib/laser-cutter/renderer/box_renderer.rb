@@ -11,12 +11,14 @@ module Laser
 
         def initialize(config)
           super(config)
-          self.subject = _box(config)
+          self.subject = create(self) do
+            box(config)
+          end
         end
 
         def ensure_space_for(rect)
           coords              = [rect.p2.x, rect.p2.y].map { |a| page_manager.value_from_units(a) }
-          box.position_offset = _point(coords)
+          box.position_offset = point(coords)
         end
 
         def enclosure

@@ -1,5 +1,5 @@
 require 'spec_helper'
-
+require 'laser-cutter/strategy/line_joiner'
 module Laser
   module Cutter
     module Model
@@ -45,7 +45,7 @@ module Laser
           end
 
           context 'when notches are generated for a face' do
-            subject { Laser::Cutter::Geometry::LineJoiner.new(box1.notches[:top]).lines }
+            subject { Laser::Cutter::Strategy::LineJoiner.new(box1.notches[:top]).lines }
 
             it 'should form a contiguous polygon' do
               subject.each_with_index do |line, index|

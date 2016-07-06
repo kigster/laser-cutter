@@ -22,7 +22,7 @@ module Laser
       # +Edge+ is additionally responsible for calculating the "perfect" notch width.
       class Edge
 
-        include ::Laser::Cutter::Helpers::Shapes
+        include ::Laser::Cutter::Helpers::Shapes::InstanceMethods
 
         attr_accessor :outer, :inner
         attr_accessor :notch
@@ -64,7 +64,7 @@ module Laser
           k  = kerf / 2.0
           p1 = line.p1.plus(v1 * k)
           p2 = line.p2.plus(v2 * k)
-          _line(p1, p2).relocate!
+          line(p1, p2).relocate!
         end
 
         def kerf?

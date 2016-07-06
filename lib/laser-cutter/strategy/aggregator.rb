@@ -5,7 +5,7 @@ module Laser
         attr_accessor :lines
 
         def initialize(array_of_lines = [])
-          self.lines = array_of_lines.sort
+          self.lines = array_of_lines.flatten.sort
         end
 
         # This method finds lines that are identical (same p1/p2)

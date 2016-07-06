@@ -21,19 +21,19 @@ module Laser
       # length equal to the thickness + regular notch length.
       class PathGenerator
         include Laser::Cutter::Helpers::Shapes
-        
+
         extend ::Forwardable
         %i(center_out thickness corners kerf kerf? notch first_notch_out? adjust_corners corners).each do |method_name|
-          def_delegator :@edge, method_name, method_name
+          def_delegator :my_edge, method_name, method_name
         end
 
-        attr_accessor :edge
+        attr_accessor :my_edge
 
         # This class generates lines that zigzag between two lines: the outer line, and the
         # inner line of a single edge. Edge class encapsulates both of them with additional
         # properties.
-        def initialize(edge)
-          @edge = edge
+        def initialize(this_edge)
+          self.my_edge = this_edge
         end
 
         # Calculates a notched path that flows between the outer edge of the box
@@ -43,9 +43,9 @@ module Laser
         # We always want to create a symmetric path that has a notch in the middle
         # (for center_out = true) or dip in the middle (center_out = false)
         def generate
-          shifts = define_shifts
+          shifts   = define_shifts
           vertices = []
-          lines = []
+          lines    = []
 
           if corners
             lines << corner_box_sides
@@ -54,7 +54,7 @@ module Laser
           point = starting_point
 
           vertices << point
-          adjust_for_kerf(vertices,-1) if adjust_corners && !first_notch_out?
+          adjust_for_kerf(vertices, -1) if adjust_corners && !first_notch_out?
           shifts.each do |shift|
             point = shift.next_point_after point
             vertices << point
@@ -79,11 +79,11 @@ module Laser
         # size is equal to the thickness of the material (adjusted for kerf)
         # It's just an aesthetic choice I guess.
         def corner_box_sides
-          boxes = []
+          boxes       = []
           extra_lines = []
 
-          boxes << _rect(edge.inner.p1.clone, edge.outer.p1.clone)
-          boxes << _rect(edge.inner.p2.clone, edge.outer.p2.clone)
+          boxes << create(self) { rectangle(my_edge.inner.p1.clone, my_edge.outer.p1.clone) }
+          boxes << create(self) { rectangle(my_edge.inner.p2.clone, my_edge.outer.p2.clone) }
 
           extra_lines << add_corners if adjust_corners && kerf?
           sides = boxes.flatten.map(&:relocate!).map(&:sides)
@@ -92,20 +92,20 @@ module Laser
         end
 
         def shift_vector(index, dim_shift = 0)
-          shift = []
+          shift                                   = []
           shift[(d_index_across + dim_shift) % 2] = 0
-          shift[(d_index_along + dim_shift) % 2] = kerf / 2.0 * edge.send("v#{index}".to_sym).[]((d_index_along + dim_shift) % 2)
+          shift[(d_index_along + dim_shift) % 2]  = kerf / 2.0 * my_edge.send("v#{index}".to_sym).[]((d_index_along + dim_shift) % 2)
           Vector.[](*shift)
         end
 
 
         def starting_point
-          edge.inner.p1.clone # start
+          my_edge.inner.p1.clone # start
         end
 
         # 0 = X, 1 = Y
         def d_index_along
-          (edge.inner.p1.x == edge.inner.p2.x) ? 1 : 0
+          (my_edge.inner.p1.x == my_edge.inner.p2.x) ? 1 : 0
         end
 
         def d_index_across
@@ -113,23 +113,23 @@ module Laser
         end
 
         def direction_along
-          (edge.inner.p1.coords.[](d_index_along) < edge.inner.p2.coords.[](d_index_along)) ? 1 : -1
+          (my_edge.inner.p1.coords.[](d_index_along) < my_edge.inner.p2.coords.[](d_index_along)) ? 1 : -1
         end
 
         def direction_across
-          (edge.inner.p1.coords.[](d_index_across) < edge.outer.p1.coords.[](d_index_across)) ? 1 : -1
+          (my_edge.inner.p1.coords.[](d_index_across) < my_edge.outer.p1.coords.[](d_index_across)) ? 1 : -1
         end
 
         private
         # Helper method to calculate dimensions of our corners.
         def add_corners
           k, direction, dim_index, edge_along, edge_across = if first_notch_out?
-            [2, -1, 1, :inner, :outer]
-          else
-            [-2, 1, 0, :outer, :inner]
-          end
-          v1 = direction * k * shift_vector(1, dim_index)
-          v2 = direction * k * shift_vector(2, dim_index)
+                                                               [2, -1, 1, :inner, :outer]
+                                                             else
+                                                               [-2, 1, 0, :outer, :inner]
+                                                             end
+          v1                                               = direction * k * shift_vector(1, dim_index)
+          v2                                               = direction * k * shift_vector(2, dim_index)
 
           r1 = define_corner_rect(:p1, v1, edge_along, edge_across)
           r2 = define_corner_rect(:p2, v2, edge_along, edge_across)
@@ -139,39 +139,38 @@ module Laser
           # Our clever algorithm removes automatically duplicate lines. These lines
           # below are added to actually clear out this space and remove the existing
           # lines that are already there.
-          lines << _line(edge.inner.p1.plus(v1), edge.inner.p1.clone)
-          lines << _line(edge.inner.p2.plus(v2), edge.inner.p2.clone)
+          lines << create(self) { line(my_edge.inner.p1.plus(v1), my_edge.inner.p1.clone) }
+          lines << create(self) { line(my_edge.inner.p2.plus(v2), my_edge.inner.p2.clone) }
           lines
         end
 
         def define_corner_rect(point, delta, edge_along, edge_across)
-          p1 = edge.inner.send(point).plus(delta)
-          coords = []
-          coords[d_index_along] = edge.send(edge_along).send(point)[d_index_along]
-          coords[d_index_across] = edge.send(edge_across).send(point)[d_index_across]
-          p2 = _point(*coords)
-          _rect(p1, p2)
+          p1                     = my_edge.inner.send(point).plus(delta)
+          coords                 = []
+          coords[d_index_along]  = my_edge.send(edge_along).send(point)[d_index_along]
+          coords[d_index_across] = my_edge.send(edge_across).send(point)[d_index_across]
+          p2                     = point(*coords)
+          rectangle(p1, p2)
         end
 
 
         # This method has the bulk of the logic: we create the list of path deltas
         # to be applied when we walk the edge next.
-        # @param [Object] shift
         def define_shifts
-          along_iter = create_iterator_along
+          along_iter  = create_iterator_along
           across_iter = create_iterator_across
 
           shifts = []
-          inner = true # false when we are drawing outer notch, true when inner
+          inner  = true # false when we are drawing outer notch, true when inner
 
           if first_notch_out?
             shifts << across_iter.next
             inner = !inner
           end
 
-          (1..edge.notch_count).to_a.each do |notch_number|
+          (1..my_edge.notch_count).to_a.each do |notch_number|
             shifts << along_iter.next do |shift, index|
-              if inner && (notch_number > 1 && notch_number < edge.notch_count)
+              if inner && (notch_number > 1 && notch_number < my_edge.notch_count)
                 shift.delta -= kerf
               elsif !inner
                 shift.delta += kerf
@@ -179,7 +178,7 @@ module Laser
               inner = !inner
               shift
             end
-            shifts << across_iter.next unless notch_number == edge.notch_count
+            shifts << across_iter.next unless notch_number == my_edge.notch_count
           end
 
           shifts << across_iter.next if first_notch_out?
@@ -190,7 +189,7 @@ module Laser
         # to the next.  This method defines three types of movements we'll be doing:
         # one alongside the edge, and two across (towards the box and outward from the box)
         def create_iterator_along
-          Path::InfiniteIterator.new([Path::Shift.new(notch, direction_along, d_index_along)])
+          create(self) { path_inferator([Path::Shift.new(notch, direction_along, d_index_along)]) }
         end
 
         def create_iterator_across
@@ -202,7 +201,7 @@ module Laser
           lines = []
           vertices.each_with_index do |v, i|
             if v != vertices.last
-              lines << _line(v, vertices[i+1])
+              lines << create(self) { line(v, vertices[i+1]) }
             end
           end
           lines.flatten

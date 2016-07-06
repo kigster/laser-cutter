@@ -56,7 +56,7 @@ module Laser
             context 'margins and padding are defaults' do
               let(:config) { Laser::Cutter::Model::Configuration.new(
                   'width' => 2.5, 'height' => 2, 'depth' => 2.0, 'thickness' => 0.125,
-                  'notch' => 0.25, 'file' => file, 'units' => 'in') }
+                  'notch' => 0.25, 'padding' => 0, 'file' => file, 'units' => 'in') }
 
               it 'should be able to generate a PDF file' do
                 render_file file

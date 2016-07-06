@@ -13,8 +13,8 @@ module Laser
       #
       # NOTE: Everything internally is in millimeters!
       class Box
-        include Laser::Cutter::Helpers::Shapes
         extend Laser::Cutter::Helpers::Shapes
+        include Laser::Cutter::Helpers::Shapes
 
         # Configuration object
         attr_accessor :config
@@ -58,33 +58,41 @@ module Laser
         # Only one of the three dimensions must fill the corners, therefore only two
         # parallel faces must be set to include corners.
         #
-        DEFAULT_FACE_MAPPING = _mash({
-                                                  face_order:   [:top, :front, :bottom, :back, :left, :right],
-                                                  # determines whether the center notch in the middle is a notch (:out)
-                                                  # or a gap (:in)
-                                                  center_notch: {
-                                                    vertical:   [:out, :out, :out, :out, :in, :in],
-                                                    horizontal: [:in, :out, :in, :out, :in, :in],
-                                                  },
+        face_mapping_hash    = {
+          face_order:   [:top, :front, :bottom, :back, :left, :right],
+          # determines whether the center notch in the middle is a notch (:out)
+          # or a gap (:in)
+          center_notch: {
+            vertical:   [:out, :out, :out, :out, :in, :in],
+            horizontal: [:in, :out, :in, :out, :in, :in],
+          },
 
-                                                  corners:      {
-                                                    # our default choice, but may not work
-                                                    front: [:no, :yes, :no, :yes, :no, :no],
-                                                    # 2nd choice, has to work if 1st doesn't
-                                                    top:   [:yes, :no, :yes, :no, :no, :no]
-                                                  },
-                                                })
+          corners:      {
+            # our default choice, but may not work
+            front: [:no, :yes, :no, :yes, :no, :no],
+            # 2nd choice, has to work if 1st doesn't
+            top:   [:yes, :no, :yes, :no, :no, :no]
+          },
+        }
+        DEFAULT_FACE_MAPPING = create(self) do
+          hashie_mash(face_mapping_hash)
+        end
 
 
-        def initialize(config = _mash)
-          self.dim = _dimensions(config.width,
-                                 config.height,
-                                 config.depth)
+        def initialize(config = nil)
+          config = create(self) { hashie_mash } unless config
+
+          self.dim             = create(self) do
+                                  dimensions(config.width,
+                                             config.height,
+                                             config.depth)
+          end
+          raise 'No DIM' unless dim && dim.d && self.d
           self.config          = config
           self.mapping         = DEFAULT_FACE_MAPPING
           self.faces           = []
-          self.faces_hash      = _mash
-          self.notches         = _mash
+          self.faces_hash      = hashie_mash
+          self.notches         = hashie_mash
           self.position_offset = Geometry::Point::ORIGIN # default offset, could be changed later
           if block_given?
             yield(self)
@@ -172,7 +180,7 @@ module Laser
               n.p2.to_a.each_with_index { |c, i| p2[i] = c if c > p2[i] }
             end
           end
-          self.enclosure = _rect[_point(p1), _point(p2)]
+          self.enclosure = create(self) { rectangle(point(p1), point(p2)) }
         end
 
 
@@ -206,7 +214,16 @@ module Laser
         #___________________________________________________________________
 
         def position_faces
-          offset_x           = [padding + d + 3 * thickness, position_offset.x + 2 * thickness + padding].max
+          puts "padding: #{padding}\n"
+          puts "thickness: #{thickness}\n"
+          puts "position_offset: #{position_offset}\n"
+          puts "d: #{d}\n"
+          offset_x           = [padding +
+                                  d +
+                                  3 * thickness,
+                                position_offset.x +
+                                  2 * thickness +
+                                  padding].max
           offset_y           = [padding + d + 3 * thickness, position_offset.y + 2 * thickness + padding].max
 
           # X Coordinate
@@ -232,7 +249,7 @@ module Laser
           self.corner_face = faces_hash[:front]
           b                = face_bounding_rect(corner_face)
           edges            = []
-          self.corner_face.sides[0..1].each_with_index { |face, index| edges << _edge(b.sides[index], face, notch: notch, kerf: kerf) }
+          self.corner_face.sides[0..1].each_with_index { |face, index| edges << edge(b.sides[index], face, notch: notch, kerf: kerf) }
           edges.map(&:notch_count).all? { |c| c % 4 == 3 } ? :top : :front
         end
 
@@ -250,14 +267,16 @@ module Laser
             corners    = (self.mapping[:corners][corner_face.name][face_index] == :yes && side_index.odd?)
             center_out = center_is_notch_or_gap?(face_index, side_index)
 
-            edges << _edge(bounding_side,
-                                        face.sides[side_index],
-                                        { :notch      => notch,
-                                          :thickness  => thickness,
-                                          :kerf       => kerf,
-                                          :center_out => center_out,
-                                          :corners    => corners
-                                        })
+            edges << create(self) do
+              edge(bounding_side,
+                   face.sides[side_index],
+                   { :notch      => notch,
+                     :thickness  => thickness,
+                     :kerf       => kerf,
+                     :center_out => center_out,
+                     :corners    => corners
+                   })
+            end
           end
 
           # TODO: what the hell is this? Seems like a cludge fix that may not be in use.
@@ -267,12 +286,16 @@ module Laser
 
           lines = []
           edges.each do |edge|
-            lines << Strategy::PathGenerator.new(edge).generate
+            lines << create(self) do
+              path_finder(edge).generate
+            end
           end
 
-
           self.notches[face.name.to_sym] ||= []
-          self.notches[face.name.to_sym] = Aggregator.new(lines).dedup!.deoverlap!.lines.sort
+          self.notches[face.name.to_sym] = create(self) do
+            aggregator(lines).dedup!.deoverlap!.lines.flatten.sort
+          end
+
         end
 
         def center_is_notch_or_gap?(face_index, side_index)

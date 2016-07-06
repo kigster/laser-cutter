@@ -7,7 +7,7 @@ module Laser
 
 
       describe PathGenerator do
-        include Laser::Cutter::Helpers::Shapes
+        include Laser::Cutter::Helpers::Shapes::InstanceMethods
         let(:notch) { 2 }
         let(:thickness) { 1 }
         let(:center_out) { true }
@@ -18,20 +18,20 @@ module Laser
                           center_out: center_out,
                           corners:    corners } }
 
-        let(:outer) { _line(from: [0, 0], to: [10, 0]) }
-        let(:inner) { _line(from: [1, 1], to: [9, 1]) }
-        let(:edge) {  _edge(outer, inner, options) }
-        let(:generator) { PathGenerator.new(edge) }
+        let(:outer) { line(from: [0, 0], to: [10, 0]) }
+        let(:inner) { line(from: [1, 1], to: [9, 1]) }
+        let(:e) {  edge(outer, inner, options) }
+        let(:generator) { PathGenerator.new(e) }
 
         context 'edge' do
           it 'should properly calculate notch size' do
-            expect(edge.notch).to be_within(0.001).of(1.6)
+            expect(e.notch).to be_within(0.001).of(1.6)
           end
           context 'edge cases with the edge :)' do
             let(:notch) { 15 } # too big
             it 'should properly handle edge cases' do
               # 3 is the minimum number of notches we support per side
-              expect(edge.notch).to be_within(0.001).of(8.0/3.0)
+              expect(e.notch).to be_within(0.001).of(8.0/3.0)
             end
           end
         end
@@ -51,10 +51,10 @@ module Laser
 
           it 'correctly defines shifts' do
             shifts = generator.send(:define_shifts)
-            expect(edge.outer.length).to eql(10.0)
-            expect(edge.inner.length).to eql(8.0)
-            expect(edge.notch).to be_within(0.001).of(1.6)
-            expect(edge.notch_count).to eql(5)
+            expect(e.outer.length).to eql(10.0)
+            expect(e.inner.length).to eql(8.0)
+            expect(e.notch).to be_within(0.001).of(1.6)
+            expect(e.notch_count).to eql(5)
             expect(shifts.size).to eql(11)
           end
         end
