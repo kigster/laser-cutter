@@ -63,9 +63,10 @@ module Laser
             end
           end
           context 'to inches' do
-            let(:opts) { {'size' => "20.0x30.0x40.0/5/5", 'margin' => '10.0', "units" => 'mm'} }
+            let(:opts) { { 'size' => '20.0x30.0x40.0/5/5', 'margin' => '10.0', 'units' => 'mm'} }
             it 'should be correct' do
               expect(config.width).to eql(20.0)
+              expect(config.units).to eql('mm')
               config.change_units('mm')
               expect(config.width).to eql(20.0)
               config.change_units('in')

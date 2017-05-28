@@ -5,7 +5,7 @@ module Laser
     describe Box do
       let(:config) { {'width' => 50, 'height' => 60, 'depth' => 70, 'margin' => 5, 'padding' => 3, 'units' => 'mm'} }
       let(:box1) { Box.new(config.merge('thickness' => 6, 'notch' => 10)) }
-      let(:box2) { Box.new(config.merge('thickness' => 6, )) }
+      let(:box2) { Box.new(config.merge('thickness' => 6)) }
 
       context '#initialize' do
         it 'should initialize with passed in parameters' do
@@ -29,12 +29,12 @@ module Laser
           expect(box1.notches.size).to eql(368)
         end
 
+        let(:dims) { [0, 0, 232, 317] }
         it 'should properly calculate enclosure' do
-          expect(box1.enclosure.to_a.flatten.map(&:round)).to eql([0,0, 232, 317])
-          expect(box2.enclosure.to_a.flatten.map(&:round)).to eql([0,0, 232, 317])
+          expect(box1.enclosure.to_a.flatten.map(&:round)).to eql(dims)
+          expect(box2.enclosure.to_a.flatten.map(&:round)).to eql(dims)
         end
       end
-
     end
   end
 end
