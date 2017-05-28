@@ -1,5 +1,5 @@
 require 'optparse'
-require 'colored'
+require 'colored2'
 require 'json'
 require 'hashie/mash'
 require 'laser-cutter'
