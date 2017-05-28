@@ -7,6 +7,8 @@
 
 ## LaserCutter and Make-A-Box.io
 
+[![Join the chat at https://gitter.im/kigster/laser-cutter](https://badges.gitter.im/kigster/laser-cutter.svg)](https://gitter.im/kigster/laser-cutter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ```laser-cutter``` is a ruby library for generating PDF designs for boxes of
 custom dimensions that suit your project, that can be cut from wood or acrylic 
 using a laser-cutter. The sides of the box snap together using alternating notches, 
