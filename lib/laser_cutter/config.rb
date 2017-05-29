@@ -30,13 +30,13 @@ module LaserCutter
       include ActiveModel::Model
       attr_reader :errors
 
-      def initialize(*args)
-        super(*args)
+      def initialize(*args, **opts, &block)
+        super(opts)
         @errors = ActiveModel::Errors.new(self)
       end
 
       def validate!
-        attributes.each { |a| errors.add(a, 'cannot be nil') if a.nil? }
+        self.class.instance_variables.each { |a| errors.add(a, 'cannot be nil') if a.nil? }
       end
     end
 
@@ -82,6 +82,14 @@ module LaserCutter
       @box    = create_component(Box, BOX_ATTRS, *args, **opts, &block)
     end
 
+    def validate!
+      self.render.validate!
+      self.box.validate!
+      [ render.errors.to_a, box.errors.to_a].flatten
+    end
+
+    private
+
     def convert_units(opts)
       units = opts.keys & UNITS_TO_MM_MULTIPLIER.keys
       unless (units).empty?
@@ -97,7 +105,6 @@ module LaserCutter
       klazz.new(*args, **opts, &block)
     end
 
-    private
 
     def transform_numeric_options(x, multiplier)
       begin

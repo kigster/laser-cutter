@@ -14,4 +14,5 @@ module LaserCutter
   end
 end
 
+LaserCutter.require_dir 'laser_cutter/cli'
 LaserCutter.require_dir 'laser_cutter'

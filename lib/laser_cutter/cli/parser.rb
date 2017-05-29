@@ -18,7 +18,6 @@ module LaserCutter
       end
 
       def parse(*args)
-        options.verbose = false
         option_parser.parse!(args)
         options
       rescue OptionParser::InvalidOption,
@@ -29,10 +28,11 @@ module LaserCutter
       private
 
       def save
-        ->(field) { ->(value) { options[field] = value } }
+        ->(field) { ->(value) { @options[field] = value } }
       end
 
       def option_parser
+        options = self.options
         @option_parser ||= OptionParser.new do |opts|
           opts.banner = BANNER
           opts.separator 'Dimensions:'.bold.blue
@@ -60,9 +60,9 @@ module LaserCutter
           opts.on('-D', '--debug', 'Show full exception stack trace on error', &save[:debug])
           opts.separator ''
           opts.separator 'Usage and Help:'.bold.blue
-          opts.on('-e', '--examples', 'Show detailed usage examples') { puts EXAMPLES; exit }
-          opts.on('-h', '--help', 'Show this message') { puts opts; exit }
-          opts.on('-V', '--version', 'Show version') { puts LaserCutter::VERSION; exit }
+          opts.on('-e', '--examples', 'Show detailed usage examples') { options[:examples] = EXAMPLES }
+          opts.on('-h', '--help', 'Show this message') { options[:help] = self.to_s }
+          opts.on('-V', '--version', 'Show version') { options[:version] = LaserCutter::VERSION }
           opts.separator ''
           opts.separator 'Common Options:'.bold.blue
           opts.on_tail('-P', '--preview', 'Open generated file with a System Viewer before exiting', &save[:open])

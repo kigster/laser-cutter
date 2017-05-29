@@ -12,7 +12,7 @@ module LaserCutter
     class App
 
       attr_accessor :argv, :stdin, :stdout, :stderr, :kernel
-      attr_accessor :options
+      attr_reader :options, :parser, :config
 
       def initialize(argv, stdin=STDIN, stdout=STDOUT, stderr=STDERR, kernel=Kernel)
         self.stdin  = stdin
@@ -26,31 +26,51 @@ module LaserCutter
           self.argv = argv.dup
         end
 
-        self.options = Hashie::Mash.new
+        @options = Hashie::Mash.new
 
-        parser.parse(argv.dup)
+        @parser = LaserCutter::CLI::Parser.new(@options)
+        @parser.parse(argv.dup)
+
+        process_options!
+
+        @config = options_to_config
       end
 
-      def parser
-        @parser ||= Parser.new(options)
+      def process_options!
+        print_and_exit(:help, :examples, :version)
+      end
+
+      private
+
+      def print_and_exit(*keys)
+        keys.each do |key|
+          if options[key]
+            stdout.puts options[key]
+            terminate
+          end
+        end
+      end
+
+      # This can be overridden in tests
+      def terminate
+        exit
       end
 
       def error(e)
-        STDERR.puts "Whoops, #{e}".red
-        STDERR.puts 'Try --help or --examples for more info...'.yellow
+        self.stderr.puts "Whoops, #{e}".red
+        self.stderr.puts 'Try --help or --examples for more info...'.yellow
       end
 
       def options_to_config
-        if options.read_file
-          options.merge!(Serializer.new(options.read_file, self).deserialize)
-        end
+        options.merge!(Serializer.new(options.read_file, self).deserialize) if options.read_file
 
         config = LaserCutter::Config.new(options.to_hash)
-        config.validate!
-
-        if options.write_file
-          Serializer.new(options.write_file, app).serialize(options)
+        errors = config.validate!
+        unless errors.empty?
+          error(errors.map(&:full_messages).join("\n"))
         end
+
+        Serializer.new(options.write_file, app).serialize(options) if options.write_file
 
         config
       end

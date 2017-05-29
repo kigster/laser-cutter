@@ -1,6 +1,7 @@
 require 'json'
 require 'laser_cutter'
 require 'laser_cutter/errors'
+require 'oj'
 
 module LaserCutter
   module CLI
@@ -22,11 +23,11 @@ module LaserCutter
                    raise LaserCutter::Errors::FileNotFound, "Can't open file '#{file}' for reading."
                  end
 
-        JSON.load(string || '{}')
+        Oj.load(string || '{}', {})
       end
 
       def serialize(options)
-        serialized = JSON.pretty_generate(options)
+        serialized = Oj.dump(options, {})
         if file.eql?('-')
           app.stdout.puts serialized
         elsif file
