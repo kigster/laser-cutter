@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'laser-cutter/version'
+require 'laser_cutter/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'laser-cutter'
-  spec.version       = Laser::Cutter::VERSION
+  spec.version       = LaserCutter::VERSION
   spec.authors       = ['Konstantin Gredeskoul']
   spec.email         = ['kigster@gmail.com']
   spec.summary       = %q{Creates notched box outlines for laser-cut boxes which are geometrically symmetric and pleasing to the eye.}
@@ -19,12 +19,15 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'prawn'
+  spec.add_dependency 'prawn-svg'
   spec.add_dependency 'hashie'
   spec.add_dependency 'colored2'
-  spec.add_dependency 'require_dir'
   spec.add_dependency 'activesupport'
+  spec.add_dependency 'activemodel'
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'rspec-its'
+  spec.add_development_dependency 'guard'
 end

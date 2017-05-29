@@ -7,7 +7,7 @@
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __FILE__)
 require 'rubygems'
 require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
-require 'laser-cutter'
+require 'laser_cutter'
 
 RSpec.configure do |config|
   #config.treat_symbols_as_metadata_keys_with_true_values = true
@@ -20,4 +20,3 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = 'random'
 end
-

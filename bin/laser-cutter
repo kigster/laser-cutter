@@ -1,8 +1,18 @@
 #!/usr/bin/env ruby
-require File.expand_path('../../lib/laser-cutter', __FILE__)
-require File.expand_path('../../lib/laser-cutter/cli/opt_parser', __FILE__)
+require File.expand_path('../../lib/laser_cutter', __FILE__)
+require File.expand_path('../../lib/laser_cutter/cli/parser', __FILE__)
+require 'pp'
 
-config = Laser::Cutter::CLI::OptParser.parse(ARGV)
+parser = LaserCutter::CLI::Parser.new
+options = parser.parse(*ARGV)
+
+pp options
+
+if options[:help]
+  puts parser.to_s
+end
+
+exit
 
 begin
   Laser::Cutter::Renderer::LayoutRenderer.new(config).render
