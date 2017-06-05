@@ -17,11 +17,11 @@ that are deliberately layed out in a symmetric form.
 To use ```laser-cutter``` you need to have a recent version of ruby interpreter, 
 install it as a gem, and use command line to generate PDFs.
 
-[Make-A-Box](http://makeabox.io) is a online web application that uses ```laser-cutter``` library
+**[MakeABox.io](http://makeabox.io)** is a online web application that uses ```laser-cutter``` library
 and provides a straight-forward user interface for generating PDF designs without the need to install
 the gem or use command line.  
 
-Use whatever suites you better.
+Use whatever suites you better. 
 
 ### Design Goals
 
@@ -186,7 +186,7 @@ laser-cutter -z 1x1.5x2/0.125/0.125 -O -o box.pdf
 
 ## Contributing
 
-1. Fork it ( https://github.com/[my-github-username]/laser-cutter/fork )
+1. Fork it ( https://github.com/kigster/laser-cutter/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
