@@ -2,8 +2,11 @@
 [![Build status](https://secure.travis-ci.org/kigster/laser-cutter.png)](http://travis-ci.org/kigster/laser-cutter)
 [![Maintainability](https://api.codeclimate.com/v1/badges/bea3225fd93ee84d078a/maintainability)](https://codeclimate.com/github/kigster/laser-cutter/maintainability)[![Test Coverage](https://api.codeclimate.com/v1/badges/bea3225fd93ee84d078a/test_coverage)](https://codeclimate.com/github/kigster/laser-cutter/test_coverage)
 
-! [Maintained](https://img.shields.io/maintenance/yes/2017.svg)
 [![Join the chat at https://gitter.im/kigster/laser-cutter](https://badges.gitter.im/kigster/laser-cutter.svg)](https://gitter.im/kigster/laser-cutter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GitHub issues](https://img.shields.io/github/issues/kigster/laser-cutter.svg)](https://github.com/kigster/laser-cutter/issues)
+[![GitHub forks](https://img.shields.io/github/forks/kigster/laser-cutter.svg)](https://github.com/kigster/laser-cutter/network)
+[![GitHub stars](https://img.shields.io/github/stars/kigster/laser-cutter.svg)](https://github.com/kigster/laser-cutter/stargazers)
+[![GitHub license](https://img.shields.io/github/license/kigster/laser-cutter.svg)](https://github.com/kigster/laser-cutter/blob/master/LICENSE)
 
 [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FSFYYNEQ8RKWU)
 
