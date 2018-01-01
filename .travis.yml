@@ -1,14 +1,26 @@
-language: ruby
 env:
-  - RUBYOPT="-W0"
+  global:
+  - CC_TEST_REPORTER_ID=6520104decf84e2f6c2c169d30d67976bfcdaa48cd89b4ec34f6e637f2a0ae02
+sudo: false
+language: ruby
+cache: bundler
 rvm:
-  - 2.3.3
-  - 2.4.0
-script: "CODECLIMATE_REPO_TOKEN=6520104decf84e2f6c2c169d30d67976bfcdaa48cd89b4ec34f6e637f2a0ae02 bundle exec rspec"
+- 2.4.1
+- 2.3.5
+before_install: gem install bundler -v 1.15.4
+before_script:
+- curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
+  > ./cc-test-reporter
+- chmod +x ./cc-test-reporter
+- "./cc-test-reporter before-build"
+script:
+- bundle exec rspec
+after_script:
+- "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
 notifications:
-  email:
-    recipients:
-      - kigster@gmail.com
-    on_success: never
-    on_failure: always
-
+  webhooks:
+    urls:
+      - secure: fgpv34jAm3rDNjiWuQtuijE0p9B2bpsCWdoCQ82pDZwktSITmNjanYCoZC0hlEw/kqMBDKRN78HfIIidy8dS664sLz8KyaFXq7RWAFsMP9fn/GMG/r9B+S3YumifQ/Zy+3OGa+0Qz76075q291QfNSPv0Y5QDMoAU5VljIVashC/qJS6DRO+vekDaDKIhi4Dr/+JpHPnjchqS4VaMB8gEIrDpeSYNlhrj1oAI/8GwgqZ8UR4sZGxNpIzUg+XGJSYz5/cAB3P18ENSQvOwaNefJa7qIVNjMD7YwXKmfX9cyr5RHM5sibq/S5fHH/N7pig+aveTquGGVxInJr1IEDiyr2TsFARjPitp9KJSFLHLsA2jm1cZfNW0/d6ii+51HdLPKorHom3fPjb0jkIe1LPa9CrrjnfSrAE9a/w4qpSnDv7OjAzkieepz+VQCtpQGIzQxJcHWaFX32iZ6RQ6pmKc/22E0OZwsNM2FHrB5V1b+rfczl8Ej7/R1wAOtHWkbLbfwZ9Ux2N0N0EKW8r8cOjEbsxmN8FFQubTwl68uqjJLhEtrOUbM28JM/NkX+Ue1KRw+NJAdMFEZQKPb/b/X6s3nwPD4/4yLyUDCGyr8aGpzSBD5uIu5uSJNiWdNDjcnXtJJ6TlGGZqj91r7FckjA8FuSA6S3yA8epMNG3FTUxPVE=
+    on_success: always
+    on_failure: onchange
+    on_start: never

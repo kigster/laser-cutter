@@ -1,20 +1,19 @@
 [![Gem Version](https://badge.fury.io/rb/laser-cutter.svg)](http://badge.fury.io/rb/laser-cutter)
 [![Build status](https://secure.travis-ci.org/kigster/laser-cutter.png)](http://travis-ci.org/kigster/laser-cutter)
-[![Code Climate](https://codeclimate.com/github/kigster/laser-cutter.png)](https://codeclimate.com/github/kigster/laser-cutter)
-[![Test Coverage](https://codeclimate.com/github/kigster/laser-cutter/badges/coverage.svg)](https://codeclimate.com/github/kigster/laser-cutter)
+[![Maintainability](https://api.codeclimate.com/v1/badges/bea3225fd93ee84d078a/maintainability)](https://codeclimate.com/github/kigster/laser-cutter/maintainability)[![Test Coverage](https://api.codeclimate.com/v1/badges/bea3225fd93ee84d078a/test_coverage)](https://codeclimate.com/github/kigster/laser-cutter/test_coverage)
 
-![Maintained](https://img.shields.io/maintenance/yes/2017.svg)
+! [Maintained](https://img.shields.io/maintenance/yes/2017.svg)
 [![Join the chat at https://gitter.im/kigster/laser-cutter](https://badges.gitter.im/kigster/laser-cutter.svg)](https://gitter.im/kigster/laser-cutter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FSFYYNEQ8RKWU)
 
-## LaserCutter and Make-A-Box.io
+# LaserCutter
 
-**LaserCutter** is a ruby library for generating PDF designs for boxes of custom dimensions that suit your project, that can be cut from wood or acrylic using a laser-cutter. The sides of the box snap together using alternating notches, that are deliberately layed out in a symmetric form.
+**LaserCutter** is a ruby library for generating PDF designs for boxes of custom dimensions that suit your project, that are meant to be used as a cut template on a laser-cutter. The sides of the box snap together using alternating notches, that are deliberately laid out in a symmetric form.
 
 To use `laser-cutter` you need to have a recent version of ruby interpreter, install it as a gem, and use command line to generate PDFs.
 
-[Make-A-Box](http://makeabox.io) is a online web application that uses `laser-cutter` library and provides a straight-forward user interface for generating PDF designs without the need to install the gem or use command line.  
+[MakeABox.IO](http://makeabox.io) is an online web application that uses `laser-cutter` library and provides a straight-forward user interface for generating PDF designs without the need to install the gem or use command line.  
 
 Use whatever suites you better.
 
