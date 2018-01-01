@@ -32,8 +32,8 @@ module Laser
           self.notch_width = options[:notch_width]
           self.adjust_corners = options[:adjust_corners]
 
-          adjust_for_kerf!
           calculate_notch_width!
+          adjust_for_kerf!
         end
 
         def adjust_for_kerf!
@@ -68,11 +68,11 @@ module Laser
         private
 
         def calculate_notch_width!
-          length = kerf? ? self.inside.length - kerf : self.inside.length
-          count = (length / notch_width).to_f.ceil + 1
+          count = ((self.inside.length) / notch_width).to_f.ceil + 1
           count = (count / 2 * 2) + 1 # make count always an odd number
           count = [MINIMUM_NOTCHES_PER_SIDE, count].max
-          self.notch_width = 1.0 * length / count
+
+          self.notch_width = 1.0 * (self.inside.length) / count
           self.notch_count = count
         end
 
