@@ -34,7 +34,6 @@ module Laser
           expect(box2.enclosure.to_a.flatten.map(&:round)).to eql([0,0, 232, 317])
         end
       end
-
     end
   end
 end

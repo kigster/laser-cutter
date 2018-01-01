@@ -40,7 +40,7 @@ gem install laser-cutter
 laser-cutter -z 1x1.5x2/0.125/0.125 -O -o box.pdf
 ```
 
-![LaserCutter Comparison](doc/comparison.jpg).
+![LaserCutter Comparison](docs/comparison.jpg).
 
 ## Contributing
 
