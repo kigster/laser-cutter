@@ -5,7 +5,7 @@ module Laser
 
         attr_accessor :sides, :vertices
 
-        def self.[] p1, p2
+        def self.[](p1, p2)
           Rect.new(p1, p2)
         end
 
