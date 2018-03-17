@@ -6,7 +6,7 @@ module Laser
       let(:config) { Laser::Cutter::Configuration.new(opts) }
 
       context 'option parsing' do
-        let(:opts) { {"size" => "2x3x2/0.125/0.5", "inches" => true} }
+        let(:opts) { {"box" => "2x3x2/0.125/0.5", "inches" => true} }
         it 'should be able to parse size options' do
           expect(config.width).to eql(2.0)
           expect(config.height).to eql(3.0)
@@ -24,7 +24,7 @@ module Laser
           end
         end
         context 'zero options' do
-          let(:opts) { {"size" => "2.0x0.0x2/0.125/0.5", 'file' => '/tmp/a'} }
+          let(:opts) { {"box" => "2.0x0.0x2/0.125/0.5", 'file' => '/tmp/a'} }
           it 'should be able to validate missing options' do
             expect(config.height).to eql(0.0)
             expect { config.validate! }.to raise_error(Laser::Cutter::ZeroValueNotAllowed)
@@ -33,7 +33,7 @@ module Laser
       end
 
       context 'default values' do
-        let(:opts) { {"size" => "2.0x1.0x2/0.125", 'file' => '/tmp/a'} }
+        let(:opts) { {"box" => "2.0x1.0x2/0.125", 'file' => '/tmp/a'} }
         it 'should correctly default notch based on thickness' do
           config.validate!
           expect(config.thickness).to eql(0.125)
@@ -42,7 +42,7 @@ module Laser
       end
 
       context 'when invalid units are provided' do
-        let(:opts) { {"size" => "2x3x2/0.125/0.5", "units" => 'xx'} }
+        let(:opts) { {"box" => "2x3x2/0.125/0.5", "units" => 'xx'} }
         it 'should default to inches' do
           expect(config.units).to eql('in')
         end
@@ -51,7 +51,7 @@ module Laser
       context 'when converting between units' do
         context 'all config values' do
           context "to mm" do
-            let(:opts) { {'size' => "2.0x3x2/0.125/0.5", 'padding' => '4.2', "units" => 'in'} }
+            let(:opts) { {'box' => "2.0x3x2/0.125/0.5", 'padding' => '4.2', "units" => 'in'} }
             it 'should be correct' do
               expect(config.width).to eql(2.0)
               config.change_units('in')
@@ -63,7 +63,7 @@ module Laser
             end
           end
           context 'to inches' do
-            let(:opts) { {'size' => "20.0x30.0x40.0/5/5", 'margin' => '10.0', "units" => 'mm'} }
+            let(:opts) { {'box' => "20.0x30.0x40.0/5/5", 'margin' => '10.0', "units" => 'mm'} }
             it 'should be correct' do
               expect(config.width).to eql(20.0)
               config.change_units('mm')

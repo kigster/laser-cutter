@@ -8,10 +8,11 @@ module Laser
     class ZeroValueNotAllowed < MissingOption; end
 
     class UnitsConverter
-      def self.mm2in value
+      def self.mm2in(value)
         0.039370079 * value
       end
-      def self.in2mm value
+
+      def self.in2mm(value)
         25.4 * value
       end
     end
@@ -34,7 +35,7 @@ module Laser
 
       UNIT_SPECIFIC_DEFAULTS['mm'] = UNIT_SPECIFIC_DEFAULTS['in'].map{|k, v| [k, UnitsConverter.in2mm(v)] }.to_h
 
-      SIZE_REGEXP = /[\d\.]+x[\d\.]+x[\d\.]+\/[\d\.]+(\/[\d\.]+)?/
+      SIZE_REGEXP = %r{[\d\.]+x[\d\.]+x[\d\.]+\/[\d\.]+(\/[\d\.]+)?}
 
       FLOATS   = %w(width height depth thickness notch margin padding stroke kerf)
       NON_ZERO = %w(width height depth thickness stroke)
@@ -47,10 +48,10 @@ module Laser
         end
         self.merge!(DEFAULTS)
         self.merge!(options)
-        if self['size'] && self['size'] =~ SIZE_REGEXP
-          dim, self['thickness'], self['notch'] = self['size'].split('/')
+        if self['box'] && self['box'] =~ SIZE_REGEXP
+          dim, self['thickness'], self['notch'] = self['box'].split('/')
           self['width'], self['height'], self['depth'] = dim.split('x')
-          delete('size')
+          delete('box')
         end
         FLOATS.each do |k|
           self[k] = self[k].to_f if (self[k] && self[k].is_a?(String))

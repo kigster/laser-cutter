@@ -8,21 +8,21 @@ module Laser
           @position ||= Point.new(0, 0)
         end
 
-        def x= value
+        def x=(value)
           position.x = value
         end
         def x
           position.x
         end
 
-        def y= value
+        def y=(value)
           position.y = value
         end
         def y
           position.y
         end
 
-        def move_to new_point
+        def move_to(new_point)
           self.position = new_point
           relocate!
           self
@@ -30,6 +30,7 @@ module Laser
 
 
         # Implement in each shape to move to the new pointd
+        # @abstract
         def relocate!
           raise 'Abstract method'
         end

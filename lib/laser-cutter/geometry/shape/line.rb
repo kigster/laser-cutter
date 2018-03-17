@@ -3,7 +3,7 @@ module Laser
     module Geometry
       class Line < Shape
 
-        def self.[] *array
+        def self.[](*array)
           self.new *array
         end
 
@@ -24,10 +24,18 @@ module Laser
 
         def overlaps?(another)
           xs, ys = sorted_coords(another)
+          return false unless another.kind_of?(self.class)
           return false unless xs.all?{|x| x == xs[0] } || ys.all?{|y| y == ys[0] }
-          return false if xs.first[1] < xs.last[0] || xs.first[0] > xs.last[1]
-          return false if ys.first[1] < ys.last[0] || ys.first[0] > ys.last[1]
+          return false if xs[0][1] < xs[1][0] || xs[0][0] > xs[1][1]
+          return false if ys[0][1] < ys[1][0] || ys[0][0] > ys[1][1]
           true
+        end
+
+        def is_part_of?(another)
+          xs, ys = sorted_coords(another)
+          overlaps?(another) &&
+            (xs[0][0] >= xs[1][0] || xs[0][1] <= xs[1][1]) &&
+            (ys[0][0] >= ys[1][0] || ys[0][1] <= ys[1][1])
         end
 
         def sorted_coords(another)
@@ -68,8 +76,8 @@ module Laser
         end
 
         def eql?(other)
-          (other.p1.eql?(p1) && other.p2.eql?(p2)) ||
-          (other.p2.eql?(p1) && other.p1.eql?(p2))
+          (other && other.respond_to?(:p1) && other.p1.eql?(p1) && other.p2.eql?(p2)) ||
+          (other && other.respond_to?(:p2) && other.p2.eql?(p1) && other.p1.eql?(p2))
         end
 
         def normalized

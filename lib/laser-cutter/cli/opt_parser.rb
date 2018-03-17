@@ -1,5 +1,5 @@
 require 'optparse'
-require 'colored'
+require 'colored2'
 require 'json'
 require 'hashie/mash'
 require 'laser-cutter'
@@ -87,7 +87,7 @@ Examples:
             opts.on_tail("-o", "--file FILE", "Required output filename of the PDF") { |value| options.file = value }
             opts.on_tail("-z", "--size WxHxD/T[/N]",
                          "Combined internal dimensions: W = width, H = height,\n#{" " * 37}D = depth, T = thickness, and optional N = notch length\n\n") do |size|
-              options.size = size
+              options.box = size
             end
             opts.on_tail("-u", "--units UNITS", "Either 'in' for inches (default) or 'mm'") { |value| options.units = value }
           end
