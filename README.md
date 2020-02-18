@@ -52,7 +52,7 @@ Or install it yourself as:
 ```bash
 
 Usage: laser-cutter [options] -o filename.pdf
-   eg: laser-cutter -z 1x1.5x2/0.125 -O -o box.pdf
+   eg: laser-cutter -b 1x1.5x2/0.125 -O -o box.pdf
 
 Specific Options:
     -w, --width WIDTH                Internal width of the box
@@ -84,7 +84,7 @@ Specific Options:
 
 Common Options:
     -o, --file FILE                  Required output filename of the PDF
-    -z, --size WxHxD/T[/N]           Combined internal dimensions: W = width, H = height,
+    -z, --box WxHxD/T[/N]           Combined internal dimensions: W = width, H = height,
                                      D = depth, T = thickness, and optional N = notch length
 
     -u, --units UNITS                Either 'in' for inches (default) or 'mm'
@@ -95,7 +95,7 @@ Common Options:
 Create a box defined in inches, with kerf (cut width) set to 0.008", and open PDF in preview right after:
 
 ```bash
-    laser-cutter -z 3x2x2/0.125 -k 0.008 -O -o box.pdf
+    laser-cutter -b 3x2x2/0.125 -k 0.008 -O -o box.pdf
 ```       
 
 Create a box defined in millimeters, print verbose info, and set
@@ -114,7 +114,7 @@ List all possible page sizes in metric system:
 Create a box with provided dimensions, and save the config to a file for later use:
 
 ```bash
-    laser-cutter -z 1.1x2.5x1.5/0.125/0.125 -p 0.1 -O -o box.pdf -W box-settings.json
+    laser-cutter -b 1.1x2.5x1.5/0.125/0.125 -p 0.1 -O -o box.pdf -W box-settings.json
 ```    
 
 Read settings from a previously saved file:
@@ -175,7 +175,7 @@ And laser-cutter:
 
 ```bash
 gem install laser-cutter
-laser-cutter -z 1x1.5x2/0.125/0.125 -O -o box.pdf
+laser-cutter -b 1x1.5x2/0.125/0.125 -O -o box.pdf
 ```
 
 ![LaserCutter Comparison](doc/comparison.jpg).

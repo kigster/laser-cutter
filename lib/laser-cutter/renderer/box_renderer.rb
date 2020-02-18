@@ -20,7 +20,7 @@ module Laser
           box.enclosure
         end
 
-        def render pdf = nil
+        def render(pdf = nil)
           renderer = self
           pdf.instance_eval do
             self.line_width = renderer.config.stroke.send(renderer.config.units.to_sym)

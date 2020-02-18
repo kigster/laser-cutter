@@ -1,7 +1,7 @@
 # encoding: utf-8
 class Laser::Cutter::Renderer::MetaRenderer < Laser::Cutter::Renderer::Base
 
-  META_KEYS = %w(units width height depth thickness notch kerf stroke padding margin page_size page_layout)
+  META_KEYS = %i(units width height depth thickness notch kerf stroke padding margin page_size page_layout)
 
   def initialize(config = {})
     self.config = config
@@ -23,11 +23,11 @@ class Laser::Cutter::Renderer::MetaRenderer < Laser::Cutter::Renderer::Base
     meta_top_height = 55
 
     metadata = config.to_hash
-    metadata['page_size'] ||= 'custom'
-    metadata.delete('page_layout') if metadata['page_size'].eql?('custom')
+    metadata[:page_size] ||= 'custom'
+    metadata.delete(:page_layout) if metadata[:page_size].eql?('custom')
 
-    meta_fields = META_KEYS.find_all{|k| metadata[k]}.join(": \n") + ": \n"
-    meta_values = META_KEYS.find_all{|k| metadata[k]}.map{|k| metadata[k] }.join("\n")
+    meta_fields = META_KEYS.find_all{|k| metadata[k]}.map(&:to_s).join(": \n") + ": \n"
+    meta_values = META_KEYS.find_all{|k| metadata[k]}.map{|k| metadata[k].to_s }.join("\n")
 
     rect = self.enclosure
 
@@ -40,7 +40,7 @@ class Laser::Cutter::Renderer::MetaRenderer < Laser::Cutter::Renderer::Base
 
           # Print banner
           indent 10 do
-            font('Helvetica', :size => 6) do
+              font('Helvetica', :size => 6) do
               text banner, :color => meta_color
             end
           end
