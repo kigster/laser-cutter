@@ -7,8 +7,10 @@ require 'pdf/core/page_geometry'
 
 module Laser
   module Cutter
-    class MissingOption < RuntimeError; end
-    class ZeroValueNotAllowed < MissingOption; end
+    class MissingOption < RuntimeError;
+    end
+    class ZeroValueNotAllowed < MissingOption;
+    end
 
     class UnitsConverter
       def self.mm2in(value)
@@ -24,9 +26,9 @@ module Laser
       include ::Hashie::Extensions::Mash::SymbolizeKeys
 
       DEFAULTS = {
-          units:       :in,
-          page_layout: 'portrait',
-          metadata:    true
+        units:       :in,
+        page_layout: 'portrait',
+        metadata:    true
       }
 
       UNIT_SPECIFIC_DEFAULTS = {
@@ -38,7 +40,7 @@ module Laser
         }
       }
 
-      UNIT_SPECIFIC_DEFAULTS[:mm] = UNIT_SPECIFIC_DEFAULTS[:in].map{|k, v| [k, UnitsConverter.in2mm(v)] }.to_h
+      UNIT_SPECIFIC_DEFAULTS[:mm] = UNIT_SPECIFIC_DEFAULTS[:in].map { |k, v| [k, UnitsConverter.in2mm(v)] }.to_h
 
       SIZE_REGEXP = /[\d.]+x[\d.]+x[\d.]+\/[\d.]+(\/[\d.]+)?/
 
@@ -57,7 +59,7 @@ module Laser
         super(DEFAULTS.merge(options))
 
         if self.box =~ SIZE_REGEXP
-          dim, self[:thickness], self[:notch] = self[:box].split('/')
+          dim, self[:thickness], self[:notch]        = self[:box].split('/')
           self[:width], self[:height], self[:depth] = dim.split('x')
           delete(:box)
         end

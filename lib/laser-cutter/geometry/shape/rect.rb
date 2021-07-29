@@ -5,14 +5,14 @@ module Laser
 
         attr_accessor :sides, :vertices
 
-        def self.[] p1, p2
+        def self.[](p1, p2)
           Rect.new(p1, p2)
         end
 
         def self.create(point, w, h, name = nil)
-          r = Rect.new(point, Point[point.x + w, point.y + h])
-          r.name = name
-          r
+          Rect.new(point, Point[point.x + w, point.y + h]).tap do |r|
+            r.name = name
+          end
         end
 
         def self.from_line(line)
