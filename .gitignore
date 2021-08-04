@@ -25,3 +25,4 @@ mkmf.log
 .idea/
 **output.pdf
 .ruby_version
+.envrc.local
