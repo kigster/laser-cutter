@@ -23,10 +23,10 @@ jobs:
       uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        directory: ./coverage/reports/
+        directory: ./coverage
         env_vars: OS,RUBY
         fail_ci_if_error: true
-        files: ./coverage1.xml,./coverage2.xml,!./cache
+        files: ./coverage/coverage.xml
         flags: unittests
         name: codecov-umbrella
         verbose: true
