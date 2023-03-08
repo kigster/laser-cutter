@@ -18,13 +18,20 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency 'prawn'
-  spec.add_dependency 'hashie'
   spec.add_dependency 'colored2'
+  spec.add_dependency 'dry-schema'
+  spec.add_dependency 'dry-struct'
+  spec.add_dependency 'dry-types'
+  spec.add_dependency 'dry-validation'
   spec.add_dependency 'matrix'
+  spec.add_dependency 'hashie'
+  spec.add_dependency 'prawn'
+  spec.add_dependency 'ruby-units'
 
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'rspec-its'
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'simplecov-cobertura'
+  spec.add_development_dependency 'simplecov-shields-badge'
 end

@@ -15,7 +15,7 @@ class Laser::Cutter::PageManager < Struct.new(:units)
 
   # if from_units is nil, we expect it to be in dots per inch (default
   # measurements for Prawn
-  def value_from_units value, from_units = nil
+  def value_from_units(value, from_units = nil)
     multiplier = if from_units.nil?
                    if units.eql?('in')
                      1.0 / 72.0 # PDF units per inch

@@ -7,6 +7,8 @@
 
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __FILE__)
 require 'rubygems'
+require 'bundler/setup' if File.exist?(ENV['BUNDLE_GEMFILE'])
+
 require 'simplecov'
 SimpleCov.start do
   add_filter 'spec'
@@ -15,12 +17,20 @@ end
 require 'simplecov-cobertura'
 SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 
-require 'bundler/setup' if File.exist?(ENV['BUNDLE_GEMFILE'])
 require 'laser-cutter'
 
+if ENV['GITHUB_TOKEN']
+  require 'shields_badge'
+  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::ShieldsBadge,
+  ]
+end
+
+require 'laser-cutter'
 
 RSpec.configure do |config|
-  #config.treat_symbols_as_metadata_keys_with_true_values = true
+  # config.treat_symbols_as_metadata_keys_with_true_values = true
   config.run_all_when_everything_filtered = true
   config.filter_run :focus
 
@@ -30,4 +40,3 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = 'random'
 end
-
