@@ -7,6 +7,13 @@
 
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __FILE__)
 require 'rubygems'
+require 'simplecov'
+SimpleCov.start do
+  add_filter 'spec'
+end
+
+require 'simplecov-cobertura'
+SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 
 require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
 require 'laser-cutter'
