@@ -11,7 +11,7 @@ module Laser
           def render_file filename
             real_file = ENV['RSPEC_SAVE_PDF'] ? true : false
             config.validate!
-            expect(!File.exists?(filename)) if real_file
+            expect(!File.exist?(filename)) if real_file
             renderer.render
             expect(File.exist?(filename)) if real_file
             expect(File.size(filename) > 0) if real_file
@@ -21,7 +21,7 @@ module Laser
           ensure
             if real_file
               File.delete(filename) rescue nil
-              expect(!File.exists?(filename))
+              expect(!File.exist?(filename))
             end
           end
 

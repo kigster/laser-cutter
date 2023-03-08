@@ -5,10 +5,19 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
-ENV['BUNDLE_GEMFILE'] ||= File.expand_path('Gemfile', __dir__)
+ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __FILE__)
+require 'rubygems'
+require 'bundler/setup' if File.exist?(ENV['BUNDLE_GEMFILE'])
 
 require 'simplecov'
-SimpleCov.start
+SimpleCov.start do
+  add_filter 'spec'
+end
+
+require 'simplecov-cobertura'
+SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
+
+require 'laser-cutter'
 
 if ENV['GITHUB_TOKEN']
   require 'shields_badge'
