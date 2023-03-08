@@ -21,7 +21,10 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'prawn'
   spec.add_dependency 'hashie'
   spec.add_dependency 'colored2'
+  spec.add_dependency 'matrix'
 
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'simplecov'
+  spec.add_development_dependency 'simplecov-cobertura'
 end

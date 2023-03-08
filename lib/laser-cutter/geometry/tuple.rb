@@ -1,4 +1,4 @@
-require 'matrix'
+
 module Laser
   module Cutter
     module Geometry
