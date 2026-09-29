@@ -32,6 +32,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'tty-cursor'
   spec.add_dependency 'tty-progressbar'
   spec.add_dependency 'tty-prompt'
+  spec.add_dependency 'tty-screen'
   spec.add_dependency 'tty-spinner'
   spec.add_dependency 'tty-table'
   spec.add_dependency 'victor'
