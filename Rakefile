@@ -32,6 +32,10 @@ YARD::Rake::YardocTask.new(:doc) do |t|
   t.files = %w[lib/**/*.rb - README.md LICENSE.txt CHANGELOG.md]
   t.options.unshift("--title", '"dry-cli-ui: runtime terminal UI for dry-cli commands"')
   t.after = -> { exec("open doc/index.html") } if RUBY_PLATFORM =~ /darwin/
+
+  require "fileutils"
+  FileUtils.mkdir_p("doc/docs/badges")
+  FileUtils.cp("docs/badges/coverage_badge.svg", "doc/docs/badges")
 end
 
 RSpec::Core::RakeTask.new(:spec)

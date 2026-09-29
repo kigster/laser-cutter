@@ -1,5 +1,6 @@
 **.pdf
 **.DS_Store
+.rspec_status
 **/*.swp
 *.gem
 *.rbc
@@ -9,7 +10,6 @@
 Gemfile.lock
 InstalledFiles
 _yardoc
-lib/bundler/man
 pkg
 rdoc
 spec/reports
@@ -22,7 +22,7 @@ tmp
 *.a
 mkmf.log
 .idea/
-**output.pdf
-.ruby_version
+.ruby-lsp
 /coverage
 !docs/coverage/
+/doc
