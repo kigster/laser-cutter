@@ -1,8 +1,1 @@
-#!/usr/bin/env ruby
-# frozen_string_literal: true
-
-# No Bundler here: a Gemfile in the user's directory must not decide which gems load.
-$LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
-require 'laser/cutter'
-
-Laser::Cutter::Launcher.new(ARGV).execute!
+laser-cutter

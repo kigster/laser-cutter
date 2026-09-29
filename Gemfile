@@ -6,6 +6,7 @@ source 'https://rubygems.org'
 gemspec
 
 group 'development', 'test' do
+  gem 'aruba'
   gem 'coverage-badge'
   gem 'rake'
   gem 'rspec'
