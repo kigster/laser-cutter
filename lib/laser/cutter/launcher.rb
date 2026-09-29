@@ -26,9 +26,14 @@ module Laser
       rescue SystemExit => e
         e.status
       rescue StandardError => e
-        @stderr.puts "error: #{e.message}"
+        ui.error(e.message)
         @stderr.puts(e.backtrace) if @argv.intersect?(%w[-v --verbose])
         1
+      end
+
+      # The same boxes the commands draw, on this run's own streams.
+      def ui
+        Dry::CLI::UI::Console.new(out: @stdout, err: @stderr, box_width: CLI::Command::WIDGET_WIDTH)
       end
     end
   end

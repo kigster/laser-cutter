@@ -93,9 +93,26 @@ RSpec.describe 'laser-cutter', type: :aruba do
       expect(last_command_started).to have_output(%r{Drawing box\.pdf 360/360})
     end
 
-    it 'reports success in a box 60 columns wide' do
+    it 'draws the info box 60 columns wide' do
       run_command_and_stop("laser-cutter generate #{box} -o box.pdf")
-      expect(last_command_started.stdout.lines.map { |line| line.chomp.length }.max).to eq(60)
+      info = last_command_started.stdout.split('┌─ Success').first
+      expect(info.lines.map { |line| line.chomp.length }.max).to eq(60)
+    end
+
+    it 'keeps the path of the file on one line' do
+      run_command_and_stop("laser-cutter generate #{box} -o box.pdf")
+      expect(last_command_started.stdout).to include(expand_path('box.pdf'))
+    end
+
+    it 'opens with an info box that names the gem and the dimensions' do
+      run_command_and_stop("laser-cutter generate #{box} -o box.pdf")
+      expect(last_command_started.stdout).to match(/─ Info ─.*Laser-Cutter \(ruby gem\) Version #{Laser::Cutter::VERSION}, ©/m)
+        .and match(/Width:\s+4\.0 in.*Height:\s+3\.0 in.*Depth:\s+2\.0 in.*Notch:\s+0\.5 in.*Format: PDF/m)
+    end
+
+    it 'closes with a success box that gives the path of the file' do
+      run_command_and_stop("laser-cutter generate #{box} -f svg -o box.svg")
+      expect(last_command_started.stdout).to match(/─ Info ─.*─ Success ─.*Generated SVG file:.*box\.svg/m)
     end
 
     it 'writes an SVG, whatever the case of the format' do
@@ -141,7 +158,8 @@ RSpec.describe 'laser-cutter', type: :aruba do
       it 'fails without a file' do
         run_command_and_stop("laser-cutter generate #{box}", fail_on_error: false)
         expect(last_command_started).to have_exit_status(1)
-        expect(last_command_started).to have_output(/file is required/)
+        expect(last_command_started.stderr).to match(/─ Error ─.*file is required/m)
+        expect(last_command_started.stdout).to be_empty
       end
 
       it 'fails on an unknown format' do
