@@ -18,6 +18,14 @@ module Laser
           end
         end
 
+        context 'when units are a Symbol, as the configuration defaults them' do
+          let(:units) { :in }
+
+          it 'reads them as inches' do
+            expect(pm.value_from_units(72)).to be_within(0.0001).of(1.0)
+          end
+        end
+
         context 'to mm' do
           let(:units) { 'mm' }
 

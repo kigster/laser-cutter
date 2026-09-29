@@ -2,8 +2,15 @@
 
 module Laser
   module Cutter
-    class PageManager < Struct.new(:units)
+    class PageManager
       SIZES = PDF::Core::PageGeometry::SIZES.clone.freeze
+
+      attr_reader :units
+
+      # @param units [String, Symbol] 'in' or 'mm'; the configuration's default is a Symbol
+      def initialize(units)
+        @units = units.to_s
+      end
 
       def all_page_sizes
         output = +""
