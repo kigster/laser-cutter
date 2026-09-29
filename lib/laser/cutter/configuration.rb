@@ -1,28 +1,7 @@
 # frozen_string_literal: true
 
-require 'hashie/mash'
-require 'hashie/extensions/symbolize_keys'
-require 'hashie/extensions/mash/symbolize_keys'
-
-require 'prawn/measurement_extensions'
-require 'pdf/core/page_geometry'
-
 module Laser
   module Cutter
-    class MissingOption < RuntimeError; end
-
-    class ZeroValueNotAllowed < MissingOption; end
-
-    class UnitsConverter
-      def self.mm2in(value)
-        (0.039370079 * value).round(5)
-      end
-
-      def self.in2mm(value)
-        (25.4 * value).round(5)
-      end
-    end
-
     class Configuration < Hashie::Mash
       include ::Hashie::Extensions::Mash::SymbolizeKeys
 

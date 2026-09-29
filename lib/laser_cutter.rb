@@ -1,3 +1,3 @@
 # frozen_string_literal: true
 
-require_relative 'laser-cutter'
+require_relative "laser/cutter"

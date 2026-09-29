@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'json'
 module Laser
   module Cutter
     module Renderer

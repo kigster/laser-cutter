@@ -40,6 +40,3 @@ module Laser
     end
   end
 end
-
-require_relative 'shape/line'
-require_relative 'shape/rect'

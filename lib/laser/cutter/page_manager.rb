@@ -1,6 +1,4 @@
-require 'hashie/mash'
-require 'prawn/measurement_extensions'
-require 'pdf/core/page_geometry'
+# frozen_string_literal: true
 
 module Laser
   module Cutter
@@ -8,7 +6,7 @@ module Laser
       SIZES = PDF::Core::PageGeometry::SIZES.clone.freeze
 
       def all_page_sizes
-        output = ""
+        output = +""
         page_size_values.each do |k|
           output << sprintf("\t%10s:\t%6.1f x %6.1f\n", *k)
         end
