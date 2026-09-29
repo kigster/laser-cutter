@@ -4,6 +4,8 @@ module Laser
   module Cutter
     module Notching
       MINIMUM_NOTCHES_PER_SIDE = 3
+      # Decimal places kept of length / notch width before counting notches.
+      RATIO_DIGITS = 6
       # This class represents a single edge of one side: both inside
       # and outside edge of the material.  It's also responsible
       # for calculating the "perfect" notch width.
@@ -66,7 +68,10 @@ module Laser
 
         def calculate_notch_width!
           length = kerf? ? inside.length - kerf : inside.length
-          count = (length / notch_width).to_f.ceil + 1
+          # Rounded before #ceil: when the notch divides the side exactly,
+          # float noise in the coordinates would otherwise decide the count,
+          # and the two panels meeting at this joint would disagree.
+          count = (length / notch_width).to_f.round(RATIO_DIGITS).ceil + 1
           count = (count / 2 * 2) + 1 # make count always an odd number
           count = [MINIMUM_NOTCHES_PER_SIDE, count].max
           self.notch_width = 1.0 * length / count

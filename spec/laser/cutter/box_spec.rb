@@ -21,6 +21,25 @@ module Laser
         end
       end
 
+      describe 'notch counts across joints' do
+        # Sides meeting at a joint share a nominal length, and must get the
+        # same number of notches or the two panels do not fit together.
+        [0.0, 0.0024].each do |kerf|
+          it "agree on a 4x3x2 box with a 0.5 notch and a #{kerf} kerf" do
+            edges = []
+            allow(Notching::Edge).to receive(:new).and_wrap_original do |original, *args|
+              original.call(*args).tap { |edge| edges << edge }
+            end
+            Box.new(Configuration.new(width: 4, height: 3, depth: 2, thickness: 0.125,
+                                      notch: 0.5, kerf: kerf, file: 'box.pdf')).generate_notches
+
+            counts = edges.group_by { |edge| edge.inside.length.round(1) }
+                          .transform_values { |group| group.map(&:notch_count).uniq }
+            expect(counts).to eq(4.0 => [9], 3.0 => [7], 2.0 => [5])
+          end
+        end
+      end
+
       describe '#notches' do
         before do
           box1.generate_notches
