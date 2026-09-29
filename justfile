@@ -28,7 +28,7 @@ format-markdown:
 test *args:
     {{ rbenv }} rspec {{ args }}
 
-
+# Run all tests with --documentation
 test-docs *args:
     {{ rbenv }} rspec --format documentation {{ args }}
 
@@ -61,8 +61,9 @@ clobber:
 doc:
     {{ rbenv }} rake doc
 
+# Builds the gem for distribution
 build:
-
+    {{ rbenv }} rake build
 
 # `gem push` rather than `rake release`: release also tags and pushes git,
 # which `just release` does separately, and it gives no way to pass a 2FA code.

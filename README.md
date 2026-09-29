@@ -157,7 +157,7 @@ gem install laser-cutter
 laser-cutter -b 1x1.5x2/0.125/0.125 -O -o box.pdf
 ```
 
-![LaserCutter Comparison](doc/comparison.jpg).
+![LaserCutter Comparison](docs/images/comparison.jpg).
 
 ## Contributing
 
@@ -166,3 +166,9 @@ laser-cutter -b 1x1.5x2/0.125/0.125 -O -o box.pdf
 1. Commit your changes (`git commit -am 'Add some feature'`)
 1. Create a new Pull Request
 1. Push to the branch (`git push origin my-new-feature`)
+
+## License
+
+MIT License (MIT). Please see [LICENSE](LICENSE) for more information.
+
+Author: © 2015-2024 Konstantin Gredeskoul [@kigster](https://github.com/kigster)
