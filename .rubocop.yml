@@ -1,0 +1,27 @@
+inherit_from:
+  - .relaxed_rubocop.yml
+
+AllCops:
+  NewCops: enable
+  SuggestExtensions: false
+  TargetRubyVersion: 4.0
+
+Layout/LineLength:
+  Max: 120
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+
+Lint/ConstantDefinitionInBlock:
+  Enabled: false
+
+Lint/StructNewOverride:
+  Enabled: false
+
+Layout/HashAlignment:
+  EnforcedColonStyle: table
+  EnforcedHashRocketStyle: table
+
+Layout/ArgumentAlignment:
+  EnforcedStyle: with_first_argument

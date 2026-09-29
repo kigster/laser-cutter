@@ -1,11 +1,13 @@
-require 'laser-cutter/version'
-require 'laser-cutter/configuration'
-require 'laser-cutter/geometry'
-require 'laser-cutter/box'
-require 'laser-cutter/renderer'
-require 'laser-cutter/page_manager'
-require 'laser-cutter/notching'
-require 'laser-cutter/aggregator'
+# frozen_string_literal: true
+
+require 'laser_cutter/version'
+require 'laser_cutter/configuration'
+require 'laser_cutter/geometry'
+require 'laser_cutter/box'
+require 'laser_cutter/renderer'
+require 'laser_cutter/page_manager'
+require 'laser_cutter/notching'
+require 'laser_cutter/aggregator'
 require 'prawn'
 require 'prawn/measurement_extensions'
 

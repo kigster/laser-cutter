@@ -3,5 +3,13 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in laser-cutter-cutter.gemspec
 gemspec
 
-gem 'rubocop', group: 'development', require: false
-
+group 'development', 'test' do
+  gem 'coverage-badge'
+  gem 'rspec'
+  gem 'rspec-its'
+  gem 'rubocop', require: false
+  gem 'rubocop-rake', require: false
+  gem 'rubocop-rspec', require: false
+  gem 'simplecov'
+  gem 'yard'
+end

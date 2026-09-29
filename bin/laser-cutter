@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
-require File.expand_path('../../lib/laser-cutter', __FILE__)
-require File.expand_path('../../lib/laser-cutter/cli/opt_parser', __FILE__)
+
+require File.expand_path('../lib/laser-cutter', __dir__)
+require File.expand_path('../lib/laser-cutter/cli/opt_parser', __dir__)
 
 config = Laser::Cutter::CLI::OptParser.parse(ARGV)
 
@@ -10,10 +11,8 @@ begin
     `open #{config.file}`
   end
 rescue Exception => e
-  STDERR.puts "Whoops, #{e.message}".red
+  warn "Whoops, #{e.message}".red
   if config.verbose
-    STDERR.puts e.backtrace.join("\n").red
+    warn e.backtrace.join("\n").red
   end
 end
-
-
