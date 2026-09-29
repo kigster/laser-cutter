@@ -8,13 +8,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-The `justfile` drives everything. Its recipes wrap `bundle exec` in `eval "$(rbenv init - bash)"`. There is no `.ruby-version`. CI and `.rubocop.yml` target Ruby **4.0** (CI pins 4.0.6).
+The `justfile` drives everything. Its recipes wrap `bundle exec` in `eval "$(rbenv init - bash)"`. `.ruby-version` and CI pin Ruby **4.0.6**; dry-cli-help and dry-cli-ui need 4.0.
 
 ```bash
 just lint                     # rubocop
 just format                   # rubocop -a, plus mdformat on every *.md
 just test                     # rspec (progress format, random order)
-just test spec/lib/laser_cutter/edge_spec.rb:42   # one file or example
+just test spec/laser/cutter/edge_spec.rb:42   # one file or example
 just test-docs                # rspec --format documentation
 just ci                       # lint + test-coverage
 just doc                      # YARD docs
@@ -22,35 +22,40 @@ just doc                      # YARD docs
 
 - `bundle exec rspec`, `bundle exec rubocop` and `bundle exec rake` (default task `spec`) also work.
 - Every rspec run rewrites `docs/badges/coverage_badge.svg` through the SimpleCov `at_exit` hook in `spec/spec_helper.rb`. That file shows up in `git status` after any test run.
-- The justfile comment says a full run "enforces 100% coverage", and `test-coverage` sets `COVERAGE=true`. `spec_helper.rb` reads neither, and no `minimum_coverage` is set, so nothing enforces coverage today.
-- `just build` is an empty recipe, so `just publish` builds nothing. `rake build` (Bundler gem tasks, chained after `rake permissions`) is the real build.
+- `spec_helper.rb` fails the run under 95% line coverage. The Aruba suite in `spec/laser/cutter/cli_spec.rb` counts towards it.
 
 ## Architecture
 
-Everything lives under `Laser::Cutter`. The entry point is `lib/laser-cutter.rb`, which requires each subsystem by hand. `lib/laser_cutter.rb` is a shim for it. Zeitwerk appears in the gemspec but is not used.
+Everything lives under `Laser::Cutter`, in `lib/laser/cutter/`. `lib/laser/cutter.rb` requires the third-party gems, then sets up `Zeitwerk::Loader.for_gem_extension(Laser)` and **eager-loads** it. So: one constant per file, the file name matches the constant, and no `require` between the gem's own files. `lib/laser-cutter.rb` and `lib/laser_cutter.rb` are shims.
 
-Pipeline, from config to PDF:
+Pipeline, from config to file:
 
-1. **`Configuration`** (`configuration.rb`) is a `Hashie::Mash` with symbolized keys. It parses the `--box WxHxD/T[/N]` shorthand into width, height, depth, thickness and notch, casts numeric strings to floats, and merges per-unit defaults for kerf, margin, padding and stroke from the `defaults[:in]` / `defaults[:mm]` table. Notch defaults to `3 × thickness`. `validate!` raises `MissingOption` / `ZeroValueNotAllowed`. `change_units` converts every float field in place.
-2. **`Renderer::LayoutRenderer`** orchestrates. It builds a `BoxRenderer`, plus a `MetaRenderer` when `config.metadata` is set. It reserves space for the metadata block via `ensure_space_for`, and adds a red unkerfed `BoxRenderer` when `config.debug` is set. It sizes the page from the box enclosure unless `page_size` is given, then renders into a `Prawn::Document`. Renderers share `Renderer::Base` (`config`, `subject`, `enclosure`, `page_manager`) and draw inside `pdf.instance_eval`.
-3. **`Box`** (`box.rb`) models the six faces as `Geometry::Rect`s. `position_faces!` lays them out in a cross (see the ASCII diagram in that method). `generate_notches` then walks each face. For every side it pairs the face's outer bounding rect (face grown by `thickness`) with the face itself as a **`Notching::Edge`**. A `conf` table sets per-face alignment: `valign`/`halign` decide whether a side's center notch points `:out` or `:in`. `corners` plus `pick_corners_face` decide which face fills the corner squares: `:front` by default, `:top` when every front edge's notch count is `≡ 3 (mod 4)`.
-4. **`Notching::Edge`** holds the inside and outside lines of one side, both shifted by `kerf / 2`. `calculate_notch_width!` forces an **odd** notch count of at least `MINIMUM_NOTCHES_PER_SIDE = 3` and then recomputes the real notch width, so the requested notch is only a guide. `first_notch_out?` combines `center_out` with `notch_count % 4`.
-5. **`Notching::PathGenerator`** turns an `Edge` into `Geometry::Line`s. It zigzags between the inside and outside lines using `Shift` deltas from two alternating `InfiniteIterator`s (one along the edge, one across it). It widens or narrows notches by `kerf` and adds corner boxes plus the kerf corner fix-ups (`add_corners_when_out` / `add_boxes_when_in`).
-6. **`Aggregator`** receives every line of a face and cleans it up with `dedup!.deoverlap!.dedup!`. `dedup!` drops **both** copies of any identical pair. `deoverlap!` replaces overlapping lines with their `xor`. Neighboring edges draw shared segments twice, and this pass removes them.
+1. **`Configuration`** is a `Hashie::Mash` with symbolized keys. It parses the `--box WxHxD/T[/N]` shorthand, casts numeric strings to floats, and merges per-unit defaults for kerf, margin, padding and stroke. Notch defaults to `3 × thickness`. `validate!` raises `MissingOption` / `ZeroValueNotAllowed`. `units` defaults to the Symbol `:in`, and arrives as a String from the command line, so compare it with `to_s` or `to_sym`.
+1. **`Renderer.for(format, config)`** picks `LayoutRenderer` (PDF, Prawn) or `SvgRenderer` (SVG, Victor). Both answer `total` (lines to draw) and `render { |line| }`, which yields after each line. That block drives the progress bar.
+   - `LayoutRenderer` draws a `BoxRenderer`, a `MetaRenderer` when `config.metadata` is set, and a second red `BoxRenderer` without kerf when `config.debug` is set. It sizes the page from the box enclosure unless `page_size` is given.
+   - `SvgRenderer` fits the page to the box, flips y (SVG counts down from the top), and writes the metadata as a `<desc>`.
+1. **`Box`** models the six faces as `Geometry::Rect`s. `position_faces!` lays them out in a cross (see the ASCII diagram in that method). `generate_notches` pairs each side of a face with the matching side of its outer bounding rect (face grown by `thickness`) as a **`Notching::Edge`**. The `conf` table sets per-face alignment: `valign`/`halign` decide whether a side's center notch points `:out` or `:in`. `corners` plus `pick_corners_face` decide which face fills the corner squares.
+1. **`Notching::Edge`** holds the inside and outside lines of one side, both shifted by `kerf / 2`. `calculate_notch_width!` forces an **odd** notch count of at least 3 and recomputes the real notch width, so the requested notch is only a guide. It rounds `length / notch` to `RATIO_DIGITS` before `ceil`: two panels meeting at a joint must get the same count, and float noise used to split them when the notch divided the side exactly.
+1. **`Notching::PathGenerator`** turns an `Edge` into `Geometry::Line`s. It zigzags between the inside and outside lines using `Shift` deltas from two alternating `InfiniteIterator`s. It widens or narrows notches by `kerf` and adds the corner boxes.
+1. **`Aggregator`** cleans up the lines of a face with `dedup!.deoverlap!.dedup!`. `dedup!` drops **both** copies of an identical pair. `deoverlap!` replaces overlapping lines with their `xor`.
 
-`Geometry` provides `Tuple` (backed by `Vector` from stdlib `matrix`), `Point`, `Dimensions`, `Shape`, `Line` and `Rect` (`Rect[p1, p2]`, `Rect.create(point, w, h, name)`, `sides`, `relocate!`). Internal geometry is unitless in the config's units. Conversion to PDF points happens only at render time via Prawn's measurement extensions (`value.send(:in)` / `.send(:mm)`). `PageManager#value_from_units` converts the other way, from PDF points (1/72 in) back to config units.
+Geometry is unitless, in the config's units. Conversion to PDF points happens only at render time (`value.send(:in)` / `.send(:mm)`). `PageManager#value_from_units` converts PDF points back.
 
-CLI: `lib/laser_cutter/cli/opt_parser.rb` (OptionParser, `colored2`) and `cli/serializer.rb` (`-W` / `-R` JSON config save and load, `-` means stdout or stdin).
+### Command line
 
-## Known broken or in-flux (2.0.0-alpha branch)
+- `exe/laser-cutter` (and `exe/lc`) call `Laser::Cutter::Launcher.new(ARGV).execute!`. The Launcher takes argv, the three streams and `kernel`, and exits only through `kernel.exit`. Aruba runs it in-process (`spec/support/aruba.rb`), so commands must write to `out` and `err`, never to `$stdout`.
+- `CLI` (`cli.rb`) is the dry-cli registry and the `Dry::CLI::Help.configure` block. Commands live in `cli/`: `generate`, `page-sizes`, `examples`, `help`, `version`, `completion`.
+- `CLI::Command` is the base: it includes `Dry::CLI::UI`, declares `-v`, fixes boxes at 60 columns, and offers `progress(label, total:)`, a green bar of 60 cells. Help wraps at 90 columns or fewer (`CLI.help_width`).
+- `-h` belongs to help, so height is `-H`.
 
-- `bin/laser-cutter` and `bin/lc` require `../lib/laser-cutter/cli/opt_parser`, but that file lives at `lib/laser_cutter/cli/opt_parser.rb`, so the executables fail to load.
-- `opt_parser.rb` requires `colored2`, which is missing from the gemspec. The gemspec lists `dry-cli*`, `tty-*`, `victor`, `pastel` and `zeitwerk`, and nothing in `lib/` uses them yet. The CLI looks mid-migration to dry-cli.
-- The `Rakefile` YARD title is copied from another project (`dry-cli-ui`), and it references a `CHANGELOG.md` that does not exist.
-- The box shorthand flag is `-b` in `opt_parser.rb` and in the README examples, but the README option table lists it as `-z, --box`.
+## Known gaps
+
+- `just build` is an empty recipe, so `just publish` builds nothing. `rake build` is the real build.
+- The `Rakefile` YARD title is copied from another project, and it references a `CHANGELOG.md` that does not exist.
+- The gemspec lists `tty-*` and `pastel` directly, though only dry-cli-ui uses them.
 - `Box` still carries the comment "badly needs refactoring and tests".
 
 ## Conventions
 
 - `.rubocop.yml` inherits `.relaxed_rubocop.yml` and `.rubocop_todo.yml`, with a 120-column line limit and table-aligned hashes.
-- Specs live in `spec/lib/laser_cutter/*_spec.rb` and use `rspec-its`, `disable_monkey_patching!` and random order.
+- Specs mirror `lib/` under `spec/laser/cutter/` and use `rspec-its`, `disable_monkey_patching!` and random order.
