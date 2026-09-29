@@ -1,88 +1,98 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 module Laser
   module Cutter
     RSpec.describe Configuration do
-      let(:config) { Laser::Cutter::Configuration.new(opts) }
+      subject(:config) { described_class.new(opts) }
 
-      context 'option parsing' do
+      context 'when a box is 2x3x2/0.125/0.5' do
         let(:opts) { { 'box' => '2x3x2/0.125/0.5' } }
 
-        it 'is able to parse size options' do
-          expect(config.width).to eql(2.0)
-          expect(config.height).to eql(3.0)
-          expect(config.depth).to eql(2.0)
-          expect(config.thickness).to eql(0.125)
-          expect(config.notch).to eql(0.5)
-        end
+        its(:width) { is_expected.to eql(2.0) }
+        its(:height) { is_expected.to eql(3.0) }
+        its(:depth) { is_expected.to eql(2.0) }
+        its(:thickness) { is_expected.to eql(0.125) }
+        its(:page_layout) { is_expected.to eql('portrait') }
+        its(:notch) { is_expected.to eql(0.5) }
       end
 
       describe '#validate' do
-        context 'missing options' do
+        context 'when required options are missing' do
           let(:opts) { { 'height' => '23' } }
 
-          it 'is able to validate missing options' do
-            expect(config.height).to eql(23.0)
+          its(:height) { is_expected.to eql(23.0) }
+
+          it 'raises MissingOption' do
             expect { config.validate! }.to raise_error(Laser::Cutter::MissingOption)
           end
         end
 
-        context 'zero options' do
+        context 'when a required option is zero' do
           let(:opts) { { 'box' => '2.0x0.0x2/0.125/0.5', 'file' => '/tmp/a' } }
 
-          it 'is able to validate missing options' do
-            expect(config.height).to eql(0.0)
+          its(:height) { is_expected.to eql(0.0) }
+
+          it 'raises ZeroValueNotAllowed' do
             expect { config.validate! }.to raise_error(Laser::Cutter::ZeroValueNotAllowed)
           end
         end
       end
 
-      context 'default values' do
+      context 'when notch is omitted' do
         let(:opts) { { 'box' => '2.0x1.0x2/0.125', 'file' => '/tmp/a' } }
 
-        it 'correctlies default notch based on thickness' do
-          config.validate!
-          expect(config.thickness).to eql(0.125)
-          expect(config.notch).to eql(config.thickness * 3.0)
-        end
+        before { config.validate! }
+
+        its(:thickness) { is_expected.to eql(0.125) }
+        its(:notch) { is_expected.to eql(0.375) }
       end
 
       context 'when invalid units are provided' do
         let(:opts) { { 'box' => '2x3x2/0.125/0.5', 'units' => 'xx' } }
 
-        it 'defaults to inches' do
-          expect(config.units).to eql(:in)
-        end
+        its(:units) { is_expected.to eql(:in) }
       end
 
       context 'when converting between units' do
-        context 'all config values' do
-          context 'to mm' do
-            let(:opts) { { 'box' => '2.0x3x2/0.125/0.5', 'padding' => '4.2', 'units' => 'in' } }
+        context 'from inches to mm' do
+          let(:opts) { { 'box' => '2.0x3x2/0.125/0.5', 'padding' => '4.2', 'units' => 'in' } }
 
-            it 'is correct' do
-              expect(config.width).to eql(2.0)
-              config.change_units(:in)
-              expect(config.width).to eql(2.0)
-              config.change_units(:mm)
-              expect(config.units).to eql(:mm)
-              expect(config.width).to eql(50.8)
-              expect(config.padding).to eql(106.68)
-            end
+          its(:width) { is_expected.to eql(2.0) }
+
+          context 'after change_units(:in)' do
+            subject(:config) { described_class.new(opts).tap { |c| c.change_units(:in) } }
+
+            its(:width) { is_expected.to eql(2.0) }
           end
 
-          context 'to inches' do
-            let(:opts) { { 'box' => '20.0x30.0x40.0/5/5', 'margin' => '10.0', 'units' => 'mm' } }
+          context 'after change_units(:mm)' do
+            subject(:config) { described_class.new(opts).tap { |c| c.change_units(:mm) } }
 
-            it 'is correct' do
-              expect(config.width).to eql(20.0)
-              config.change_units(:mm)
-              expect(config.width).to eql(20.0)
-              config.change_units(:in)
-              expect(config.width).to be_within(0.00001).of(0.787401575)
-              expect(config.margin).to be_within(0.00001).of(0.393700787)
-              expect(config.units).to eql(:in)
-            end
+            its(:units) { is_expected.to eql(:mm) }
+            its(:width) { is_expected.to eql(50.8) }
+            its(:padding) { is_expected.to eql(106.68) }
+          end
+        end
+
+        context 'from mm to inches' do
+          let(:opts) { { 'box' => '20.0x30.0x40.0/5/5', 'margin' => '10.0', 'units' => 'mm' } }
+
+          its(:width) { is_expected.to eql(20.0) }
+
+          context 'after change_units(:mm)' do
+            subject(:config) { described_class.new(opts).tap { |c| c.change_units(:mm) } }
+
+            its(:width) { is_expected.to eql(20.0) }
+          end
+
+          context 'after change_units(:in)' do
+            subject(:config) { described_class.new(opts).tap { |c| c.change_units(:in) } }
+
+            its(:width) { is_expected.to be_within(0.00001).of(0.787401575) }
+            its(:margin) { is_expected.to be_within(0.00001).of(0.393700787) }
+            its(:units) { is_expected.to eql(:in) }
           end
         end
       end

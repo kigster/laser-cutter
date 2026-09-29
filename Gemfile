@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
 # Specify your gem's dependencies in laser-cutter-cutter.gemspec
@@ -5,6 +7,7 @@ gemspec
 
 group 'development', 'test' do
   gem 'coverage-badge'
+  gem 'rake'
   gem 'rspec'
   gem 'rspec-its'
   gem 'rubocop', require: false

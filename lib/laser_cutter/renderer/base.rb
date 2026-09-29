@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Laser
   module Cutter
     module Renderer
@@ -21,7 +23,7 @@ module Laser
         end
 
         def units
-          config.units.to_sym || :mm
+          config.units.to_sym
         end
       end
     end

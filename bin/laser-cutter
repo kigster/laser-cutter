@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require File.expand_path('../lib/laser-cutter', __dir__)
 require File.expand_path('../lib/laser-cutter/cli/opt_parser', __dir__)
@@ -10,7 +11,7 @@ begin
   if config.open
     `open #{config.file}`
   end
-rescue Exception => e
+rescue StandardError => e
   warn "Whoops, #{e.message}".red
   if config.verbose
     warn e.backtrace.join("\n").red

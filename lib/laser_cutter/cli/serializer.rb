@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'laser-cutter'
 
@@ -18,7 +20,7 @@ module Laser
                      File.read(options.read_file)
                    end
           if string
-            options.replace(JSON.load(string))
+            options.replace(JSON.parse(string))
           end
         rescue Exception => e
           warn "Error reading options from file #{options.read_file}, #{e.message}".red

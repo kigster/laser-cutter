@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Laser
   module Cutter
     class Aggregator
@@ -11,8 +13,8 @@ module Laser
       def dedup!
         lines_to_delete = []
         count = lines.size
-        for i in 0..(count - 1) do
-          for j in (i + 1)..(count - 1) do
+        (0..(count - 1)).each do |i|
+          ((i + 1)..(count - 1)).each do |j|
             l1 = lines[i]
             l2 = lines[j]
             if l1.eql?(l2)
@@ -31,8 +33,8 @@ module Laser
         lines_to_delete = []
         lines_to_add = []
         count = lines.size
-        for i in 0..(count - 1) do
-          for j in (i + 1)..(count - 1) do
+        (0..(count - 1)).each { |i|
+          ((i + 1)..(count - 1)).each { |j|
             l1 = lines[i]
             l2 = lines[j]
             next unless l1.overlaps?(l2)
@@ -40,8 +42,8 @@ module Laser
             lines_to_delete << l1
             lines_to_delete << l2
             lines_to_add << l1.xor(l2)
-          end
-        end
+          }
+        }
 
         lines_to_delete.uniq!
         lines_to_delete.flatten!

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Laser
   module Cutter
     # Note: this class badly needs refactoring and tests.  Both are coming.
@@ -54,7 +56,6 @@ module Laser
         self.notches = []
         faces.each_with_index do |face, face_index|
           bound = face_bounding_rect(face)
-          side_lines = []
           edges = []
           bound.sides.each_with_index do |bounding_side, side_index|
             include_corners = conf[:corners][corner_face][face_index] == :yes && side_index.odd?
@@ -69,12 +70,12 @@ module Laser
                                           corners:     include_corners })
           end
 
-          if edges.any?{ |e| e.corners } && !edges.all?{ |e| e.first_notch_out? }
+          if edges.any?(&:corners) && !edges.all?(&:first_notch_out?)
             edges.each { |e| e.adjust_corners = true }
           end
 
-          edges.each do |edge|
-            side_lines << Notching::PathGenerator.new(edge).generate
+          side_lines = edges.map do |edge|
+            Notching::PathGenerator.new(edge).generate
           end
 
           aggregator = Aggregator.new(side_lines.flatten)

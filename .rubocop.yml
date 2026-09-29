@@ -1,4 +1,5 @@
 inherit_from:
+  - .rubocop_todo.yml
   - .relaxed_rubocop.yml
 
 AllCops:
@@ -25,3 +26,6 @@ Layout/HashAlignment:
 
 Layout/ArgumentAlignment:
   EnforcedStyle: with_first_argument
+
+Naming/MethodParameterName:
+  Enabled: false

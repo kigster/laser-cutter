@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'optparse'
 require 'colored2'
 require 'json'
@@ -16,7 +18,7 @@ module Laser
 
         def self.parse(args)
           banner_text = <<~EOF
-            #{('Laser-Cutter v' + Laser::Cutter::VERSION).bold}
+            #{"Laser-Cutter v#{Laser::Cutter::VERSION}".bold}
 
             Usage: laser-cutter [options] -o filename.pdf
                eg: laser-cutter -b 1x1.5x2/0.125 -O -o box.pdf
@@ -61,7 +63,7 @@ module Laser
             opts.on('-d', '--depth DEPTH', 'Internal depth of the box') { |value| options.depth = value }
             opts.on('-t', '--thickness THICKNESS', 'Thickness of the box material') { |value| options.thickness = value }
             opts.on('-n', '--notch NOTCH', 'Optional notch length (aka "tab width"), guide only') { |value| options.notch = value }
-            opts.on('-k', '--kerf KERF', "Kerf - cut width (default is #{Laser::Cutter::Configuration::UNIT_SPECIFIC_DEFAULTS[:in][:kerf]}in)") { |value| options.kerf = value }
+            opts.on('-k', '--kerf KERF', "Kerf - cut width (default is #{Laser::Cutter::Configuration::Configuration.defaults[:in][:kerf]}in)") { |value| options.kerf = value }
             opts.separator ''
             opts.on('-m', '--margin MARGIN', 'Margins from the edge of the document') { |value| options.margin = value }
             opts.on('-p', '--padding PADDING', 'Space between the boxes on the page') { |value| options.padding = value }
@@ -98,7 +100,7 @@ module Laser
           if options.read_file
             # these options are kept from the command line
             override_with = %w(debug verbose read_file)
-            keep = options.reject{ |k, _v| !override_with.include?(k) }
+            keep = options.slice(*override_with)
             Serializer.new(options).deserialize
             options.merge!(keep)
           end

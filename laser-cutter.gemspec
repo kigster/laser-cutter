@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 lib = File.expand_path('./lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
@@ -17,10 +19,21 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency 'colored2'
+  spec.add_dependency 'dry-cli', '~> 1.4.1'
+  spec.add_dependency 'dry-cli-autocomplete'
+  spec.add_dependency 'dry-cli-help'
+  spec.add_dependency 'dry-cli-ui'
   spec.add_dependency 'hashie'
   spec.add_dependency 'matrix'
+  spec.add_dependency 'pastel'
   spec.add_dependency 'prawn'
+  spec.add_dependency 'tty-cursor'
+  spec.add_dependency 'tty-progressbar'
+  spec.add_dependency 'tty-prompt'
+  spec.add_dependency 'tty-spinner'
+  spec.add_dependency 'tty-table'
   spec.add_dependency 'victor'
+  spec.add_dependency 'zeitwerk'
+
   spec.metadata['rubygems_mfa_required'] = 'true'
 end

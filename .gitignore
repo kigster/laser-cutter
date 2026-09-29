@@ -9,7 +9,6 @@
 Gemfile.lock
 InstalledFiles
 _yardoc
-coverage
 lib/bundler/man
 pkg
 rdoc
@@ -25,3 +24,5 @@ mkmf.log
 .idea/
 **output.pdf
 .ruby_version
+/coverage
+!docs/coverage/

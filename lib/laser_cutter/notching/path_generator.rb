@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require 'forwardable'
 module Laser
   module Cutter
     module Notching
-      class Shift < Struct.new(:delta, :direction, :dim_index)
+      Shift = Struct.new(:delta, :direction, :dim_index) do
         def next_point_after(point)
           p = point.clone
           shift = []
@@ -13,7 +15,7 @@ module Laser
       end
 
       # Alternating iterator
-      class InfiniteIterator < Struct.new(:array)
+      InfiniteIterator = Struct.new(:array) do
         attr_accessor :array, :next_index, :calls
 
         def initialize(array)

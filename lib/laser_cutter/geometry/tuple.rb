@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Laser
   module Cutter
     module Geometry
@@ -8,13 +10,14 @@ module Laser
 
         def initialize(*args)
           x = args.first
-          coordinates = if x.is_a?(String)
+          coordinates = case x
+                        when String
                           parse_string(x)
-                        elsif x.is_a?(Hash)
+                        when Hash
                           parse_hash(x)
-                        elsif x.is_a?(Array)
+                        when Array
                           x.clone
-                        elsif x.is_a?(Tuple) or x.is_a?(Vector)
+                        when Tuple, Vector
                           x.to_a
                         else
                           args.clone
@@ -45,7 +48,7 @@ module Laser
         end
 
         def valid?
-          raise "Have nil value: #{inspect}" if coords.to_a.any? { |c| c.nil? }
+          raise "Have nil value: #{inspect}" if coords.to_a.any?(&:nil?)
 
           true
         end

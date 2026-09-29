@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Laser
   module Cutter
     module Geometry

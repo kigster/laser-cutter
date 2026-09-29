@@ -1,13 +1,19 @@
-module Laser::Cutter::Notching
-  class Base
-    attr_accessor :edge
+# frozen_string_literal: true
 
-    def initialize(edge)
-      @edge = edge
-    end
+module Laser
+  module Cutter
+    module Notching
+      class Base
+        attr_accessor :edge
 
-    def notches
-      raise 'Abstract method'
+        def initialize(edge)
+          @edge = edge
+        end
+
+        def notches
+          raise 'Abstract method'
+        end
+      end
     end
   end
 end
