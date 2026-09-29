@@ -93,10 +93,10 @@ RSpec.describe 'laser-cutter', type: :aruba do
       expect(last_command_started).to have_output(%r{Drawing box\.pdf 360/360})
     end
 
-    it 'draws the info box 60 columns wide' do
+    it 'draws the info box as wide as help' do
       run_command_and_stop("laser-cutter generate #{box} -o box.pdf")
       info = last_command_started.stdout.split('┌─ Success').first
-      expect(info.lines.map { |line| line.chomp.length }.max).to eq(60)
+      expect(info.lines.map { |line| line.chomp.length }.max).to eq(Laser::Cutter::CLI.help_width)
     end
 
     it 'keeps the path of the file on one line' do
@@ -160,6 +160,11 @@ RSpec.describe 'laser-cutter', type: :aruba do
         expect(last_command_started).to have_exit_status(1)
         expect(last_command_started.stderr).to match(/─ Error ─.*file is required/m)
         expect(last_command_started.stdout).to be_empty
+      end
+
+      it 'draws the error box as wide as help' do
+        run_command_and_stop("laser-cutter generate #{box}", fail_on_error: false)
+        expect(last_command_started.stderr.lines.map { |line| line.chomp.length }.max).to eq(Laser::Cutter::CLI.help_width)
       end
 
       it 'fails on an unknown format' do

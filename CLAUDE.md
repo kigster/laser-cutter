@@ -46,7 +46,7 @@ Geometry is unitless, in the config's units. Conversion to PDF points happens on
 - `exe/laser-cutter` (and `exe/lc`) call `Laser::Cutter::Launcher.new(ARGV).execute!`. The Launcher takes argv, the three streams and `kernel`, and exits only through `kernel.exit`. Aruba runs it in-process (`spec/support/aruba.rb`), so commands must write to `out` and `err`, never to `$stdout`.
 - `CLI` (`cli.rb`) is the dry-cli registry and the `Dry::CLI::Help.configure` block. Commands live in `cli/`: `generate`, `page-sizes`, `examples`, `help`, `version`, `completion`.
 - Every message goes through `ui`: errors in `ui.error` boxes on STDERR (the Launcher draws them), `generate` opens with `ui.info` and closes with `ui.success`.
-- `CLI::Command` is the base: it includes `Dry::CLI::UI`, declares `-v`, fixes boxes at 60 columns, and offers `progress(label, total:)`, a green bar of 60 cells. Help wraps at 90 columns or fewer (`CLI.help_width`).
+- `CLI::Command` is the base: it includes `Dry::CLI::UI`, declares `-v`, and offers `progress(label, total:)`, a green bar of 60 cells. Help and boxes share one width, `CLI.help_width`: the terminal's less 6, and 90 at most.
 - `-h` belongs to help, so height is `-H`.
 
 ## Known gaps

@@ -8,13 +8,14 @@ module Laser
 
       PROGRAM = 'laser-cutter'
 
-      # Help is never wider than this, however wide the terminal is.
+      # Help and boxes are never wider than this, however wide the terminal is.
       HELP_WIDTH = 90
 
       # Columns assumed when there is no terminal, or it reports none.
       DEFAULT_COLUMNS = 80
 
-      # @return [Integer] columns help wraps at: the terminal's less 6, capped at HELP_WIDTH
+      # @return [Integer] columns help wraps at, and a box takes: the terminal's less 6,
+      #   capped at HELP_WIDTH
       def self.help_width(columns = IO.console&.winsize&.last)
         columns = DEFAULT_COLUMNS unless columns&.positive?
         [columns - 6, HELP_WIDTH].min

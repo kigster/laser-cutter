@@ -69,7 +69,7 @@ module Laser
         # A box wraps in the middle of a word, which would break a path nobody
         # could then copy, so this one widens to fit a path longer than it.
         def report(format, path)
-          ui.success("Generated #{format.upcase} file:", path, width: [WIDGET_WIDTH, path.length + BOX_CHROME].max)
+          ui.success("Generated #{format.upcase} file:", path, width: [CLI.help_width, path.length + BOX_CHROME].max)
         end
 
         # What was read from a file, overridden by what the command line gave.

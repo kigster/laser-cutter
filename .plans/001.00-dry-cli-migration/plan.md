@@ -12,7 +12,7 @@ Branch `kig/migrate-to-dry-cli`, off `kig/2.0.0-alpha`; the PR targets `kig/2.0.
 
 - The executables move from `bin/` to `exe/` and call `Laser::Cutter::Launcher`.
 
-- Help wraps at 90 columns or fewer; boxes are 60 columns wide and a progress bar is 60 cells.
+- Help and boxes share one width, 90 columns or fewer; a progress bar is 60 cells.
 
 - `--inside-box` draws the unkerfed outline, which `--debug` used to do by accident; `--debug` is gone, `--verbose` prints the backtrace.
 

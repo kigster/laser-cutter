@@ -7,8 +7,8 @@ module Laser
       class Command < Dry::CLI::Command
         include Dry::CLI::UI
 
-        # Columns a box or a progress bar takes.
-        WIDGET_WIDTH = 60
+        # Cells in a progress bar.
+        BAR_WIDTH = 60
 
         def self.inherited(subclass)
           super
@@ -16,19 +16,19 @@ module Laser
                                     desc: 'Print the configuration, and the full backtrace on failure'
         end
 
-        # Boxes are WIDGET_WIDTH columns wide.
+        # Boxes are as wide as help is.
         def ui
-          @ui ||= Dry::CLI::UI::Console.new(out: out, err: err, box_width: WIDGET_WIDTH)
+          @ui ||= Dry::CLI::UI::Console.new(out: out, err: err, box_width: CLI.help_width)
         end
 
-        # A green bar of WIDGET_WIDTH cells, or fewer when the terminal is narrower.
+        # A green bar of BAR_WIDTH cells, or fewer when the terminal is narrower.
         #
         # @param label [String]
         # @param total [Integer]
         # @yieldparam bar [#advance]
         def progress(label, total:, &)
           Dry::CLI::UI::Console
-            .new(out: out, err: err, box_width: WIDGET_WIDTH, width: progress_width(label))
+            .new(out: out, err: err, box_width: CLI.help_width, width: progress_width(label))
             .progress(label, total: total, color: :green, &)
         end
 
@@ -37,7 +37,7 @@ module Laser
         # dry-cli-ui sizes a bar as the terminal width less the label and the
         # counters around it, so the bar is capped by capping that width.
         def progress_width(label)
-          wanted = WIDGET_WIDTH + label.length + Dry::CLI::UI::Widgets::Progress::CHROME
+          wanted = BAR_WIDTH + label.length + Dry::CLI::UI::Widgets::Progress::CHROME
           err.respond_to?(:tty?) && err.tty? ? [wanted, TTY::Screen.width].min : wanted
         end
       end
