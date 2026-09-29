@@ -1,5 +1,4 @@
-Contributing to Laser-Cutter
-======================
+# Contributing to Laser-Cutter
 
 You're encouraged to submit [pull requests](https://github.com/kigster/laser-cutter/pulls), [propose features and discuss issues](https://github.com/kigster/laser-cutter/issues).
 
@@ -34,8 +33,7 @@ bundle exec rake
 
 #### Write Tests
 
-Try to write a test that reproduces the problem you're trying to fix or describes a 
-feature that you want to build. Add to [spec/laser-cutter](spec/laser-cutter).
+Try to write a test that reproduces the problem you're trying to fix or describes a feature that you want to build. Add to [spec/laser-cutter](spec/laser-cutter).
 
 We definitely appreciate pull requests that highlight or reproduce a problem, even without a fix.
 

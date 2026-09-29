@@ -1,0 +1,16 @@
+# frozen_string_literal: true
+
+module Laser
+  module Cutter
+    module Renderer
+      class RectRenderer < Base
+        alias_method :rect, :subject
+        def render(pdf)
+          rect.sides.each do |side|
+            LineRenderer.new(config, side).render(pdf)
+          end
+        end
+      end
+    end
+  end
+end
