@@ -20,14 +20,18 @@ module Laser
           box.enclosure
         end
 
+        # @return [Array<Geometry::Line>] every line to cut, computed once
+        def lines
+          @lines ||= box.generate_notches
+        end
+
+        # Draws the box, yielding after each line so a caller can count them.
         def render(pdf = nil)
-          renderer = self
-          pdf.instance_eval do
-            self.line_width = renderer.config.stroke.send(renderer.config.units.to_sym)
-            stroke_color renderer.config[:color] || BLACK
-            renderer.box.generate_notches.each do |notch|
-              LineRenderer.new(renderer.config, notch).render(self)
-            end
+          pdf.line_width = config.stroke.send(units)
+          pdf.stroke_color config[:color] || BLACK
+          lines.each do |line|
+            LineRenderer.new(config, line).render(pdf)
+            yield line if block_given?
           end
         end
       end

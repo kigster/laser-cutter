@@ -41,7 +41,7 @@ Lint/RedundantCopDisableDirective:
 Lint/RescueException:
   Exclude:
     - 'lib/laser/cutter/cli/serializer.rb'
-    - 'spec/laser/cutter/renderer_spec.rb'
+    - 'spec/laser/cutter/renderer/layout_renderer_spec.rb'
 
 # Offense count: 1
 # Configuration parameters: ExpectMatchingDefinition, CheckDefinitionPathHierarchy, CheckDefinitionPathHierarchyRoots, Regex, IgnoreExecutableScripts, AllowedAcronyms.

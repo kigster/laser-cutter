@@ -3,53 +3,56 @@
 module Laser
   module Cutter
     module Renderer
+      # Writes the PDF: the box, its metadata block, and the unkerfed outline
+      # when asked for.
       class LayoutRenderer < Base
+        UNKERFED_COLOR = 'DD2211'
+
         def initialize(config)
           self.config = config
           super
         end
 
-        def render
-          renderer = self
-          renderers = []
+        # @return [Integer] how many lines {#render} draws, and yields
+        def total
+          box_renderers.sum { |renderer| renderer.lines.size }
+        end
 
-          box_renderer = BoxRenderer.new(config)
-          renderers << box_renderer
-
-          if config.metadata
-            meta_renderer = MetaRenderer.new(config)
-            renderers << meta_renderer
-            box_renderer.ensure_space_for(meta_renderer.enclosure)
-          end
-
-          if config.debug
-            unkerfed_config = Laser::Cutter::Configuration.new(config.to_hash)
-            unkerfed_config.merge!(kerf: 0.0, color: 'DD2211')
-            unkerfed_box_renderer = BoxRenderer.new(unkerfed_config)
-            unkerfed_box_renderer.ensure_space_for(meta_renderer.enclosure) if meta_renderer
-            renderers << unkerfed_box_renderer
-          end
-
-          margin = config.margin.to_f.send(config.units.to_sym)
-          page_size = config.page_size || calculate_image_boundary(box_renderer, margin)
-
+        # Writes the file, yielding after each line drawn.
+        def render(&)
+          margin = config.margin.to_f.send(units)
           pdf = Prawn::Document.new(margin:      margin,
-                                    page_size:   page_size,
+                                    page_size:   config.page_size || calculate_image_boundary(box_renderers.first, margin),
                                     page_layout: config.page_layout.to_sym)
 
-          pdf.instance_eval do
-            renderers.each { |r| r.render(self) }
-            render_file(renderer.config.file)
-          end
-
-          return unless config.verbose
-
-          puts "PDF saved to #{config.file}."
+          box_renderers.first.render(pdf, &)
+          meta_renderer&.render(pdf)
+          box_renderers.drop(1).each { |renderer| renderer.render(pdf, &) }
+          pdf.render_file(config.file)
         end
 
         def calculate_image_boundary(box_renderer, margin)
           box_renderer.enclosure.to_a[1].map do |c|
-            c.send(config.units.to_sym) + (2 * margin)
+            c.send(units) + (2 * margin)
+          end
+        end
+
+        private
+
+        def meta_renderer
+          @meta_renderer ||= MetaRenderer.new(config) if config.metadata
+        end
+
+        # The box, then the same box without kerf when config.debug is set.
+        def box_renderers
+          @box_renderers ||= begin
+            configs = [config]
+            configs << Configuration.new(config.to_hash).merge!(kerf: 0.0, color: UNKERFED_COLOR) if config.debug
+            configs.map do |box_config|
+              BoxRenderer.new(box_config).tap do |renderer|
+                renderer.ensure_space_for(meta_renderer.enclosure) if meta_renderer
+              end
+            end
           end
         end
       end

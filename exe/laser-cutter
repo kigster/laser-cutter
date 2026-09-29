@@ -1,19 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require File.expand_path('../lib/laser-cutter', __dir__)
-require File.expand_path('../lib/laser-cutter/cli/opt_parser', __dir__)
+# No Bundler here: a Gemfile in the user's directory must not decide which gems load.
+$LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
+require 'laser/cutter'
 
-config = Laser::Cutter::CLI::OptParser.parse(ARGV)
-
-begin
-  Laser::Cutter::Renderer::LayoutRenderer.new(config).render
-  if config.open
-    `open #{config.file}`
-  end
-rescue StandardError => e
-  warn "Whoops, #{e.message}".red
-  if config.verbose
-    warn e.backtrace.join("\n").red
-  end
-end
+Laser::Cutter::Launcher.new(ARGV).execute!
