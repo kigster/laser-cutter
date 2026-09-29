@@ -1,6 +1,6 @@
 set shell := ["bash", "-c"]
 
-version := `gawk -F'"' '/VERSION/ { printf "%s", $2 }' lib/laser_cutter/version.rb`
+version := `gawk -F'"' '/VERSION/ { printf "%s", $2 }' lib/laser/cutter/version.rb`
 rbenv   := 'eval "$(rbenv init - bash 2>/dev/null || true)"; bundle exec '
 repo    := 'git@github.com:kigster/laser-cutter.git'
 
