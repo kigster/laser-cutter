@@ -34,9 +34,10 @@ RSpec.describe 'laser-cutter', type: :aruba do
       expect(last_command_started).to have_output(/completion\s+Generates auto-complete for BASH or ZSH/)
     end
 
+    # In-process, dry-cli names the program after the process: rspec.
     it 'shows the shell the completion command takes' do
       run_command_and_stop('laser-cutter help completion')
-      expect(last_command_started).to have_output(/laser-cutter completion SHELL/)
+      expect(last_command_started).to have_output(/completion SHELL \[OPTIONS\]/)
     end
 
     it 'explains one command' do
