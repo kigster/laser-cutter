@@ -29,6 +29,16 @@ RSpec.describe 'laser-cutter', type: :aruba do
       expect(last_command_started).to have_output(/COMMANDS/)
     end
 
+    it 'describes the completion command' do
+      run_command_and_stop('laser-cutter help')
+      expect(last_command_started).to have_output(/completion\s+Generates auto-complete for BASH or ZSH/)
+    end
+
+    it 'shows the shell the completion command takes' do
+      run_command_and_stop('laser-cutter help completion')
+      expect(last_command_started).to have_output(/laser-cutter completion SHELL/)
+    end
+
     it 'explains one command' do
       run_command_and_stop('laser-cutter help generate')
       expect(last_command_started).to have_output(/-H, --height=VALUE/)

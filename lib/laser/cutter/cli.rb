@@ -42,7 +42,7 @@ module Laser
       register 'examples', Examples
       register 'help', Help
       register 'version', Version, aliases: ['-V', '--version']
-      register 'completion', Dry::CLI::Autocomplete::Command[self, program_name: PROGRAM]
+      register 'completion', Completion
     end
   end
 end
