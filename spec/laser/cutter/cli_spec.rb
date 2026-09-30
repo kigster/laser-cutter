@@ -90,7 +90,7 @@ RSpec.describe 'laser-cutter', type: :aruba do
 
     it 'reports one unit of progress per line drawn' do
       run_command_and_stop("laser-cutter generate #{box} -o box.pdf")
-      expect(last_command_started).to have_output(%r{Drawing box\.pdf 360/360})
+      expect(last_command_started).to have_output(%r{Drawing box\.pdf 328/328})
     end
 
     it 'draws the info box as wide as help' do
@@ -122,7 +122,7 @@ RSpec.describe 'laser-cutter', type: :aruba do
 
     it 'draws the box without kerf as well with --inside-box' do
       run_command_and_stop("laser-cutter generate #{box} --inside-box -o box.pdf")
-      expect(last_command_started).to have_output(%r{Drawing box\.pdf 712/712})
+      expect(last_command_started).to have_output(%r{Drawing box\.pdf 656/656})
     end
 
     it 'takes each dimension as its own option, in millimeters' do

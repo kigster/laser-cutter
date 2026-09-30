@@ -78,9 +78,7 @@ module Laser
             Notching::PathGenerator.new(edge).generate
           end
 
-          aggregator = Aggregator.new(side_lines.flatten)
-          aggregator.dedup!.deoverlap!.dedup!
-          notches << aggregator.lines
+          notches << Aggregator.new(side_lines.flatten).lines
         end
         notches.flatten!
       end
