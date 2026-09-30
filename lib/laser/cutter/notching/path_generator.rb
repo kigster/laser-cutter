@@ -26,105 +26,63 @@ module Laser
         # We always want to create a symmetric path that has a notch in the middle
         # (for center_out = true) or dip in the middle (center_out = false)
         def generate
-          shifts = define_shifts
-          vertices = []
           lines = []
+          lines << corner_box_sides if corners
+          lines << notch_lines
+          lines.flatten
+        end
 
-          if corners
-            lines << corner_box_sides
-          end
-
+        # The zigzag alone, without the corner boxes.
+        #
+        # @return [Array<Geometry::Line>]
+        def notch_lines
           point = starting_point
-
-          vertices << point
-          adjust_for_kerf(vertices, -1) if adjust_corners && !first_notch_out?
-          shifts.each do |shift|
+          vertices = [point]
+          adjust_for_kerf(vertices, -1) if adjust_end?(1)
+          define_shifts.each do |shift|
             point = shift.next_point_after point
             vertices << point
           end
-          adjust_for_kerf(vertices, 1) if adjust_corners && !first_notch_out?
-          lines << create_lines(vertices)
-          lines.flatten
+          adjust_for_kerf(vertices, 1) if adjust_end?(2)
+          create_lines(vertices)
         end
 
         def adjust_for_kerf(vertices, direction)
           return unless kerf?
 
           point = vertices.pop
-          point = point.plus(2 * direction * shift_vector(1)) if corners
+          point = point.plus(2 * direction * shift_vector(1))
           vertices << point
         end
 
         def corner_box_sides
-          boxes = []
-          extra_lines = []
+          ends = Edge::ENDS.select { |end_index| edge.corner_at?(end_index) }
 
-          # These two boxes occupy the corners of the 3D box. They do not match
+          # These boxes occupy the corners of the 3D box. They do not match
           # in width to our notches because they are usually merged with them.
           # It's just an aesthetic choice I guess.
-          boxes << Geometry::Rect[edge.inside.p1.clone, edge.outside.p1.clone]
-          boxes << Geometry::Rect[edge.inside.p2.clone, edge.outside.p2.clone]
-
-          if kerf? && adjust_corners
-            if first_notch_out?
-              k = 2
-              direction = -1
-              dim_index = 1
-              extra_lines << add_corners_when_out(dim_index, direction, k)
-            else
-              k = -2
-              direction = 1
-              dim_index = 0
-              extra_lines << add_boxes_when_in(dim_index, direction, k)
-            end
-          end
-          sides = boxes.flatten.map(&:relocate!).map(&:sides)
-          sides << extra_lines if !extra_lines.empty?
+          boxes = ends.map { |end_index| Geometry::Rect[inside_point(end_index).clone, outside_point(end_index).clone] }
+          sides = boxes.map(&:relocate!).map(&:sides)
+          sides << ends.map { |end_index| kerf_strip(end_index) } if kerf? && adjust_corners
           sides.flatten
         end
 
-        def add_boxes_when_in(dim_index, direction, k)
-          v1 = k * direction * shift_vector(1, dim_index)
-          v2 = k * direction * shift_vector(2, dim_index)
-          p1 = edge.inside.p1.plus(v1)
-          coords = []
-          coords[d_index_along] = edge.inside.p1[d_index_along]
-          coords[d_index_across] = edge.outside.p1[d_index_across]
-          p2 = Geometry::Point[*coords]
-          r1 = Geometry::Rect[p1, p2]
+        # Widens the corner box at one end by the kerf, on the side where
+        # nothing is attached to it: along the edge when the first notch is a
+        # hole, across it when the first notch is a tab.
+        #
+        # @param end_index [Integer] 1 for p1, 2 for p2
+        # @return [Array<Geometry::Line>]
+        def kerf_strip(end_index)
+          inside = inside_point(end_index)
+          outside = outside_point(end_index)
+          along, across = first_notch_out? ? [outside, inside] : [inside, outside]
+          moved = inside.plus(-2 * shift_vector(end_index, first_notch_out? ? 1 : 0))
 
-          p1 = edge.inside.p2.plus(v2)
           coords = []
-          coords[d_index_along] = edge.inside.p2[d_index_along]
-          coords[d_index_across] = edge.outside.p2[d_index_across]
-          p2 = Geometry::Point[*coords]
-          r2 = Geometry::Rect[p1, p2]
-          lines = [r1, r2].map(&:sides).flatten
-          lines << Geometry::Line[edge.inside.p1.plus(v1), edge.inside.p1.clone]
-          lines << Geometry::Line[edge.inside.p2.plus(v2), edge.inside.p2.clone]
-          lines
-        end
-
-        def add_corners_when_out(dim_index, direction, k)
-          v1 = direction * k * shift_vector(1, dim_index)
-          v2 = direction * k * shift_vector(2, dim_index)
-          p1 = edge.inside.p1.plus(v1)
-          coords = []
-          coords[d_index_along] = edge.outside.p1[d_index_along]
-          coords[d_index_across] = edge.inside.p1[d_index_across]
-          p2 = Geometry::Point[*coords]
-          r1 = Geometry::Rect[p1, p2]
-
-          p1 = edge.inside.p2.plus(v2)
-          coords = []
-          coords[d_index_along] = edge.outside.p2[d_index_along]
-          coords[d_index_across] = edge.inside.p2[d_index_across]
-          p2 = Geometry::Point[*coords]
-          r2 = Geometry::Rect[p1, p2]
-          lines = [r1, r2].map(&:sides).flatten
-          lines << Geometry::Line[edge.inside.p1.plus(v1), edge.inside.p1.clone]
-          lines << Geometry::Line[edge.inside.p2.plus(v2), edge.inside.p2.clone]
-          lines
+          coords[d_index_along] = along[d_index_along]
+          coords[d_index_across] = across[d_index_across]
+          Geometry::Rect[moved, Geometry::Point[*coords]].sides << Geometry::Line[moved, inside.clone]
         end
 
         def shift_vector(index, dim_shift = 0)
@@ -156,6 +114,19 @@ module Laser
         end
 
         private
+
+        def inside_point(end_index)
+          edge.inside.public_send(:"p#{end_index}")
+        end
+
+        def outside_point(end_index)
+          edge.outside.public_send(:"p#{end_index}")
+        end
+
+        # A corner box next to a hole is widened by the kerf, so the hole starts that much later.
+        def adjust_end?(end_index)
+          adjust_corners && !first_notch_out? && edge.corner_at?(end_index)
+        end
 
         # This method has the bulk of the logic: we create the list of path deltas
         # to be applied when we walk the edge next.

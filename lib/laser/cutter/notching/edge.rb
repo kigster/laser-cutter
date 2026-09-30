@@ -10,7 +10,13 @@ module Laser
       # and outside edge of the material.  It's also responsible
       # for calculating the "perfect" notch width.
       class Edge
+        # Both ends of an edge: 1 for p1, 2 for p2.
+        ENDS = [1, 2].freeze
+
         attr_accessor :outside, :inside, :notch_width, :thickness, :kerf, :center_out, :corners, :adjust_corners, :notch_count, :v1, :v2
+
+        # @return [Array<Integer>] the ends that get a corner box when +corners+ is set: 1 for p1, 2 for p2
+        attr_accessor :corner_ends
 
         def initialize(outside, inside, options = {})
           self.outside = outside.clone
@@ -26,6 +32,7 @@ module Laser
           self.center_out = options[:center_out] || false
           self.thickness = options[:thickness]
           self.corners = options[:corners]
+          self.corner_ends = options[:corner_ends] || ENDS
           self.kerf = options[:kerf] || 0
           self.notch_width = options[:notch_width]
           self.adjust_corners = options[:adjust_corners]
@@ -50,6 +57,14 @@ module Laser
 
         def kerf?
           kerf > 0.0
+        end
+
+        # Whether this edge draws a corner box at the given end.
+        #
+        # @param end_index [Integer] 1 for p1, 2 for p2
+        # @return [Boolean]
+        def corner_at?(end_index)
+          corners ? corner_ends.include?(end_index) : false
         end
 
         # face_setting determines if we want that face to have center notch
