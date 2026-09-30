@@ -1,34 +1,41 @@
 # frozen_string_literal: true
 
-require "rspec"
-require "rspec/its"
+# SimpleCov must start before the gem's own code loads, or that code counts as
+# never run. The badge lands in docs/badges/coverage_badge.svg for the README.
 require "simplecov"
 require "coverage/badge"
+require "fileutils"
 
-SimpleCov.skip /spec/
 SimpleCov.start do
-  self.formatters = [
-    SimpleCov::Formatter::HTMLFormatter,
-    Coverage::Badge::Formatter
-  ]
+  # SimpleCov 1.x gives project-relative paths without a leading slash; 0.22 kept it.
+  skip %r{\A/?(spec|test)/}
+  minimum_coverage 95
+  formatter SimpleCov::Formatter::MultiFormatter.new(
+    [SimpleCov::Formatter::HTMLFormatter, Coverage::Badge::Formatter]
+  )
 end
+
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
 SimpleCov.at_exit do
   SimpleCov.result.format!
-  # rubocop: disable-next RSpec/Output
-  puts "Coverage: #{SimpleCov.result.covered_percent.round(2)}%"
+  puts "Coverage: #{SimpleCov.result.covered_percent.round(2)}%" # rubocop:disable RSpec/Output
   FileUtils.mkdir_p("docs/badges")
   FileUtils.mv("coverage/badge.svg", "docs/badges/coverage_badge.svg")
 end
 
-require 'laser-cutter'
+require "rspec/its"
+require "laser/cutter"
+
+Dir[File.expand_path("support/**/*.rb", __dir__)].each { |file| require file }
 
 RSpec.configure do |config|
   config.example_status_persistence_file_path = ".rspec_status"
   config.disable_monkey_patching!
+  config.order = :random
+  Kernel.srand config.seed
+
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
-  config.order = :random
-  Kernel.srand config.seed
 end

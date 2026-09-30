@@ -1,0 +1,90 @@
+# frozen_string_literal: true
+
+module Laser
+  module Cutter
+    module CLI
+      class Generate < Command
+        desc 'Draw the panels of a box into a PDF or an SVG file'
+
+        BANNER = "Laser-Cutter (ruby gem) Version #{Laser::Cutter::VERSION}, © 2015-2026 Konstantin Gredeskoul".freeze
+
+        # Columns a box spends on its borders and padding.
+        BOX_CHROME = 6
+
+        # What the opening box reports, in this order.
+        DIMENSIONS = %i[width height depth thickness notch kerf].freeze
+
+        # Options that describe the run rather than the box, kept out of a saved configuration.
+        RUN_ONLY = %i[verbose read write open format args].freeze
+
+        option :box, aliases: ['-b'], desc: 'WxHxD/T[/N]: width, height, depth, thickness and optional notch, in one'
+        option :width, aliases: ['-w'], desc: 'Internal width of the box'
+        option :height, aliases: ['-H'], desc: 'Internal height of the box'
+        option :depth, aliases: ['-d'], desc: 'Internal depth of the box'
+        option :thickness, aliases: ['-t'], desc: 'Thickness of the material'
+        option :notch, aliases: ['-n'], desc: 'Notch length, a guide only (default: three times the thickness)'
+        option :kerf, aliases: ['-k'], desc: 'Kerf, the width of the cut (default: 0.0024in)'
+        option :units, default: 'in', values: %w[in mm], aliases: ['-u'], desc: 'Units every dimension is in'
+
+        option :file, aliases: ['-o'], desc: 'File to write (required)'
+        option :format, default: 'pdf', aliases: ['-f'], desc: 'Output format: pdf or svg, in either case'
+
+        option :margin, aliases: ['-m'], desc: 'Margin from the edge of the page'
+        option :padding, aliases: ['-p'], desc: 'Space between the panels'
+        option :stroke, aliases: ['-s'], desc: 'Stroke width of the lines'
+        option :page_size, aliases: ['-i'], desc: 'Page size, such as LETTER or A3 (default: fit the box; PDF only)'
+        option :page_layout, default: 'portrait', values: %w[portrait landscape], aliases: ['-l'], desc: 'Page layout (PDF only)'
+
+        option :metadata, type: :boolean, default: true, aliases: ['-M'], desc: 'Print the settings of the box on the page'
+        option :inside_box, type: :boolean, default: false, aliases: ['-B'],
+                            desc: 'Also draw the box without kerf, in red, to check the kerf'
+        option :open, type: :boolean, default: false, aliases: ['-O'], desc: 'Open the file once it is written'
+        option :write, aliases: ['-W'], desc: "Save the configuration to a file, or to STDOUT with '-'"
+        option :read, aliases: ['-R'], desc: "Read the configuration from a file, or from STDIN with '-'"
+
+        example [
+          '-b 3x2x2/0.125 -o box.pdf # a box in inches',
+          '-b 3x2x2/0.125 -f svg -o box.svg # as an SVG',
+          '-u mm -w 70 -H 20 -d 50 -t 4.3 -o box.pdf'
+        ]
+
+        def call(format:, verbose:, **options)
+          config = configuration(options)
+          ui.debug('Configuration:', JSON.pretty_generate(config.to_hash)) if verbose
+          config.validate!
+          renderer = Renderer.for(format, config)
+          ui.info(BANNER, dimensions(config), "Format: #{format.upcase}")
+          ConfigFile.new(options[:write]).write(config.to_hash, out) if options[:write]
+
+          progress("Drawing #{File.basename(config.file)}", total: renderer.total) do |bar|
+            renderer.render { bar.advance }
+          end
+
+          report(format, File.expand_path(config.file))
+          system('open', config.file) if options[:open]
+        end
+
+        private
+
+        # A box wraps in the middle of a word, which would break a path nobody
+        # could then copy, so this one widens to fit a path longer than it.
+        def report(format, path)
+          ui.success("Generated #{format.upcase} file:", path, width: [CLI.help_width, path.length + BOX_CHROME].max)
+        end
+
+        # What was read from a file, overridden by what the command line gave.
+        def configuration(options)
+          given = options.except(*RUN_ONLY).compact
+          saved = options[:read] ? ConfigFile.new(options[:read]).read : {}
+          settings = saved.transform_keys(&:to_sym).merge(given)
+          Configuration.new(settings.merge(debug: settings.delete(:inside_box)))
+        end
+
+        # One line per dimension, aligned, in the units of the box.
+        def dimensions(config)
+          DIMENSIONS.map { |name| "#{"#{name.capitalize}:".ljust(11)} #{config[name]} #{config.units}" }.join("\n")
+        end
+      end
+    end
+  end
+end

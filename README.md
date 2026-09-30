@@ -18,7 +18,7 @@ One of the design goals of this project is to provide a highly extensible platfo
 
 ## Dependencies
 
-The gem depends primarily on [Prawn](http://prawnpdf.org) – a fantastic PDF generation library.
+The gem depends primarily on [Prawn](http://prawnpdf.org) – a fantastic PDF generation library. SVG output uses [Victor](https://github.com/DannyBen/victor), and the command line is built on [dry-cli](https://dry-cli.tools/). It needs Ruby 4.0 or newer.
 
 ## Installation
 
@@ -42,78 +42,65 @@ $ gem install laser-cutter
 
 ## Usage
 
-```bash
+```text
+laser-cutter COMMAND [OPTIONS]
 
-Usage: laser-cutter [options] -o filename.pdf
-   eg: laser-cutter -b 1x1.5x2/0.125 -O -o box.pdf
-
-Specific Options:
-    -w, --width WIDTH                Internal width of the box
-    -h, --height HEIGHT              Internal height of the box
-    -d, --depth DEPTH                Internal depth of the box
-    -t, --thickness THICKNESS        Thickness of the box material
-    -n, --notch NOTCH                Optional notch length (aka "tab width"), guide only
-    -k, --kerf KERF                  Kerf - cut width (default is 0.007in)
-
-    -m, --margin MARGIN              Margins from the edge of the document
-    -p, --padding PADDING            Space between the boxes on the page
-    -s, --stroke WIDTH               Numeric stroke width of the line
-    -i, --page_size LETTER           Document page size, default is autofit the box.
-    -l, --page_layout portrait       Page layout, other option is 'landscape'
-
-    -O, --open                       Open generated file with system viewer before exiting
-    -W, --write CONFIG_FILE          Save provided configuration to a file, use '-' for STDOUT
-    -R, --read CONFIG_FILE           Read configuration from a file, or use '-' for STDIN
-
-    -L, --list-all-page-sizes        Print all available page sizes with dimensions and exit
-    -M, --no-metadata                Do not print box metadata on the PDF
-    -v, --[no-]verbose               Run verbosely
-    -B, --inside-box                 Draw the inside boxes (helpful to verify kerfing)
-    -D, --debug                      Show full exception stack trace on error
-
-        --examples                   Show detailed usage examples
-        --help                       Show this message
-        --version                    Show version
-
-Common Options:
-    -o, --file FILE                  Required output filename of the PDF
-    -z, --box WxHxD/T[/N]           Combined internal dimensions: W = width, H = height,
-                                     D = depth, T = thickness, and optional N = notch length
-
-    -u, --units UNITS                Either 'in' for inches (default) or 'mm'
+  generate, g    Draw the panels of a box into a PDF or an SVG file
+  page-sizes     List every page size, with its dimensions
+  examples       Show detailed usage examples
+  help           Show help, for the program or for one command
+  version        Print the version
+  completion     Print a bash or zsh completion script
 ```
+
+`laser-cutter help generate` lists every option. The common ones:
+
+| Option                 | Meaning                                                        |
+| :--------------------- | :------------------------------------------------------------- |
+| `-b`, `--box`          | `WxHxD/T[/N]`: width, height, depth, thickness, optional notch |
+| `-w`, `-H`, `-d`, `-t` | Width, height, depth and thickness, one at a time              |
+| `-n`, `--notch`        | Notch length, a guide only                                     |
+| `-k`, `--kerf`         | Kerf, the width of the cut                                     |
+| `-u`, `--units`        | `in` (default) or `mm`                                         |
+| `-o`, `--file`         | File to write, required                                        |
+| `-f`, `--format`       | `pdf` (default) or `svg`, in either case                       |
+| `-B`, `--inside-box`   | Also draw the box without kerf, in red                         |
+| `-W`, `-R`             | Save the configuration to a file, or read it from one          |
+
+Height is `-H`, because `-h` prints help.
 
 ### Examples
 
-Create a box defined in inches, with kerf (cut width) set to 0.008", and open PDF in preview right after:
+A box in inches, with the kerf set to 0.008", opened once it is written:
 
 ```bash
-    laser-cutter -b 3x2x2/0.125 -k 0.008 -O -o box.pdf
+laser-cutter generate -b 3x2x2/0.125 -k 0.008 -O -o box.pdf
 ```
 
-Create a box defined in millimeters, print verbose info, and set page size to A3, and layout to landscape, and stroke width to 1/2mm:
+The same box as an SVG:
 
 ```bash
-    laser-cutter -u mm -w70 -h20 -d50 -t4.3 -n5 -iA3 -l landscape -s0.5 -v -O -o box.pdf
+laser-cutter generate -b 3x2x2/0.125 -f svg -o box.svg
 ```
 
-List all possible page sizes in metric system:
+A box in millimeters on a landscape A3 page, with a 0.5mm stroke:
 
 ```bash
-    laser-cutter -L -u mm
+laser-cutter generate -u mm -w 70 -H 20 -d 50 -t 4.3 -n 5 -i A3 -l landscape -s 0.5 -o box.pdf
 ```
 
-Create a box with provided dimensions, and save the config to a file for later use:
+Every page size, in millimeters:
 
 ```bash
-    laser-cutter -b 1.1x2.5x1.5/0.125/0.125 -p 0.1 -O -o box.pdf -W box-settings.json
+laser-cutter page-sizes -u mm
 ```
 
-Read settings from a previously saved file:
+Save the settings of a box, and use them again:
 
 ```bash
-    laser-cutter -O -o box.pdf -R box-settings.json
-    cat box-settings.json | laser-cutter -O -o box.pdf -R -
+laser-cutter generate -b 1.1x2.5x1.5/0.125/0.125 -p 0.1 -o box.pdf -W box-settings.json
+laser-cutter generate -o box.pdf -R box-settings.json
+cat box-settings.json | laser-cutter generate -o box.pdf -R -
 ```
 
 ## Feature Wish List
@@ -154,7 +141,7 @@ And laser-cutter:
 
 ```bash
 gem install laser-cutter
-laser-cutter -b 1x1.5x2/0.125/0.125 -O -o box.pdf
+laser-cutter generate -b 1x1.5x2/0.125/0.125 -O -o box.pdf
 ```
 
 ![LaserCutter Comparison](docs/images/comparison.jpg).

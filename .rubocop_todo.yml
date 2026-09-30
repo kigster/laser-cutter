@@ -22,14 +22,14 @@ Lint/CopDirectiveSyntax:
 # DelegatingMethods: delegate
 Lint/DuplicateMethods:
   Exclude:
-    - 'lib/laser_cutter/geometry/shape.rb'
+    - 'lib/laser/cutter/geometry/shape.rb'
 
 # Offense count: 2
 # Configuration parameters: AllowedParentClasses.
 Lint/MissingSuper:
   Exclude:
-    - 'lib/laser_cutter/geometry/shape/line.rb'
-    - 'lib/laser_cutter/renderer/meta_renderer.rb'
+    - 'lib/laser/cutter/geometry/line.rb'
+    - 'lib/laser/cutter/renderer/meta_renderer.rb'
 
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
@@ -40,8 +40,8 @@ Lint/RedundantCopDisableDirective:
 # Offense count: 3
 Lint/RescueException:
   Exclude:
-    - 'lib/laser_cutter/cli/serializer.rb'
-    - 'spec/lib/laser_cutter/renderer_spec.rb'
+    - 'lib/laser/cutter/cli/serializer.rb'
+    - 'spec/laser/cutter/renderer/layout_renderer_spec.rb'
 
 # Offense count: 1
 # Configuration parameters: ExpectMatchingDefinition, CheckDefinitionPathHierarchy, CheckDefinitionPathHierarchyRoots, Regex, IgnoreExecutableScripts, AllowedAcronyms.
@@ -57,8 +57,8 @@ Naming/FileName:
 # ForbiddenDelimiters: (?i-mx:(^|\s)(EO[A-Z]{1}|END)(\s|$))
 Naming/HeredocDelimiterNaming:
   Exclude:
-    - 'lib/laser_cutter/cli/opt_parser.rb'
-    - 'lib/laser_cutter/renderer/meta_renderer.rb'
+    - 'lib/laser/cutter/cli/opt_parser.rb'
+    - 'lib/laser/cutter/renderer/meta_renderer.rb'
 
 # Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
@@ -74,17 +74,17 @@ Style/FormatStringToken:
 Style/FrozenStringLiteralComment:
   Exclude:
     - '**/*.arb'
-    - 'lib/laser_cutter/page_manager.rb'
+    - 'lib/laser/cutter/page_manager.rb'
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Style/MapToHash:
   Exclude:
-    - 'lib/laser_cutter/configuration.rb'
+    - 'lib/laser/cutter/configuration.rb'
 
 # Offense count: 1
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: Mode.
 Style/StringConcatenation:
   Exclude:
-    - 'lib/laser_cutter/renderer/meta_renderer.rb'
+    - 'lib/laser/cutter/renderer/meta_renderer.rb'

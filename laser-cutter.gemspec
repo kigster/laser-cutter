@@ -3,7 +3,7 @@
 lib = File.expand_path('./lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
-require_relative 'lib/laser_cutter/version'
+require_relative 'lib/laser/cutter/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "laser-cutter"
@@ -16,8 +16,10 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.bindir        = 'exe'
+  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
+  spec.required_ruby_version = '>= 4.0'
 
   spec.add_dependency 'dry-cli', '~> 1.4.1'
   spec.add_dependency 'dry-cli-autocomplete'
@@ -30,6 +32,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'tty-cursor'
   spec.add_dependency 'tty-progressbar'
   spec.add_dependency 'tty-prompt'
+  spec.add_dependency 'tty-screen'
   spec.add_dependency 'tty-spinner'
   spec.add_dependency 'tty-table'
   spec.add_dependency 'victor'
