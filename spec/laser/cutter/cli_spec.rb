@@ -148,6 +148,21 @@ RSpec.describe 'laser-cutter', type: :aruba do
       expect(last_command_started).to have_output(/"depth": 2\.0/)
     end
 
+    { 'plain' => 224, 'back' => 260, 'full' => 328 }.each do |lid, lines|
+      it "draws #{lines} lines for a #{lid} lid" do
+        run_command_and_stop("laser-cutter generate #{box} --lid #{lid} -o box.pdf")
+        expect(last_command_started).to have_output(%r{Lid:\s+#{lid}.*Drawing box\.pdf #{lines}/#{lines}}m)
+      end
+    end
+
+    it 'keeps the lid a saved configuration asks for' do
+      run_command_and_stop("laser-cutter generate #{box} -L plain -o box.pdf -W settings.json")
+      expect(JSON.parse(read('settings.json').join)).to include('lid' => 'plain')
+
+      run_command_and_stop('laser-cutter generate -R settings.json -o again.pdf')
+      expect(last_command_started).to have_output(%r{Drawing again\.pdf 224/224})
+    end
+
     it 'opens the file with --open' do
       allow_any_instance_of(Laser::Cutter::CLI::Generate).to receive(:system)
       run_command_and_stop("laser-cutter generate #{box} -o box.pdf --open")
@@ -170,6 +185,18 @@ RSpec.describe 'laser-cutter', type: :aruba do
       it 'fails on an unknown format' do
         run_command_and_stop("laser-cutter generate #{box} -f dxf -o box.dxf", fail_on_error: false)
         expect(last_command_started).to have_output(/unknown format "dxf", expected one of: pdf, svg/)
+      end
+
+      it 'fails on an unknown lid' do
+        run_command_and_stop("laser-cutter generate #{box} --lid sliding -o box.pdf", fail_on_error: false)
+        expect(last_command_started).to have_exit_status(1)
+        expect(last_command_started.stderr).to match(/was called with arguments.*--lid sliding/)
+      end
+
+      it 'fails on an unknown lid in a saved configuration' do
+        write_file('settings.json', '{"box": "4x3x2/0.125/0.5", "lid": "sliding"}')
+        run_command_and_stop('laser-cutter generate -R settings.json -o box.pdf', fail_on_error: false)
+        expect(last_command_started.stderr).to match(/─ Error ─.*lid is "sliding", but must be one of: full, back, plain/m)
       end
 
       it 'fails on a missing configuration file' do

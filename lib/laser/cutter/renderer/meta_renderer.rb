@@ -4,7 +4,7 @@ module Laser
   module Cutter
     module Renderer
       class MetaRenderer < Laser::Cutter::Renderer::Base
-        META_KEYS = %i(units width height depth thickness notch kerf stroke padding margin page_size page_layout).freeze
+        META_KEYS = %i(units width height depth thickness notch lid kerf stroke padding margin page_size page_layout).freeze
 
         def initialize(config = {})
           self.config = config

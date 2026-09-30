@@ -30,6 +30,7 @@ module Laser
           defaults = Hashie::Mash.new({
                                         units:       :in,
                                         page_layout: 'portrait',
+                                        lid:         'full',
                                         metadata:    true,
                                         in:          {
                                           kerf:    0.0024, # smallest kerf for thin material, usually it's more than that.
@@ -79,6 +80,10 @@ module Laser
         zeros = []
         NON_ZERO.each { |k| zeros << k if self[k] == 0 }
         raise ZeroValueNotAllowed, "#{zeros.join(', ')} #{zeros.size > 1 ? 'are' : 'is'} required, but is zero." unless zeros.empty?
+
+        return if Box::LIDS.include?(lid.to_s.to_sym)
+
+        raise InvalidOption, "lid is #{lid.to_s.inspect}, but must be one of: #{Box::LIDS.join(', ')}."
       end
 
       def change_units(new_units)

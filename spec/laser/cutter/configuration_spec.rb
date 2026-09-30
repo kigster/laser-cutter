@@ -40,6 +40,23 @@ module Laser
         end
       end
 
+      describe 'lid' do
+        let(:opts) { { 'box' => '2x3x2/0.125/0.5', 'file' => '/tmp/a' } }
+
+        its(:lid) { is_expected.to eql('full') }
+
+        %w[full back plain].each do |lid|
+          it "accepts #{lid}" do
+            expect { described_class.new(opts.merge('lid' => lid)).validate! }.not_to raise_error
+          end
+        end
+
+        it 'rejects anything else' do
+          expect { described_class.new(opts.merge('lid' => 'sliding')).validate! }
+            .to raise_error(Laser::Cutter::InvalidOption, /lid is "sliding"/)
+        end
+      end
+
       context 'when notch is omitted' do
         let(:opts) { { 'box' => '2.0x1.0x2/0.125', 'file' => '/tmp/a' } }
 

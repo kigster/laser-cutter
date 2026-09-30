@@ -61,6 +61,7 @@ laser-cutter COMMAND [OPTIONS]
 | `-w`, `-H`, `-d`, `-t` | Width, height, depth and thickness, one at a time              |
 | `-n`, `--notch`        | Notch length, a guide only                                     |
 | `-k`, `--kerf`         | Kerf, the width of the cut                                     |
+| `-L`, `--lid`          | `full` (default), `back` or `plain`, see below                 |
 | `-u`, `--units`        | `in` (default) or `mm`                                         |
 | `-o`, `--file`         | File to write, required                                        |
 | `-f`, `--format`       | `pdf` (default) or `svg`, in either case                       |
@@ -76,6 +77,24 @@ A box in inches, with the kerf set to 0.008", opened once it is written:
 ```bash
 laser-cutter generate -b 3x2x2/0.125 -k 0.008 -O -o box.pdf
 ```
+
+A box with a lid that lifts off:
+
+```bash
+laser-cutter generate -b 3x2x2/0.125 --lid plain -o box.pdf
+```
+
+### The lid
+
+The lid is the top panel. `--lid` sets how it joins the walls:
+
+| `--lid` | The lid                              | The walls under it                                |
+| :------ | :----------------------------------- | :------------------------------------------------ |
+| `full`  | Notched on all four sides            | Notched; the box is glued shut                    |
+| `back`  | Notched where it meets the back wall | The back is notched, the other three are straight |
+| `plain` | A rectangle, no notches              | All four are straight                             |
+
+A lid edge without notches reaches the outside of the wall under it, and that wall ends at the internal height. So a `plain` lid is `W + 2T` by `D + 2T` and lies on top of the box, and the space inside is still `W` by `H` by `D`.
 
 The same box as an SVG:
 
