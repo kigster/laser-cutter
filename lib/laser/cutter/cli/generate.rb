@@ -24,6 +24,9 @@ module Laser
         option :thickness, aliases: ['-t'], desc: 'Thickness of the material'
         option :notch, aliases: ['-n'], desc: 'Notch length, a guide only (default: three times the thickness)'
         option :kerf, aliases: ['-k'], desc: 'Kerf, the width of the cut (default: 0.0024in)'
+        # No default here: one would override the lid a saved configuration asks for.
+        option :lid, values: %w[full back plain], aliases: ['-L'],
+                     desc: 'Lid: notched on every side, into the back wall only, or on no side (default: full)'
         option :units, default: 'in', values: %w[in mm], aliases: ['-u'], desc: 'Units every dimension is in'
 
         option :file, aliases: ['-o'], desc: 'File to write (required)'
@@ -45,6 +48,7 @@ module Laser
         example [
           '-b 3x2x2/0.125 -o box.pdf # a box in inches',
           '-b 3x2x2/0.125 -f svg -o box.svg # as an SVG',
+          '-b 3x2x2/0.125 --lid plain -o box.pdf # with a lid that lifts off',
           '-u mm -w 70 -H 20 -d 50 -t 4.3 -o box.pdf'
         ]
 
@@ -80,9 +84,10 @@ module Laser
           Configuration.new(settings.merge(debug: settings.delete(:inside_box)))
         end
 
-        # One line per dimension, aligned, in the units of the box.
+        # One line per dimension, aligned, in the units of the box, then the lid.
         def dimensions(config)
-          DIMENSIONS.map { |name| "#{"#{name.capitalize}:".ljust(11)} #{config[name]} #{config.units}" }.join("\n")
+          rows = DIMENSIONS.map { |name| [name, "#{config[name]} #{config.units}"] } << [:lid, config.lid]
+          rows.map { |name, value| "#{"#{name.capitalize}:".ljust(11)} #{value}" }.join("\n")
         end
       end
     end

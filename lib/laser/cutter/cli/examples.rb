@@ -31,6 +31,11 @@ module Laser
 
                laser-cutter generate -o box.pdf -R box-settings.json
                cat box-settings.json | laser-cutter generate -o box.pdf -R -
+
+          7. A box with a lid that lifts off: a plain rectangle, or one notched into the back wall only:
+
+               laser-cutter generate -b 3x2x2/0.125 --lid plain -o box.pdf
+               laser-cutter generate -b 3x2x2/0.125 --lid back -o box.pdf
         EXAMPLES
 
         def call(**)

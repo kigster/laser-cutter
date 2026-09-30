@@ -5,9 +5,22 @@ module Laser
     # Note: this class badly needs refactoring and tests.  Both are coming.
 
     class Box
+      # How the lid, the top panel, joins the walls: notched on all four sides,
+      # on the side of the back wall only, or on none.
+      LIDS = %i[full back plain].freeze
+
+      # The side of each wall that meets the lid, as an index into Rect#sides.
+      LID_SIDES = { 'front' => 0, 'left' => 0, 'right' => 0, 'back' => 2 }.freeze
+
       # Everything is in millimeters
 
       attr_accessor :dim, :thickness, :notch_width, :kerf, :padding, :units, :inside_box, :front, :back, :top, :bottom, :left, :right, :faces, :bounds, :conf, :corner_face, :metadata, :notches
+
+      # @return [Symbol] one of LIDS
+      attr_accessor :lid
+
+      # @return [Hash{String => Array<Geometry::Line>}] the lines to cut for each face, by its name
+      attr_accessor :outlines
 
       def initialize(config = {})
         self.dim = Geometry::Dimensions.new(config['width'], config['height'], config['depth'])
@@ -18,8 +31,10 @@ module Laser
         self.padding = config['padding']
         self.units = config['units']
         self.inside_box = config['inside_box']
+        self.lid = (config['lid'] || LIDS.first).to_sym
 
         self.notches = []
+        self.outlines = {}
 
         self.metadata = Geometry::Point[config['metadata_width'] || 0, config['metadata_height'] || 0]
 
@@ -54,31 +69,16 @@ module Laser
         position_faces!
         corner_face = pick_corners_face
         self.notches = []
+        self.outlines = {}
         faces.each_with_index do |face, face_index|
-          bound = face_bounding_rect(face)
-          edges = []
-          bound.sides.each_with_index do |bounding_side, side_index|
-            include_corners = conf[:corners][corner_face][face_index] == :yes && side_index.odd?
-            key = side_index.odd? ? :valign : :halign
-            center_out = (conf[key][face_index] == :out)
-            edges << Notching::Edge.new(bounding_side,
-                                        face.sides[side_index],
-                                        { notch_width: notch_width,
-                                          thickness:   thickness,
-                                          kerf:        kerf,
-                                          center_out:  center_out,
-                                          corners:     include_corners })
-          end
+          edges = edges_of(face, face_index, corner_face)
 
           if edges.any?(&:corners) && !edges.all?(&:first_notch_out?)
             edges.each { |e| e.adjust_corners = true }
           end
 
-          side_lines = edges.map do |edge|
-            Notching::PathGenerator.new(edge).generate
-          end
-
-          notches << Aggregator.new(side_lines.flatten).lines
+          outlines[face.name] = Aggregator.new(lines_of(face, edges)).lines
+          notches << outlines[face.name]
         end
         notches.flatten!
       end
@@ -96,6 +96,84 @@ module Laser
       end
 
       private
+
+      # One edge for each side of a face, pairing the side with the matching
+      # side of the face grown by the thickness.
+      #
+      # @return [Array<Notching::Edge>]
+      def edges_of(face, face_index, corner_face)
+        bound = face_bounding_rect(face)
+        bound.sides.each_with_index.map do |bounding_side, side_index|
+          include_corners = conf[:corners][corner_face][face_index] == :yes && side_index.odd?
+          key = side_index.odd? ? :valign : :halign
+          Notching::Edge.new(bounding_side,
+                             face.sides[side_index],
+                             { notch_width: notch_width,
+                               thickness:   thickness,
+                               kerf:        kerf,
+                               center_out:  conf[key][face_index] == :out,
+                               corners:     include_corners,
+                               corner_ends: corner_ends(face, side_index) })
+        end
+      end
+
+      # A lid that lifts off covers the corners above the walls, so a wall
+      # keeps no corner box at the end of a side that touches the lid.
+      #
+      # @return [Array<Integer>] the ends of the side that may carry a corner box
+      def corner_ends(face, side_index)
+        lid_side = LID_SIDES[face.name]
+        return Notching::Edge::ENDS if lid == :full || lid_side.nil?
+
+        case (side_index - lid_side) % 4
+        when 1 then [2]
+        when 3 then [1]
+        else Notching::Edge::ENDS
+        end
+      end
+
+      # @return [Array<Geometry::Line>] the lines of a face before they are merged
+      def lines_of(face, edges)
+        return lid_lines(edges) if face.equal?(top)
+
+        edges.each_with_index.flat_map do |edge, side_index|
+          straight?(face, side_index) ? [edge.inside] : Notching::PathGenerator.new(edge).generate
+        end
+      end
+
+      # Whether a side of a wall lies under a lid edge that has no notches.
+      def straight?(face, side_index)
+        return false if lid == :full || (lid == :back && face.equal?(back))
+
+        LID_SIDES[face.name] == side_index
+      end
+
+      def lid_lines(edges)
+        case lid
+        when :plain then edges.map(&:outside)
+        when :back then back_lid_lines(edges)
+        else edges.flat_map { |edge| Notching::PathGenerator.new(edge).generate }
+        end
+      end
+
+      # The lid notched into the back wall only. Its other three edges are
+      # straight, along the outside of the walls. Either side of the notches
+      # it has a foot, the corner square above the side wall.
+      def back_lid_lines(edges)
+        joint = edges.first
+        joint.corners = true
+        joint.adjust_corners = true
+        path = Notching::PathGenerator.new(joint).notch_lines
+
+        path + foot(joint.outside.p1, path.first.p1) + foot(joint.outside.p2, path.last.p2) + edges.drop(1).map(&:outside)
+      end
+
+      # The two sides of a foot the notches do not draw: its bottom, from the
+      # outer corner of the lid, and the side that faces the first notch.
+      def foot(corner, notch)
+        turn = Geometry::Point[notch.x, corner.y]
+        [Geometry::Line[corner, turn], Geometry::Line[turn, notch]]
+      end
 
       def face_bounding_rect(face)
         b = face.clone
