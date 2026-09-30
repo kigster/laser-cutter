@@ -1,72 +1,70 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
-
 module Laser
   module Cutter
     RSpec.describe Aggregator do
-      let(:p1) { Geometry::Point[0,  0] }
-      let(:p2) { Geometry::Point[2,  0] }
-      let(:p3) { Geometry::Point[5,  0] }
-      let(:p4) { Geometry::Point[10, 0] }
-      let(:p5) { Geometry::Point[0, 12] }
-
-      let(:l1) { Geometry::Line.new(p1, p3) }
-      let(:l2) { Geometry::Line.new(p2, p4) }
-      let(:l3) { Geometry::Line.new(p2, p5) }
-      let(:l4) { Geometry::Line.new(p1, p2) }
-      let(:l5) { Geometry::Line.new(p3, p4) }
-
-      let(:lines) { [l1, l2] }
-
-      let(:aggregator) { Aggregator.new(lines) }
-
-      describe '#initialize' do
-        it 'initializes with passed in parameters' do
-          expect(aggregator.lines.size).to eql(2)
-        end
+      def line(x1, y1, x2, y2)
+        Geometry::Line.new(Geometry::Point[x1, y1], Geometry::Point[x2, y2])
       end
 
-      describe '#dedup' do
-        let(:a) { [1, 5, 3, 1, 2, 2, 2, 2] }
-        let(:unique_lines) { [l1, l2, l3, l4, l5] }
-
-        it 'removes dups from a simple array' do
-          expect(Aggregator.new(a).dedup!.lines).to eql([3, 5])
-        end
-
-        context 'short array' do
-          let(:lines) { [l1, l2, l1, l1] }
-          let(:result) { [l2] }
-
-          it 'removes dupes from lines array' do
-            expect(Aggregator.new(lines).dedup!.lines.map(&:to_s)).to eql(result.map(&:to_s))
-          end
-        end
-
-        context 'long array' do
-          let(:lines) { [l4, l1, l2, l3, l4, l3, l4, l5] }
-          let(:result) { [l1, l2, l5] }
-
-          it 'removes dupes from lines array' do
-            expect(Aggregator.new(lines).dedup!.lines.map(&:to_s)).to eql(result.map(&:to_s))
-          end
-        end
+      def outline(*lines)
+        described_class.new(lines).lines.map(&:to_s)
       end
 
-      describe '#deoverlap' do
-        let(:lines) { [l1, l2, l3] }
+      let(:short) { line(0, 0, 5, 0) }
+      let(:long) { line(2, 0, 10, 0) }
+      let(:vertical) { line(2, 0, 2, 12) }
 
-        let(:deoverlapped) { [l4, l5, l3].sort }
+      it 'keeps lines that share nothing, sorted' do
+        expect(outline(vertical, short)).to eq([short, vertical].map(&:to_s))
+      end
 
-        it 'removes lines that overlap' do
-          expect(aggregator.lines.size).to eql(3)
-          aggregator.deoverlap!
-          expect(aggregator.lines.size).to eql(3)
-          expect(aggregator.lines.map(&:to_s)).to eql(deoverlapped.map(&:to_s))
+      it 'cancels two identical lines, whichever way each one points' do
+        expect(outline(short, line(5, 0, 0, 0), vertical)).to eq([vertical.to_s])
+      end
+
+      it 'keeps a line drawn three times' do
+        expect(outline(short, short, short)).to eq([short.to_s])
+      end
+
+      it 'keeps only the parts two overlapping lines do not share' do
+        expect(outline(short, long, vertical)).to eq([line(0, 0, 2, 0), line(2, 0, 2, 12), line(5, 0, 10, 0)].map(&:to_s))
+      end
+
+      it 'joins lines that meet end to end' do
+        expect(outline(line(0, 0, 2, 0), line(2, 0, 5, 0))).to eq([short.to_s])
+      end
+
+      it 'drops a line one other line covers whole, leaving the rest of it' do
+        expect(outline(line(0, 0, 10, 0), line(2, 0, 5, 0))).to eq([line(0, 0, 2, 0), line(5, 0, 10, 0)].map(&:to_s))
+      end
+
+      it 'treats coordinates within the tolerance as the same' do
+        expect(outline(line(0, 0, 5, 0), line(5, 0.0004, 10, 0.0004))).to eq([line(0, 0, 10, 0).to_s])
+      end
+
+      it 'keeps horizontal and vertical lines apart' do
+        expect(outline(line(0, 0, 5, 0), line(0, 0, 0, 5)).size).to eq(2)
+      end
+
+      it 'passes a line on neither axis through' do
+        skewed = line(0, 0, 3, 4)
+        expect(outline(skewed, skewed)).to eq([skewed, skewed].map(&:to_s))
+      end
+
+      # A relative bound, since a shared CI runner can be several times slower
+      # than a laptop: four times the lines take about four and a half times as
+      # long when swept, and sixteen times as long when compared pairwise.
+      it 'scales with n log n rather than the square of the line count' do
+        seconds_for = lambda do |count|
+          lines = Array.new(count) { |i| line(i, 0, i + 1.5, 0) }
+          started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          described_class.new(lines)
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
         end
+
+        expect(seconds_for.call(16_000) / seconds_for.call(4_000)).to be < 10
       end
     end
   end
 end
-p

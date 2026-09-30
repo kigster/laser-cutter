@@ -13,13 +13,13 @@ RSpec.describe Laser::Cutter::Renderer::SvgRenderer do
 
   after { FileUtils.remove_entry(dir) }
 
-  its(:total) { is_expected.to eq(360) }
+  its(:total) { is_expected.to eq(328) }
 
   it 'draws every line, yielding each' do
     yielded = 0
     renderer.render { yielded += 1 }
-    expect(yielded).to eq(360)
-    expect(svg.scan('<line').size).to eq(360)
+    expect(yielded).to eq(328)
+    expect(svg.scan('<line').size).to eq(328)
   end
 
   it 'sizes the page in the units of the box' do
