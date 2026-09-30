@@ -94,6 +94,12 @@ The lid is the top panel. `--lid` sets how it joins the walls:
 | `back`  | Notched where it meets the back wall | The back is notched, the other three are straight |
 | `plain` | A rectangle, no notches              | All four are straight                             |
 
+| `--lid full`                                            | `--lid back`                                                           | `--lid plain`                                             |
+| :------------------------------------------------------ | :--------------------------------------------------------------------- | :-------------------------------------------------------- |
+| ![A box with a full lid](docs/images/box-lid-full.avif) | ![A box with a lid notched at the back](docs/images/box-lid-back.avif) | ![A box with a plain lid](docs/images/box-lid-plain.avif) |
+
+Each is `laser-cutter generate -b 3x2x2/0.125 --lid …`. The lid is the panel at the bottom of the page, the back wall the one at the top.
+
 A lid edge without notches reaches the outside of the wall under it, and that wall ends at the internal height. So a `plain` lid is `W + 2T` by `D + 2T` and lies on top of the box, and the space inside is still `W` by `H` by `D`.
 
 The same box as an SVG:
@@ -121,6 +127,86 @@ laser-cutter generate -b 1.1x2.5x1.5/0.125/0.125 -p 0.1 -o box.pdf -W box-settin
 laser-cutter generate -o box.pdf -R box-settings.json
 cat box-settings.json | laser-cutter generate -o box.pdf -R -
 ```
+
+### More boxes
+
+A shallow box in millimeters, glued shut:
+
+```bash
+laser-cutter generate -u mm -w 70 -H 20 -d 50 -t 4.3 -n 5 -f svg -o box.svg
+```
+
+![A 70 by 20 by 50 millimeter box](docs/images/box-metric.avif)
+
+A tray with a lid that lifts off, from 3mm material with wide notches:
+
+```bash
+laser-cutter generate -u mm -w 120 -H 25 -d 80 -t 3 -n 12 --lid plain -f svg -o tray.svg
+```
+
+![A 120 by 25 by 80 millimeter tray with a plain lid](docs/images/box-tray.avif)
+
+The pictures on this page are the SVG files themselves, drawn with a thicker stroke (`-s 0.5`) and converted:
+
+```bash
+magick -density 96 -background white box.svg -flatten box.avif
+```
+
+## Using it from Ruby
+
+A Ruby program draws a box in its own process; nothing runs the command line. It needs three things:
+
+| Call                            | What it does                                      |
+| :------------------------------ | :------------------------------------------------ |
+| `Laser::Cutter::Options.new`    | Every setting of a box, typed and checked         |
+| `Laser::Cutter.render(options)` | Returns the PDF or the SVG as a String            |
+| `Laser::Cutter.write(options)`  | Writes it to `options.file`, and returns the path |
+
+```ruby
+require "laser-cutter"
+
+options = Laser::Cutter::Options.new(
+  width: 70, height: 20, depth: 50, thickness: 4.3,
+  units: :mm, lid: :plain, format: :svg
+)
+
+svg = Laser::Cutter.render(options)                      # a String, no file written
+Laser::Cutter.write(options.new(file: "box.pdf", format: nil)) # the extension picks the format
+```
+
+`Options` has an attribute for each option of `generate`:
+
+| Attribute                               | Type                    | When left out                  |
+| :-------------------------------------- | :---------------------- | :----------------------------- |
+| `width`, `height`, `depth`, `thickness` | Float above zero        | `MissingOption` is raised      |
+| `notch`                                 | Float above zero        | Three times the thickness      |
+| `kerf`, `margin`, `padding`             | Float, zero or more     | The default for the units      |
+| `stroke`                                | Float above zero        | The default for the units      |
+| `units`                                 | `in` or `mm`            | `in`                           |
+| `lid`                                   | `full`, `back`, `plain` | `full`                         |
+| `format`                                | `pdf` or `svg`          | `pdf`, or the file's extension |
+| `file`                                  | String                  | Only `write` needs it          |
+| `page_size`                             | A name such as `A4`     | The page fits the box          |
+| `page_layout`                           | `portrait`, `landscape` | `portrait`                     |
+| `metadata`                              | Boolean                 | `true`                         |
+| `inside_box`                            | Boolean                 | `false`                        |
+
+- Values are coerced, so the Strings a web form sends will do, and a blank String counts as left out. Keys may be Strings or Symbols.
+- A value it cannot use, or a key that is not an option, raises `Laser::Cutter::InvalidOption` with a message such as `lid cannot be "sliding", but must be one of: full, back, plain.` Both errors descend from `Laser::Cutter::Error`.
+- An `Options` cannot be changed; `options.new(lid: :back)` returns a changed copy.
+
+In a Rails controller:
+
+```ruby
+def create
+  box = params.require(:box).permit(*Laser::Cutter::Options.attribute_names)
+  send_data Laser::Cutter.render(box.to_h), type: "application/pdf", filename: "box.pdf"
+rescue Laser::Cutter::Error => e
+  redirect_to new_box_path, alert: e.message
+end
+```
+
+`Laser::Cutter::Box::LIDS` lists the lids, for a select. `Configuration`, `Renderer::LayoutRenderer#render` and `PageManager#page_size_values`, which MakeABox.io called in 1.0.3, still work.
 
 ## Feature Wish List
 

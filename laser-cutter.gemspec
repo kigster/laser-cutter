@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'dry-cli-autocomplete'
   spec.add_dependency 'dry-cli-help'
   spec.add_dependency 'dry-cli-ui'
+  spec.add_dependency 'dry-struct', '~> 1.6'
   spec.add_dependency 'hashie'
   spec.add_dependency 'matrix'
   spec.add_dependency 'pastel'

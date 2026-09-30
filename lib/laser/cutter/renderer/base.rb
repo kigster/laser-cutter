@@ -18,7 +18,13 @@ module Laser
           self.page_manager = Laser::Cutter::PageManager.new(config.units)
         end
 
-        def render
+        # Writes the document to config.file, yielding after each line drawn.
+        def render(&)
+          File.binwrite(config.file, document(&))
+        end
+
+        # @return [String] the document, yielding after each line drawn
+        def document
           raise 'Abstract method'
         end
 

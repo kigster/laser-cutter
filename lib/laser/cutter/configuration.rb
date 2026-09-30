@@ -51,6 +51,7 @@ module Laser
         ::Hashie::Extensions::SymbolizeKeys.symbolize_keys!(options)
 
         options.delete_if { |_k, v| v.nil? }
+        options.delete(:lid) if options[:lid].to_s.empty? # a blank form field
         if options[:units]
           unit = options[:units].to_sym
           unless self.class.defaults.key?(unit) || self.class.defaults.key?(unit.to_s)

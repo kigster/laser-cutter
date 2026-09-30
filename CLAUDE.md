@@ -43,6 +43,12 @@ Pipeline, from config to file:
 
 Geometry is unitless, in the config's units. Conversion to PDF points happens only at render time (`value.send(:in)` / `.send(:mm)`). `PageManager#value_from_units` converts PDF points back.
 
+### Ruby API
+
+- `Laser::Cutter.render(options)` returns the document as a String, and `Laser::Cutter.write(options)` writes it to `options.file`. Both live in `lib/laser/cutter.rb`, take an `Options` or a Hash, and pass a block through as the per-line callback. MakeABox.io calls these; keep them working without a file, a terminal or the CLI classes.
+- `Options` (`options.rb`) is a strict `Dry::Struct`, one attribute per `generate` option, with its types in `Types` (`types.rb`). It raises `MissingOption` for a missing dimension and `InvalidOption` for anything else, and turns into a `Configuration` with `to_configuration`. A new `generate` option needs an attribute here too.
+- Renderers answer `document`, the String. `Renderer::Base#render` writes it to `config.file`.
+
 ### Command line
 
 - `exe/laser-cutter` (and `exe/lc`) call `Laser::Cutter::Launcher.new(ARGV).execute!`. The Launcher takes argv, the three streams and `kernel`, and exits only through `kernel.exit`. Aruba runs it in-process (`spec/support/aruba.rb`), so commands must write to `out` and `err`, never to `$stdout`.
