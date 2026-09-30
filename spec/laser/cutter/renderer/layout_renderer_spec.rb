@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'tmpdir'
 
 module Laser
   module Cutter
@@ -8,33 +9,15 @@ module Laser
       RSpec.describe LayoutRenderer do
         describe '#render' do
           let(:renderer) { LayoutRenderer.new(config) }
-          let(:file) { File.expand_path("../../../laser-cutter-pdf-test.#{$$}.pdf", __FILE__) }
+          let(:dir) { Dir.mktmpdir }
+          let(:file) { File.join(dir, 'box.pdf') }
+
+          after { FileUtils.remove_entry(dir) }
 
           def render_file(filename)
-            real_file = ENV['RSPEC_SAVE_PDF'] ? true : false
             config.validate!
-            expect(!File.exist?(filename)) if real_file
             renderer.render
-            expect(File.exist?(filename)) if real_file
-            expect(File.size(filename) > 0) if real_file
-          rescue Exception => e
-            warn e.backtrace.join("\n")
-            fail e.message
-          ensure
-            if real_file
-              begin
-                File.delete(filename)
-              rescue StandardError
-                nil
-              end
-              expect(!File.exist?(filename))
-            end
-          end
-
-          before do
-            unless ENV['RSPEC_SAVE_PDF']
-              expect_any_instance_of(Prawn::Document).to receive(:render_file).once
-            end
+            expect(File.binread(filename)).to start_with('%PDF')
           end
 
           context 'metric' do

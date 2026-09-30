@@ -18,8 +18,8 @@ module Laser
           box_renderers.sum { |renderer| renderer.lines.size }
         end
 
-        # Writes the file, yielding after each line drawn.
-        def render(&)
+        # @return [String] the PDF, yielding after each line drawn
+        def document(&)
           margin = config.margin.to_f.send(units)
           pdf = Prawn::Document.new(margin:      margin,
                                     page_size:   config.page_size || calculate_image_boundary(box_renderers.first, margin),
@@ -28,7 +28,7 @@ module Laser
           box_renderers.first.render(pdf, &)
           meta_renderer&.render(pdf)
           box_renderers.drop(1).each { |renderer| renderer.render(pdf, &) }
-          pdf.render_file(config.file)
+          pdf.render
         end
 
         def calculate_image_boundary(box_renderer, margin)

@@ -24,15 +24,15 @@ module Laser
           lines.size
         end
 
-        # Writes the file, yielding after each line drawn.
-        def render
+        # @return [String] the SVG, yielding after each line drawn
+        def document
           svg = Victor::SVG.new(width: "#{width}#{units}", height: "#{height}#{units}", viewBox: "0 0 #{width} #{height}")
           svg.element(:desc, description) if config.metadata
           lines.each do |line|
             svg.line(**coordinates(line), stroke: "##{config[:color] || BLACK}", stroke_width: config.stroke)
             yield line if block_given?
           end
-          File.write(config.file, svg.render)
+          svg.render
         end
 
         private
