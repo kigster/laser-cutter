@@ -122,6 +122,62 @@ laser-cutter generate -o box.pdf -R box-settings.json
 cat box-settings.json | laser-cutter generate -o box.pdf -R -
 ```
 
+## Using it from Ruby
+
+A Ruby program draws a box in its own process; nothing runs the command line. It needs three things:
+
+| Call                            | What it does                                      |
+| :------------------------------ | :------------------------------------------------ |
+| `Laser::Cutter::Options.new`    | Every setting of a box, typed and checked         |
+| `Laser::Cutter.render(options)` | Returns the PDF or the SVG as a String            |
+| `Laser::Cutter.write(options)`  | Writes it to `options.file`, and returns the path |
+
+```ruby
+require "laser-cutter"
+
+options = Laser::Cutter::Options.new(
+  width: 70, height: 20, depth: 50, thickness: 4.3,
+  units: :mm, lid: :plain, format: :svg
+)
+
+svg = Laser::Cutter.render(options)                      # a String, no file written
+Laser::Cutter.write(options.new(file: "box.pdf", format: nil)) # the extension picks the format
+```
+
+`Options` has an attribute for each option of `generate`:
+
+| Attribute                               | Type                    | When left out                  |
+| :-------------------------------------- | :---------------------- | :----------------------------- |
+| `width`, `height`, `depth`, `thickness` | Float above zero        | `MissingOption` is raised      |
+| `notch`                                 | Float above zero        | Three times the thickness      |
+| `kerf`, `margin`, `padding`             | Float, zero or more     | The default for the units      |
+| `stroke`                                | Float above zero        | The default for the units      |
+| `units`                                 | `in` or `mm`            | `in`                           |
+| `lid`                                   | `full`, `back`, `plain` | `full`                         |
+| `format`                                | `pdf` or `svg`          | `pdf`, or the file's extension |
+| `file`                                  | String                  | Only `write` needs it          |
+| `page_size`                             | A name such as `A4`     | The page fits the box          |
+| `page_layout`                           | `portrait`, `landscape` | `portrait`                     |
+| `metadata`                              | Boolean                 | `true`                         |
+| `inside_box`                            | Boolean                 | `false`                        |
+
+- Values are coerced, so the Strings a web form sends will do, and a blank String counts as left out. Keys may be Strings or Symbols.
+- A value it cannot use, or a key that is not an option, raises `Laser::Cutter::InvalidOption` with a message such as `lid cannot be "sliding", but must be one of: full, back, plain.` Both errors descend from `Laser::Cutter::Error`.
+- An `Options` cannot be changed; `options.new(lid: :back)` returns a changed copy.
+
+In a Rails controller:
+
+```ruby
+def create
+  box = params.require(:box).permit(*Laser::Cutter::Options.attribute_names)
+  send_data Laser::Cutter.render(box.to_h), type: "application/pdf", filename: "box.pdf"
+rescue Laser::Cutter::Error => e
+  redirect_to new_box_path, alert: e.message
+end
+```
+
+`Laser::Cutter::Box::LIDS` lists the lids, for a select. `Configuration`, `Renderer::LayoutRenderer#render` and `PageManager#page_size_values`, which MakeABox.io called in 1.0.3, still work.
+
 ## Feature Wish List
 
 - Create T-style joins, using various standard sizes of nuts and bolts (such as common #4-40 and M2 sizes)
