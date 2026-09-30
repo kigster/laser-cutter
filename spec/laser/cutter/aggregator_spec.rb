@@ -52,11 +52,18 @@ module Laser
         expect(outline(skewed, skewed)).to eq([skewed, skewed].map(&:to_s))
       end
 
-      it 'sweeps a face of thousands of lines in well under a second' do
-        lines = Array.new(20_000) { |i| line(i, 0, i + 1.5, 0) }
-        started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        described_class.new(lines)
-        expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - started).to be < 1
+      # A relative bound, since a shared CI runner can be several times slower
+      # than a laptop: four times the lines take about four and a half times as
+      # long when swept, and sixteen times as long when compared pairwise.
+      it 'scales with n log n rather than the square of the line count' do
+        seconds_for = lambda do |count|
+          lines = Array.new(count) { |i| line(i, 0, i + 1.5, 0) }
+          started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          described_class.new(lines)
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+        end
+
+        expect(seconds_for.call(16_000) / seconds_for.call(4_000)).to be < 10
       end
     end
   end
