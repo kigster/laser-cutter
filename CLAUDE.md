@@ -30,13 +30,15 @@ Everything lives under `Laser::Cutter`, in `lib/laser/cutter/`. `lib/laser/cutte
 
 Pipeline, from config to file:
 
-1. **`Configuration`** is a `Hashie::Mash` with symbolized keys. It parses the `--box WxHxD/T[/N]` shorthand, casts numeric strings to floats, and merges per-unit defaults for kerf, margin, padding and stroke. Notch defaults to `3 × thickness`. `validate!` raises `MissingOption` / `ZeroValueNotAllowed`. `units` defaults to the Symbol `:in`, and arrives as a String from the command line, so compare it with `to_s` or `to_sym`.
+1. **`Configuration`** is a `Hashie::Mash` with symbolized keys. It parses the `--box WxHxD/T[/N]` shorthand, casts numeric strings to floats, and merges per-unit defaults for kerf, margin, padding and stroke. Notch defaults to `3 × thickness`. `validate!` raises `MissingOption` / `ZeroValueNotAllowed`, and `InvalidOption` for a lid it does not know. `units` defaults to the Symbol `:in`, and arrives as a String from the command line, so compare it with `to_s` or `to_sym`.
 1. **`Renderer.for(format, config)`** picks `LayoutRenderer` (PDF, Prawn) or `SvgRenderer` (SVG, Victor). Both answer `total` (lines to draw) and `render { |line| }`, which yields after each line. That block drives the progress bar.
    - `LayoutRenderer` draws a `BoxRenderer`, a `MetaRenderer` when `config.metadata` is set, and a second red `BoxRenderer` without kerf when `config.debug` is set. It sizes the page from the box enclosure unless `page_size` is given.
    - `SvgRenderer` fits the page to the box, flips y (SVG counts down from the top), and writes the metadata as a `<desc>`.
 1. **`Box`** models the six faces as `Geometry::Rect`s. `position_faces!` lays them out in a cross (see the ASCII diagram in that method). `generate_notches` pairs each side of a face with the matching side of its outer bounding rect (face grown by `thickness`) as a **`Notching::Edge`**. The `conf` table sets per-face alignment: `valign`/`halign` decide whether a side's center notch points `:out` or `:in`. `corners` plus `pick_corners_face` decide which face fills the corner squares.
+   - `lid` (`full`, `back`, `plain`) sets how the `top` panel joins the walls. A plain lid edge is the edge's **outside** line, and the wall side under it (`LID_SIDES`) is the edge's **inside** line, so the lid lies on walls that end at the inner height. The lid then owns the corners above the walls: `corner_ends` strips the corner box from the wall sides that touch it.
+   - `outlines` holds the merged lines of each face by name; `notches` is all of them, flattened.
 1. **`Notching::Edge`** holds the inside and outside lines of one side, both shifted by `kerf / 2`. `calculate_notch_width!` forces an **odd** notch count of at least 3 and recomputes the real notch width, so the requested notch is only a guide. It rounds `length / notch` to `RATIO_DIGITS` before `ceil`: two panels meeting at a joint must get the same count, and float noise used to split them when the notch divided the side exactly.
-1. **`Notching::PathGenerator`** turns an `Edge` into `Geometry::Line`s. It zigzags between the inside and outside lines using `Shift` deltas from two alternating `InfiniteIterator`s. It widens or narrows notches by `kerf` and adds the corner boxes.
+1. **`Notching::PathGenerator`** turns an `Edge` into `Geometry::Line`s. It zigzags between the inside and outside lines using `Shift` deltas from two alternating `InfiniteIterator`s. It widens or narrows notches by `kerf` and adds the corner boxes, at the ends the edge names in `corner_ends`. Kerf grows every outline by half the kerf on every side; `spec/laser/cutter/box_lid_spec.rb` checks exactly that, point by point, through `spec/support/outline.rb`.
 1. **`Aggregator`** merges the lines of a face into the outline to cut. Neighbouring edges draw shared stretches twice, and a shared stretch runs through the material, so each collinear group is combined as a symmetric difference: a point is cut when an odd number of lines cover it. It groups lines by axis and offset and sweeps each group once, so a face takes n log n; the old pairwise version made a 100×80×60 box take 55 seconds.
 
 Geometry is unitless, in the config's units. Conversion to PDF points happens only at render time (`value.send(:in)` / `.send(:mm)`). `PageManager#value_from_units` converts PDF points back.
@@ -51,9 +53,14 @@ Geometry is unitless, in the config's units. Conversion to PDF points happens on
 
 ## Known gaps
 
+- `generate` declares defaults for `--units` and `--page-layout`, and they override what `-R` reads from a saved configuration. `--lid` has no dry-cli default for that reason.
+
 - `just build` is an empty recipe, so `just publish` builds nothing. `rake build` is the real build.
+
 - The `Rakefile` YARD title is copied from another project, and it references a `CHANGELOG.md` that does not exist.
+
 - The gemspec lists `tty-*` and `pastel` directly, though only dry-cli-ui uses them.
+
 - `Box` still carries the comment "badly needs refactoring and tests".
 
 ## Conventions
