@@ -146,6 +146,19 @@ laser-cutter generate -u mm -w 120 -H 25 -d 80 -t 3 -n 12 --lid plain -f svg -o 
 
 ![A 120 by 25 by 80 millimeter tray with a plain lid](docs/images/box-tray.avif)
 
+### Storage boxes
+
+No special folding option is needed for notch-joined storage boxes: cut the separate panels and assemble them. These designs do not use hinges or fold flat as a single sheet. Use `--lid plain` for a removable lid, or leave that panel out when cutting to make an open tray.
+
+For a 3" square footprint and 3" height, or a 9" square footprint and 4" height, using 1/8" material:
+
+```bash
+laser-cutter generate -u in -b 3x3x3/0.125 --lid plain -o storage-small.pdf
+laser-cutter generate -u in -b 9x4x9/0.125 --lid plain -o storage-large.pdf
+```
+
+The shorthand is **width × height × depth**, and dimensions describe the inside space. To nest one assembled box inside another, allow clearance for the smaller box's outside dimensions, including the material thickness; sizes are not adjusted for nesting automatically.
+
 The pictures on this page are the SVG files themselves, drawn with a thicker stroke (`-s 0.5`) and converted:
 
 ```bash

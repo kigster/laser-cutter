@@ -162,6 +162,19 @@ RSpec.describe 'laser-cutter', type: :aruba do
       end
     end
 
+    { '3x3x3' => [3.0, 3.0, 3.0], '9x4x9' => [9.0, 4.0, 9.0] }.each do |size, dimensions|
+      it "generates a #{size} inch storage box with a removable lid" do
+        run_command_and_stop("laser-cutter generate -u in -b #{size}/0.125 --lid plain -o storage.pdf -W settings.json")
+
+        expect(last_command_started).to have_exit_status(0)
+        expect(read('storage.pdf').first).to start_with('%PDF')
+        expect(JSON.parse(read('settings.json').join)).to include(
+          'width' => dimensions[0], 'height' => dimensions[1], 'depth' => dimensions[2],
+          'thickness' => 0.125, 'units' => 'in', 'lid' => 'plain'
+        )
+      end
+    end
+
     it 'keeps the lid a saved configuration asks for' do
       run_command_and_stop("laser-cutter generate #{box} -L plain -o box.pdf -W settings.json")
       expect(JSON.parse(read('settings.json').join)).to include('lid' => 'plain')
