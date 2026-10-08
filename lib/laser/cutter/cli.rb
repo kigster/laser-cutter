@@ -23,6 +23,14 @@ module Laser
         [columns - 6, HELP_WIDTH].min
       end
 
+      # Boxes as wide as help. dry-cli-ui assumes 80 columns on a stream that is
+      # not a tty, such as a pipe, so it is told the terminal's width.
+      #
+      # @return [Dry::CLI::UI::Console]
+      def self.console(out:, err:)
+        Dry::CLI::UI::Console.new(out: out, err: err, width: Dry::CLI::Help::Terminal.width, box_width: help_width)
+      end
+
       Dry::CLI::Help.configure do
         title "laser-cutter #{Laser::Cutter::VERSION}"
         description 'Draws the notched panels of a box, ready to cut on a laser cutter, as a PDF or an SVG.'

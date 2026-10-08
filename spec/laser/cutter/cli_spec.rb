@@ -99,6 +99,13 @@ RSpec.describe 'laser-cutter', type: :aruba do
       expect(info.lines.map { |line| line.chomp.length }.max).to eq(Laser::Cutter::CLI.help_width)
     end
 
+    it 'draws the info box 90 wide in a terminal 200 columns wide' do
+      set_environment_variable('COLUMNS', '200')
+      run_command_and_stop("laser-cutter generate #{box} -o box.pdf")
+      info = last_command_started.stdout.split('┌─ Success').first
+      expect(info.lines.map { |line| line.chomp.length }.max).to eq(90)
+    end
+
     it 'keeps the path of the file on one line' do
       run_command_and_stop("laser-cutter generate #{box} -o box.pdf")
       expect(last_command_started.stdout).to include(expand_path('box.pdf'))
@@ -180,6 +187,15 @@ RSpec.describe 'laser-cutter', type: :aruba do
       it 'draws the error box as wide as help' do
         run_command_and_stop("laser-cutter generate #{box}", fail_on_error: false)
         expect(last_command_started.stderr.lines.map { |line| line.chomp.length }.max).to eq(Laser::Cutter::CLI.help_width)
+      end
+
+      # Aruba's streams are not a tty, like a pipe: boxes must still follow the terminal.
+      { '200' => 90, '60' => 54 }.each do |columns, width|
+        it "draws the error box #{width} wide in a terminal #{columns} columns wide" do
+          set_environment_variable('COLUMNS', columns)
+          run_command_and_stop("laser-cutter generate #{box}", fail_on_error: false)
+          expect(last_command_started.stderr.lines.map { |line| line.chomp.length }.max).to eq(width)
+        end
       end
 
       it 'fails on an unknown format' do

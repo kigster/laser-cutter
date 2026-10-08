@@ -33,7 +33,7 @@ module Laser
 
       # The same boxes the commands draw, on this run's own streams.
       def ui
-        Dry::CLI::UI::Console.new(out: @stdout, err: @stderr, box_width: CLI.help_width)
+        CLI.console(out: @stdout, err: @stderr)
       end
     end
   end
