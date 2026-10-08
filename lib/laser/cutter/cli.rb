@@ -14,9 +14,11 @@ module Laser
       # Columns assumed when there is no terminal, or it reports none.
       DEFAULT_COLUMNS = 80
 
+      # `COLUMNS` wins over the console, as it does for dry-cli-help, so a test can pin the width.
+      #
       # @return [Integer] columns help wraps at, and a box takes: the terminal's less 6,
       #   capped at HELP_WIDTH
-      def self.help_width(columns = IO.console&.winsize&.last)
+      def self.help_width(columns = Dry::CLI::Help::Terminal.width)
         columns = DEFAULT_COLUMNS unless columns&.positive?
         [columns - 6, HELP_WIDTH].min
       end
