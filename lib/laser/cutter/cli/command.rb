@@ -18,7 +18,7 @@ module Laser
 
         # Boxes are as wide as help is.
         def ui
-          @ui ||= Dry::CLI::UI::Console.new(out: out, err: err, box_width: CLI.help_width)
+          @ui ||= CLI.console(out: out, err: err)
         end
 
         # A green bar of BAR_WIDTH cells, or fewer when the terminal is narrower.

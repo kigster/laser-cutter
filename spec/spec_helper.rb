@@ -25,6 +25,10 @@ SimpleCov.at_exit do
 end
 
 require "rspec/its"
+
+# Help and boxes size themselves to the terminal, and help fixes its width when
+# the gem loads. Pin it, or the CLI specs pass in CI and fail in a wide terminal.
+ENV["COLUMNS"] = "80"
 require "laser/cutter"
 
 Dir[File.expand_path("support/**/*.rb", __dir__)].each { |file| require file }

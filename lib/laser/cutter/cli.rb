@@ -14,11 +14,21 @@ module Laser
       # Columns assumed when there is no terminal, or it reports none.
       DEFAULT_COLUMNS = 80
 
+      # `COLUMNS` wins over the console, as it does for dry-cli-help, so a test can pin the width.
+      #
       # @return [Integer] columns help wraps at, and a box takes: the terminal's less 6,
       #   capped at HELP_WIDTH
-      def self.help_width(columns = IO.console&.winsize&.last)
+      def self.help_width(columns = Dry::CLI::Help::Terminal.width)
         columns = DEFAULT_COLUMNS unless columns&.positive?
         [columns - 6, HELP_WIDTH].min
+      end
+
+      # Boxes as wide as help. dry-cli-ui assumes 80 columns on a stream that is
+      # not a tty, such as a pipe, so it is told the terminal's width.
+      #
+      # @return [Dry::CLI::UI::Console]
+      def self.console(out:, err:)
+        Dry::CLI::UI::Console.new(out: out, err: err, width: Dry::CLI::Help::Terminal.width, box_width: help_width)
       end
 
       Dry::CLI::Help.configure do
