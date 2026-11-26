@@ -25,19 +25,22 @@ flowchart LR
 - **Notching a sloped edge** needs no change to the notch algorithm. Lay the edge flat in a local frame, notch it with `Edge` + `PathGenerator`, turn the lines back. Built in this PR: `Geometry::Transform`, `Notching::AngledEdge`.
 - **Mating:** the tilted panel is a plain rectangle. Its ends and the sloped wall edge have the same length, so they get the same notch count and width; opposite `center_out` makes them interlock. Covered by `angled_edge_spec.rb`.
 - **Aggregator:** no change needed. Sloped edges draw no corner boxes, so nothing on them is drawn twice; their lines pass through as `skewed`.
-- **Angled butt joints** (tilted panel to the strips) stay plain, as in the image. They meet at an angle other than 90°, so the panel lengths need a thickness correction, or the joint is glued with a small gap. To settle (Q3).
+- **Angled joints** (tilted panel to the strips) are plain butt joints, as in the image. See *Decided*.
 - **Renderers:** both draw lines, so PDF and SVG need nothing new.
+
+## Decided
+
+- **Invocation:** flags on `generate`: `--slope DEGREES` and `--front-height HF`. No `--slope` means today's six-panel box. Each flag gets an `Options` attribute.
+- **Angled joints:** plain butt joints. Panel lengths are corrected for thickness so the outside lines meet; glue fills the wedge inside.
+- **Lid:** `--lid` applies to the tilted panel, which lifts off.
+- **Range:** `0 < α < 90`. The top strip is dropped when `Dt = 0` and the front strip when `Hf = 0`. A negative `Dt` raises `InvalidOption`.
 
 ## Shape of the work
 
 - `Box` stays the six-panel box. The angled box is a new class beside it (open/closed), sharing `Edge`, `PathGenerator`, `AngledEdge`, `Aggregator`.
 - Sides become polygons; a `Geometry::Polygon` with sides at any angle is the next piece.
-- A new `Options` attribute and `generate` flag select it.
 
 ## Open questions
 
 - [ ] **Q1. Parameters.** Which four numbers define the profile? Proposal: depth `D`, back height `H`, front height `Hf`, angle `α` of the tilted panel; the top strip depth follows, `Dt = D − (H − Hf) / tan α`, and must be ≥ 0.
-- [ ] **Q2. CLI.** A new command (`laser-cutter console …`) or a flag on `generate` (`--slope 30`)?
-- [ ] **Q3. Angled joints.** Plain butt joint with a thickness correction, plain with a gap for glue, or notched?
-- [ ] **Q4. Lid options.** Does `--lid` apply to the angled box, or is it always closed?
-- [ ] **Q5. Range.** Allowed angles: 0 < α < 90, and which panel disappears at the extremes (top strip when `Dt = 0`, front strip when `Hf = 0`)?
+- [ ] **Q4b. Lid styles.** The tilted panel joins only the two sides; its other edges are plain. So `back` has no back wall to notch into. Which `--lid` values apply: `full` (notched into both sides, fixed) and `plain` (lies on the sides, lifts off), with `back` rejected?
