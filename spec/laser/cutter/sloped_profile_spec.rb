@@ -18,8 +18,8 @@ module Laser
 
         def xy(point) = point.to_a.map { |c| c.round(9) }
 
-        # The outside face of the tilted panel lies one thickness up and back
-        # from its inside face.
+        # The outside face of the tilted panel lies one thickness up and towards
+        # the front from its inside face.
         def outside(point)
           a = profile.angle
           point.plus(-thickness * Math.sin(a), thickness * Math.cos(a))
@@ -84,6 +84,26 @@ module Laser
           end
         end
 
+        context 'when the slope runs from the bottom to the back' do
+          let(:front_height) { 0 }
+          let(:slope) { Math.atan(4.0 / 6.0) * 180 / Math::PI }
+
+          it { is_expected.not_to be_top_strip }
+          it { is_expected.not_to be_front_strip }
+
+          it 'outlines a wedge of three corners' do
+            expect(profile.vertices.map { |v| xy(v) }).to eq([[0, 0], [6, 0], [6, 4]])
+          end
+
+          it 'runs the tilted panel the whole slope' do
+            expect(profile.tilted_length).to be_within(1e-9).of(Math.hypot(6, 4))
+          end
+        end
+
+        it 'is frozen' do
+          expect(profile).to be_frozen
+        end
+
         describe 'refusing what it cannot draw' do
           def build(**overrides)
             described_class.new(depth: depth, height: height, front_height: front_height,
@@ -101,7 +121,12 @@ module Laser
           end
 
           it 'refuses a slope too steep to leave a tilted panel' do
-            expect { build(slope: 89) }.to raise_error(InvalidOption, /leaves no tilted panel.*lower the slope/)
+            expect { build(slope: 89) }.to raise_error(InvalidOption, /89\.0° slope.*leaves no tilted panel.*lower the front height/)
+          end
+
+          it 'refuses a slope too shallow to leave a tilted panel' do
+            expect { build(front_height: 3.9, slope: 5) }
+              .to raise_error(InvalidOption, /5\.0° slope.*leaves no tilted panel.*lower the front height/)
           end
 
           it 'refuses a front too close to the back to leave a tilted panel' do

@@ -32,9 +32,11 @@ module Laser
         # @param options [Hash] as for Edge: notch_width, thickness, kerf, center_out
         def initialize(from, to, outward:, **options)
           sign = SIDES.fetch(outward) { raise ArgumentError, "outward must be one of #{SIDES.keys}, got #{outward.inspect}" }
+          length = Geometry::Line.new(from, to).length
+          raise ArgumentError, "a run needs a length, but it starts and ends at #{from}" unless length > Geometry::Tuple::PRECISION
+
           @transform = Geometry::Transform.along(from, to)
-          @edge = Edge.new(*local_lines(Geometry::Line.new(from, to).length, options.fetch(:thickness), sign),
-                           options.merge(corners: false))
+          @edge = Edge.new(*local_lines(length, options.fetch(:thickness), sign), options.merge(corners: false))
         end
 
         # @return [Array<Geometry::Line>] the notched path, on the page

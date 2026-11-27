@@ -90,6 +90,10 @@ module Laser
           end
         end
 
+        it 'refuses a run with no length' do
+          expect { described_class.new(from, from, outward: outward, **options) }.to raise_error(ArgumentError, /needs a length/)
+        end
+
         it 'refuses an unknown side' do
           expect { described_class.new(from, to, outward: :up, **options) }.to raise_error(ArgumentError, /outward/)
         end

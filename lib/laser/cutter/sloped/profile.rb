@@ -49,7 +49,8 @@ module Laser
           @slope = slope.to_f
           validate!
           @angle = @slope * Math::PI / 180
-          freeze_lengths!
+          compute_lengths!
+          freeze
         end
 
         # @return [Float] Dt, the inside depth of the top strip
@@ -64,7 +65,8 @@ module Laser
 
         # The inside outline, counter-clockwise from the front of the bottom.
         #
-        # @return [Array<Geometry::Point>] five corners, or four when a strip is dropped
+        # @return [Array<Geometry::Point>] five corners; four when one strip is dropped,
+        #   and three, a wedge, when both are
         def vertices
           points = [[0, 0], [depth, 0], [depth, height]]
           points << [depth - top_depth, height] if top_strip?
@@ -106,7 +108,7 @@ module Laser
           raise InvalidOption, "front height (#{front_height}) must be below the height (#{height})"
         end
 
-        def freeze_lengths!
+        def compute_lengths!
           run = (height - front_height) / Math.tan(angle)
           if run > depth + Geometry::Tuple::PRECISION
             raise InvalidOption,
@@ -120,15 +122,18 @@ module Laser
           refuse_no_tilted_panel!
         end
 
-        # Under a strip the tilted panel stops short of the corner, by more the
-        # steeper the slope, so a steep slope or a tall front leaves none of it.
+        # Under a strip the tilted panel stops short of the corner: by more at
+        # the front the steeper the slope, and by more at the top the shallower.
+        # A slope too short for both cuts leaves none of the panel. Between two
+        # strips that is when the front strip, Hf + t / cos(slope), reaches the
+        # height, so a lower front always helps and a different slope may not.
         def refuse_no_tilted_panel!
           return if tilted_length > Geometry::Tuple::PRECISION
 
           raise InvalidOption,
-                "a #{slope}° slope from a front height of #{front_height} leaves no tilted panel " \
-                "in material #{thickness} thick (its length comes to #{tilted_length.round(3)}); " \
-                'lower the slope or the front height'
+                "a #{slope}° slope from a front height of #{front_height} leaves no tilted panel in material " \
+                "#{thickness} thick: the strips take #{(front_cut + top_cut).round(3)} of a slope " \
+                "#{slope_length.round(3)} long; lower the front height"
         end
 
         def slope_low = Geometry::Point[0, front_height]
