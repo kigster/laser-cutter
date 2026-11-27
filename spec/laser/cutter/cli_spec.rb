@@ -50,7 +50,7 @@ RSpec.describe 'laser-cutter', type: :aruba do
     %w[version -V --version].each do |argument|
       it "answers to #{argument}" do
         run_command_and_stop("laser-cutter #{argument}")
-        expect(last_command_started).to have_output(Laser::Cutter::VERSION)
+        expect(last_command_started.stdout).to eq("#{Laser::Cutter::VERSION}\n")
       end
     end
   end
@@ -74,11 +74,10 @@ RSpec.describe 'laser-cutter', type: :aruba do
     end
   end
 
-  # dry-cli-autocomplete writes to $stdout rather than the stream Aruba hands
-  # the command, so this reads the process's stdout instead.
   describe 'completion' do
     it 'prints a zsh completion script' do
-      expect { run_command_and_stop('laser-cutter completion zsh') }.to output(/laser-cutter/).to_stdout
+      run_command_and_stop('laser-cutter completion zsh')
+      expect(last_command_started).to have_output(/laser-cutter/)
     end
   end
 
@@ -106,7 +105,9 @@ RSpec.describe 'laser-cutter', type: :aruba do
       expect(info.lines.map { |line| line.chomp.length }.max).to eq(90)
     end
 
+    # Wide enough for any working directory Aruba picks, which 80 columns are not.
     it 'keeps the path of the file on one line' do
+      set_environment_variable('COLUMNS', '200')
       run_command_and_stop("laser-cutter generate #{box} -o box.pdf")
       expect(last_command_started.stdout).to include(expand_path('box.pdf'))
     end
@@ -118,6 +119,7 @@ RSpec.describe 'laser-cutter', type: :aruba do
     end
 
     it 'closes with a success box that gives the path of the file' do
+      set_environment_variable('COLUMNS', '200')
       run_command_and_stop("laser-cutter generate #{box} -f svg -o box.svg")
       expect(last_command_started.stdout).to match(/─ Info ─.*─ Success ─.*Generated SVG file:.*box\.svg/m)
     end
