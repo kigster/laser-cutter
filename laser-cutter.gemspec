@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 4.0'
 
   spec.add_dependency 'dry-cli', '~> 1.4.1'
-  spec.add_dependency 'dry-cli-autocomplete', '>= 0.6'
+  spec.add_dependency 'dry-cli-autocomplete', '~> 0.6'
   spec.add_dependency 'dry-cli-help'
   spec.add_dependency 'dry-cli-ui'
   spec.add_dependency 'dry-struct', '~> 1.6'
