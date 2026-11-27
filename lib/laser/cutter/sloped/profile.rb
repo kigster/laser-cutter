@@ -117,6 +117,18 @@ module Laser
           @top_depth = [depth - run, 0.0].max
           @top_depth = 0.0 if @top_depth < Geometry::Tuple::PRECISION
           @slope_length = Math.hypot(run, height - front_height)
+          refuse_no_tilted_panel!
+        end
+
+        # Under a strip the tilted panel stops short of the corner, by more the
+        # steeper the slope, so a steep slope or a tall front leaves none of it.
+        def refuse_no_tilted_panel!
+          return if tilted_length > Geometry::Tuple::PRECISION
+
+          raise InvalidOption,
+                "a #{slope}° slope from a front height of #{front_height} leaves no tilted panel " \
+                "in material #{thickness} thick (its length comes to #{tilted_length.round(3)}); " \
+                'lower the slope or the front height'
         end
 
         def slope_low = Geometry::Point[0, front_height]

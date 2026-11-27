@@ -35,10 +35,10 @@ flowchart LR
 - **Angled joints:** plain butt joints, outside faces meeting. At the obtuse corners the strip runs past the corner over the tilted panel's end, and the tilted panel stops short:
   - top strip: `Dt + t / sin α`; front strip: `Hf + t / cos α`
   - tilted panel: `S − t / tan α` (top) `− t · tan α` (front)
-  - Square-cut ends can only meet this way; the inside wedge is glued.
+  - The joint is not flush. The strip's square end stands proud of the tilted face, and a wedge of the same size stays open inside, under the strip, to be glued. The size is the length the tilted panel stops short by: `t / tan α` at the top strip, `t · tan α` at the front strip. Both are 0.25 at 45° in quarter-inch stock.
   - Where a strip is dropped the corner is acute, and both panels end at the corner.
 - **Lid:** `--lid` applies to the tilted panel: `full` (notched into both sides, fixed) or `plain` (lies on the sides, lifts off). `back` raises `InvalidOption`: no back wall touches the tilted panel.
-- **Range:** `0 < α < 90`. The top strip is dropped when `Dt = 0` and the front strip when `Hf = 0`. A negative `Dt` raises `InvalidOption`.
+- **Range:** `0 < α < 90`. The top strip is dropped when `Dt = 0` and the front strip when `Hf = 0`. A negative `Dt` raises `InvalidOption`, and so does a tilted panel with no length left, which a steep slope or a tall front causes.
 
 ## Shape of the work
 

@@ -100,6 +100,14 @@ module Laser
             expect { build(slope: 20) }.to raise_error(InvalidOption, /needs a depth/)
           end
 
+          it 'refuses a slope too steep to leave a tilted panel' do
+            expect { build(slope: 89) }.to raise_error(InvalidOption, /leaves no tilted panel.*lower the slope/)
+          end
+
+          it 'refuses a front too close to the back to leave a tilted panel' do
+            expect { build(front_height: 3.9) }.to raise_error(InvalidOption, /front height of 3\.9 leaves no tilted panel/)
+          end
+
           it 'refuses a front as tall as the back' do
             expect { build(front_height: 4) }.to raise_error(InvalidOption, /must be below/)
           end
