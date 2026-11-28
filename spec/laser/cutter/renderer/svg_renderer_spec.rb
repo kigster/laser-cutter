@@ -48,4 +48,30 @@ RSpec.describe Laser::Cutter::Renderer::SvgRenderer do
       expect(svg).not_to include('<desc>')
     end
   end
+
+  context 'with a slope' do
+    let(:settings) { { box: '4x3x5/0.25/0.6', slope: 45, front_height: 1, file: file } }
+
+    before { renderer.render }
+
+    it 'draws the seven panels of a sloped box' do
+      expect(svg.scan('<line').size).to eq(renderer.total).and eq(Laser::Cutter::Sloped::Box.new(config).notches.size)
+    end
+
+    it 'draws lines along the slope' do
+      skewed = svg.scan(/x1="([\d.-]+)" y1="([\d.-]+)" x2="([\d.-]+)" y2="([\d.-]+)"/).map { |found| found.map(&:to_f) }
+                  .reject { |x1, y1, x2, y2| (x1 - x2).abs < 1e-4 || (y1 - y2).abs < 1e-4 }
+      expect(skewed.map { |x1, y1, x2, y2| ((y2 - y1) / (x2 - x1)).abs.round(3) }.uniq).to eq([1.0])
+    end
+
+    it 'keeps every line on the page' do
+      width, height = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/).captures.map(&:to_f)
+      xs, ys = svg.scan(/[xy][12]="([\d.-]+)"/).flatten.map(&:to_f).each_slice(2).to_a.transpose
+      expect([xs.min, ys.min, width - xs.max, height - ys.max]).to all(be_within(0.002).of(0.125))
+    end
+
+    it 'describes the slope' do
+      expect(svg).to match(/<desc>.*depth: 5\.0, front_height: 1, slope: 45, thickness/m)
+    end
+  end
 end

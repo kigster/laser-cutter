@@ -22,6 +22,8 @@ module Laser
         option :height, aliases: ['-H'], desc: 'Internal height of the box'
         option :depth, aliases: ['-d'], desc: 'Internal depth of the box'
         option :thickness, aliases: ['-t'], desc: 'Thickness of the material'
+        option :slope, desc: 'Slope the front back at this angle above horizontal, in degrees; needs --front-height'
+        option :front_height, desc: 'Internal height at the front of a sloped box, where the slope begins'
         option :notch, aliases: ['-n'], desc: 'Notch length, a guide only (default: three times the thickness)'
         option :kerf, aliases: ['-k'], desc: 'Kerf, the width of the cut (default: 0.0024in)'
         # No default here: one would override the lid a saved configuration asks for.
@@ -49,6 +51,7 @@ module Laser
           '-b 3x2x2/0.125 -o box.pdf # a box in inches',
           '-b 3x2x2/0.125 -f svg -o box.svg # as an SVG',
           '-b 3x2x2/0.125 --lid plain -o box.pdf # with a lid that lifts off',
+          '-b 4x3x5/0.125 --slope 45 --front-height 1 -o box.pdf # with a front that slopes back',
           '-u mm -w 70 -H 20 -d 50 -t 4.3 -o box.pdf'
         ]
 
@@ -86,8 +89,15 @@ module Laser
 
         # One line per dimension, aligned, in the units of the box, then the lid.
         def dimensions(config)
-          rows = DIMENSIONS.map { |name| [name, "#{config[name]} #{config.units}"] } << [:lid, config.lid]
+          rows = (DIMENSIONS.map { |name| [name, "#{config[name]} #{config.units}"] } + slope(config)) << [:lid, config.lid]
           rows.map { |name, value| "#{"#{name.capitalize}:".ljust(11)} #{value}" }.join("\n")
+        end
+
+        # The two lines a sloped box adds: the height of its front, and the angle.
+        def slope(config)
+          return [] unless config.slope
+
+          [[:front, "#{config.front_height} #{config.units}"], [:slope, "#{config.slope}°"]]
         end
       end
     end

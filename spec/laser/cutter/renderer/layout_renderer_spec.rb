@@ -20,6 +20,24 @@ module Laser
             expect(File.binread(filename)).to start_with('%PDF')
           end
 
+          context 'with a slope' do
+            let(:config) do
+              Laser::Cutter::Configuration.new('box' => '4x3x5/0.25/0.6', 'slope' => '45', 'front_height' => '1', 'file' => file)
+            end
+
+            it 'is able to generate a PDF file' do
+              render_file file
+            end
+
+            it 'draws the seven panels of a sloped box' do
+              expect(renderer.total).to eq(Laser::Cutter::Sloped::Box.new(config).notches.size)
+            end
+
+            it 'draws them twice with the outline without kerf' do
+              expect(LayoutRenderer.new(Laser::Cutter::Configuration.new(config.to_hash.merge(debug: true))).total).to eq(2 * renderer.total)
+            end
+          end
+
           context 'metric' do
             let(:config) {
               Laser::Cutter::Configuration.new(

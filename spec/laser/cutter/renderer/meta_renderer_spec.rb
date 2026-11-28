@@ -39,6 +39,22 @@ module Laser
             expect(pages(settings)).to eq(1)
           end
         end
+
+        context 'with a sloped box' do
+          let(:settings) { super().merge(slope: 45, front_height: 1) }
+
+          it 'prints the front height and the slope after the depth' do
+            expect(renderer.fields.keys[3, 3]).to eq(%i[depth front_height slope])
+          end
+
+          it 'grows by two lines' do
+            expect(renderer.enclosure.h).to be_within(1e-9).of(55 + (14 * 8.2) + 4)
+          end
+
+          it 'fits on the page of the box' do
+            expect(pages(settings)).to eq(1)
+          end
+        end
       end
     end
   end

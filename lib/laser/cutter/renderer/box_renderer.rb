@@ -8,7 +8,7 @@ module Laser
 
         def initialize(config)
           super
-          self.subject = Laser::Cutter::Box.new(config)
+          self.subject = Laser::Cutter::BoxFactory.for(config)
         end
 
         def ensure_space_for(rect)

@@ -4,7 +4,7 @@ module Laser
   module Cutter
     module Renderer
       class MetaRenderer < Laser::Cutter::Renderer::Base
-        META_KEYS = %i(units width height depth thickness notch lid kerf stroke padding margin page_size page_layout).freeze
+        META_KEYS = %i(units width height depth front_height slope thickness notch lid kerf stroke padding margin page_size page_layout).freeze
 
         # The block, in points: its width, the height of the banner above the
         # settings, the height of one line of them, and the space under the last.

@@ -129,6 +129,50 @@ RSpec.describe 'laser-cutter', type: :aruba do
       expect(read('box.svg').join).to include('<svg', '<line').and include('viewBox="0 0 9.2012 11.5512"')
     end
 
+    describe 'a sloped box' do
+      let(:sloped) { '-b 4x3x5/0.25/0.6 --slope 45 --front-height 1' }
+
+      it 'writes a PDF' do
+        run_command_and_stop("laser-cutter generate #{sloped} -o box.pdf")
+        expect(read('box.pdf').first).to start_with('%PDF')
+      end
+
+      it 'writes an SVG with lines along the slope' do
+        run_command_and_stop("laser-cutter generate #{sloped} -f svg -o box.svg")
+        expect(read('box.svg').join).to match(/<line x1="(?<x1>[\d.]+)" y1="(?<y1>[\d.]+)" x2="(?!\k<x1>")[\d.]+" y2="(?!\k<y1>")[\d.]+"/)
+      end
+
+      it 'names the front height and the slope among the dimensions' do
+        run_command_and_stop("laser-cutter generate #{sloped} -o box.pdf")
+        expect(last_command_started.stdout).to match(/Depth:\s+5\.0 in.*Front:\s+1\.0 in.*Slope:\s+45\.0°.*Lid:\s+full/m)
+      end
+
+      it 'lays a plain lid on the slope' do
+        run_command_and_stop("laser-cutter generate #{sloped} --lid plain -o box.pdf")
+        expect(last_command_started.stdout).to match(/Slope:\s+45\.0°.*Lid:\s+plain.*─ Success ─/m)
+      end
+
+      {
+        '--slope 45'                             => /front_height is required with slope, but missing/,
+        '--front-height 1'                       => /front_height is the front of a sloped box, so it needs a slope/,
+        '--slope 45 --front-height 1 --lid back' => /lid cannot be "back" with a slope, but must be one of: full, plain/,
+        '--slope 10 --front-height 1'            => /10\.0° slope from 1\.0 up to 3\.0 needs a depth of 11\.343/,
+        '--slope 95 --front-height 1'            => /slope must be between 0 and 90 degrees, got 95\.0/
+      }.each do |arguments, message|
+        it "fails on #{arguments}" do
+          set_environment_variable('COLUMNS', '200')
+          run_command_and_stop("laser-cutter generate -b 4x3x5/0.25/0.6 #{arguments} -o box.pdf", fail_on_error: false)
+          expect(last_command_started).to have_exit_status(1)
+          expect(last_command_started.stderr).to match(/─ Error ─/).and match(message)
+        end
+      end
+
+      it 'explains --slope and --front-height in the help' do
+        run_command_and_stop('laser-cutter generate --help')
+        expect(last_command_started).to have_output(/--slope.*--front-height/m)
+      end
+    end
+
     it 'draws the box without kerf as well with --inside-box' do
       run_command_and_stop("laser-cutter generate #{box} --inside-box -o box.pdf")
       expect(last_command_started).to have_output(%r{Drawing box\.pdf 656/656})

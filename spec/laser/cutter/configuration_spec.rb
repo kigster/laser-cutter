@@ -57,6 +57,43 @@ module Laser
         end
       end
 
+      describe 'slope' do
+        let(:opts) { { 'box' => '4x3x5/0.125', 'file' => '/tmp/a', 'slope' => '45', 'front_height' => '1' } }
+
+        its(:slope) { is_expected.to eql(45.0) }
+        its(:front_height) { is_expected.to eql(1.0) }
+
+        it 'passes with a front height' do
+          expect { config.validate! }.not_to raise_error
+        end
+
+        it 'needs a front height' do
+          expect { described_class.new(opts.except('front_height')).validate! }
+            .to raise_error(Laser::Cutter::MissingOption, /front_height is required with slope/)
+        end
+
+        it 'rejects a front height without a slope' do
+          expect { described_class.new(opts.except('slope')).validate! }.to raise_error(Laser::Cutter::InvalidOption, /needs a slope/)
+        end
+
+        it 'rejects a lid notched into the back wall' do
+          expect { described_class.new(opts.merge('lid' => 'back')).validate! }
+            .to raise_error(Laser::Cutter::InvalidOption, /lid cannot be "back" with a slope/)
+        end
+
+        it 'rejects numbers that do not make the shape' do
+          expect { described_class.new(opts.merge('slope' => '10')).validate! }
+            .to raise_error(Laser::Cutter::InvalidOption, /needs a depth/)
+        end
+
+        context 'after change_units(:mm)' do
+          subject(:config) { described_class.new(opts).tap { |c| c.change_units(:mm) } }
+
+          its(:front_height) { is_expected.to eql(25.4) }
+          its(:slope) { is_expected.to eql(45.0) }
+        end
+      end
+
       context 'when notch is omitted' do
         let(:opts) { { 'box' => '2.0x1.0x2/0.125', 'file' => '/tmp/a' } }
 

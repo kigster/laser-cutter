@@ -38,6 +38,9 @@ module Laser
       # A distance that may be zero, such as the kerf or a margin.
       Allowance = Coercible::Float.constrained(gteq: 0)
 
+      # The angle of a sloped front above horizontal, in degrees: flat and upright are both out.
+      Slope = Coercible::Float.constrained(gt: 0, lt: 90)
+
       # The units every dimension is in.
       Units = choice(%w[in mm], default: 'in')
 
