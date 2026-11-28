@@ -6,9 +6,28 @@ module Laser
       class MetaRenderer < Laser::Cutter::Renderer::Base
         META_KEYS = %i(units width height depth thickness notch lid kerf stroke padding margin page_size page_layout).freeze
 
+        # The block, in points: its width, the height of the banner above the
+        # settings, the height of one line of them, and the space under the last.
+        WIDTH = 140
+        BANNER_HEIGHT = 55
+        LINE_HEIGHT = 8.2
+        FOOTER_HEIGHT = 4
+
         def initialize(config = {})
           self.config = config
-          self.enclosure = Laser::Cutter::Geometry::Rect.create(Laser::Cutter::Geometry::Point[1, 1], 140, 150)
+          height = BANNER_HEIGHT + (fields.size * LINE_HEIGHT) + FOOTER_HEIGHT
+          self.enclosure = Laser::Cutter::Geometry::Rect.create(Laser::Cutter::Geometry::Point[1, 1], WIDTH, height)
+        end
+
+        # The settings the block prints, in order. The block is as tall as
+        # they need: one line too many would start a second page.
+        #
+        # @return [Hash{Symbol => Object}]
+        def fields
+          metadata = config.to_hash
+          metadata[:page_size] ||= 'custom'
+          metadata.delete(:page_layout) if metadata[:page_size].eql?('custom')
+          META_KEYS.select { |key| metadata[key] }.to_h { |key| [key, metadata[key]] }
         end
 
         def render(pdf = nil)
@@ -23,14 +42,10 @@ module Laser
           EOF
 
           meta_color = BLUE
-          meta_top_height = 55
+          meta_top_height = BANNER_HEIGHT
 
-          metadata = config.to_hash
-          metadata[:page_size] ||= 'custom'
-          metadata.delete(:page_layout) if metadata[:page_size].eql?('custom')
-
-          meta_fields = META_KEYS.find_all{ |k| metadata[k] }.join(": \n") + ": \n"
-          meta_values = META_KEYS.find_all{ |k| metadata[k] }.map{ |k| metadata[k].to_s }.join("\n")
+          meta_fields = fields.keys.join(": \n") + ": \n"
+          meta_values = fields.values.join("\n")
 
           rect = enclosure
 
