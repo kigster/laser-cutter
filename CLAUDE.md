@@ -53,7 +53,7 @@ Pipeline, from config to file:
 - **`Sloped::Notcher`** notches a run between two points through `Notching::AngledEdge`, without kerf and to the right of the walk, which is outwards.
 - **`Aggregator` is not used.** A `Loop` drops what a walk leaves behind (a point given twice, a spike, a point mid-run), so no line is drawn twice. Kerf is `loop.grow(kerf / 2)`: every side moves out and the corners stay sharp, which is exact where a corner is not square. `loop_spec.rb` checks that this equals what `Box` draws with the same kerf.
 - **`Sloped::Layout`** places the panels as an unfolded strip around the back; a **`Placement`** moves a panel there, mirrored for the right wall and turned for the front strip.
-- `spec/support/loops.rb` reads outlines without the code that drew them: `Loops.tabs` finds the tabs along a joint, and `Loops.interlock?` checks that two panels fill it between them. `panels_spec.rb` runs that over every joint of every variant.
+- `spec/support/loops.rb` reads outlines without the code that drew them: `Loops.tabs` finds the tabs along a joint, and `Loops.interlock?` checks that two panels fill it between them. `panels_spec.rb` runs that over every joint of every variant. `spec/support/solid.rb` stands the panels up in space the way they are glued, and `assembly_spec.rb` checks that no two of them claim the same material, which is what covers the corners where three panels meet.
 
 Geometry is unitless, in the config's units. Conversion to PDF points happens only at render time (`value.send(:in)` / `.send(:mm)`). `PageManager#value_from_units` converts PDF points back.
 
