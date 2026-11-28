@@ -47,6 +47,11 @@ module Laser
             expect(profile.tilted_length).to be_within(1e-9).of(profile.tilted_span.length)
           end
 
+          it 'draws the outside face a thickness out from the span, and parallel to it' do
+            expect([profile.tilted_outside.p1, profile.tilted_outside.p2].map { |point| xy(point) })
+              .to eq([profile.tilted_span.p1, profile.tilted_span.p2].map { |point| xy(outside(point)) })
+          end
+
           it 'keeps the span on the slope' do
             low, high = [profile.tilted_span.p1, profile.tilted_span.p2]
             expect((high.y - low.y) / (high.x - low.x)).to be_within(1e-9).of(1.0)
