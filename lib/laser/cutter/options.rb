@@ -21,8 +21,11 @@ module Laser
     #   options.lid                 # => "plain"
     #   Laser::Cutter.render(options) # => "<svg ..."
     #
-    # @raise [MissingOption] when width, height, depth or thickness is left out
-    # @raise [InvalidOption] when a value cannot be used, or a key is not an option
+    # @example A box whose front slopes back at 45 degrees, from 1 inch up
+    #   Laser::Cutter::Options.new(width: 4, height: 3, depth: 5, thickness: 0.125, slope: 45, front_height: 1)
+    #
+    # @raise [MissingOption] when width, height, depth or thickness is left out, or a slope has no front height
+    # @raise [InvalidOption] when a value cannot be used, a key is not an option, or the numbers do not make a sloped box
     class Options < Dry::Struct
       # The dimensions a box cannot be drawn without.
       REQUIRED = %i[width height depth thickness].freeze
@@ -49,6 +52,16 @@ module Laser
       #   @return [Float] thickness of the material
       attribute :thickness, Types::Length
 
+      # @!attribute [r] slope
+      #   @return [Float, nil] angle of a sloped front above horizontal, in degrees, above 0 and below 90;
+      #     nil for the box with six panels
+      attribute? :slope, Types.optional(Types::Slope)
+
+      # @!attribute [r] front_height
+      #   @return [Float, nil] internal height at the front of a sloped box, where the slope begins;
+      #     required with a slope, and 0 starts the slope at the bottom
+      attribute? :front_height, Types.optional(Types::Allowance)
+
       # @!attribute [r] notch
       #   @return [Float, nil] notch length, a guide only; nil for three times the thickness
       attribute? :notch, Types.optional(Types::Length)
@@ -62,7 +75,8 @@ module Laser
       attribute :units, Types::Units
 
       # @!attribute [r] lid
-      #   @return [String] "full", "back" or "plain": notched on every side, into the back wall only, or on no side
+      #   @return [String] "full", "back" or "plain": notched on every side, into the back wall only, or on no side.
+      #     On a sloped box it is the tilted panel: "full" notches it into the side walls, "plain" lays it on them.
       attribute :lid, Types::Lid
 
       # @!attribute [r] format
@@ -109,7 +123,7 @@ module Laser
           return attributes if attributes.is_a?(self)
 
           require_dimensions!(attributes) if attributes.respond_to?(:to_h)
-          super
+          super.tap { |options| Sloped::Request.validate!(options.to_h) }
         rescue Dry::Struct::Error => e
           raise InvalidOption, explain(e)
         end

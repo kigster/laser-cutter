@@ -7,7 +7,10 @@ module Laser
 
       SIZE_REGEXP = %r{[\d.]+x[\d.]+x[\d.]+/[\d.]+(/[\d.]+)?}
 
-      FLOATS   = %i(width height depth thickness notch margin padding stroke kerf).freeze
+      # Distances, in the units of the box: cast to floats, and converted with the units.
+      FLOATS   = %i(width height depth front_height thickness notch margin padding stroke kerf).freeze
+      # Angles, in degrees: cast to floats, and left alone when the units change.
+      ANGLES   = %i(slope).freeze
       NON_ZERO = %i(width height depth thickness stroke).freeze
       REQUIRED = %i(width height depth thickness notch file).freeze
 
@@ -66,7 +69,7 @@ module Laser
           self[:width], self[:height], self[:depth] = dim.split('x')
           delete(:box)
         end
-        FLOATS.each do |k|
+        (FLOATS + ANGLES).each do |k|
           self[k] = self[k].to_f if self[k].is_a?(String)
         end
         merge!(self.class.defaults[self[:units].to_sym].merge(self))
@@ -82,9 +85,11 @@ module Laser
         NON_ZERO.each { |k| zeros << k if self[k] == 0 }
         raise ZeroValueNotAllowed, "#{zeros.join(', ')} #{zeros.size > 1 ? 'are' : 'is'} required, but is zero." unless zeros.empty?
 
-        return if Box::LIDS.include?(lid.to_s.to_sym)
+        unless Box::LIDS.include?(lid.to_s.to_sym)
+          raise InvalidOption, "lid is #{lid.to_s.inspect}, but must be one of: #{Box::LIDS.join(', ')}."
+        end
 
-        raise InvalidOption, "lid is #{lid.to_s.inspect}, but must be one of: #{Box::LIDS.join(', ')}."
+        Sloped::Request.validate!(self)
       end
 
       def change_units(new_units)

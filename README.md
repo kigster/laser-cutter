@@ -62,6 +62,8 @@ laser-cutter COMMAND [OPTIONS]
 | `-n`, `--notch`        | Notch length, a guide only                                     |
 | `-k`, `--kerf`         | Kerf, the width of the cut                                     |
 | `-L`, `--lid`          | `full` (default), `back` or `plain`, see below                 |
+| `--slope`              | Angle of a sloped front, in degrees, see below                 |
+| `--front-height`       | Height of the front of a sloped box, required with `--slope`   |
 | `-u`, `--units`        | `in` (default) or `mm`                                         |
 | `-o`, `--file`         | File to write, required                                        |
 | `-f`, `--format`       | `pdf` (default) or `svg`, in either case                       |
@@ -101,6 +103,36 @@ The lid is the top panel. `--lid` sets how it joins the walls:
 Each is `laser-cutter generate -b 3x2x2/0.125 --lid …`. The lid is the panel at the bottom of the page, the back wall the one at the top.
 
 A lid edge without notches reaches the outside of the wall under it, and that wall ends at the internal height. So a `plain` lid is `W + 2T` by `D + 2T` and lies on top of the box, and the space inside is still `W` by `H` by `D`.
+
+### A sloped front
+
+`--slope` draws a console: a box whose front leans back, the kind that holds a display tilted towards the reader. `--front-height` is where the slope begins.
+
+```bash
+laser-cutter generate -b 4x3x5/0.125 --slope 45 --front-height 1 -o console.pdf
+```
+
+![A box whose front slopes back at 45 degrees](docs/images/box-sloped.avif)
+
+Seen from the side, with `H` the height at the back and `D` the depth:
+
+```text
+        top strip
+      +-----------+
+     /            |
+    /  tilted     | back, H
+   +              |
+   | front        |
+   +--------------+
+      bottom, D
+```
+
+- Seven panels: two side walls, the bottom, the back, and the top strip, the tilted panel and the front strip, drawn in that order up the page from the back.
+- `--slope` is the angle of the tilted panel above horizontal, above 0 and below 90. The top strip takes the depth the slope leaves: `D - (H - front height) / tan(slope)`.
+- A strip of no size is dropped: `--front-height 0` starts the slope at the bottom, and a slope that reaches the back leaves no top strip.
+- The tilted panel meets the strips in a plain butt joint, to be glued. Every other joint is notched.
+- `--lid plain` makes the tilted panel a lid: a rectangle that lies on straight side walls and lifts off. `--lid back` does not apply.
+- Numbers that do not make the shape are refused, with the reason: a slope too shallow for the depth, or strips that leave no room for a tilted panel.
 
 The same box as an SVG:
 
@@ -189,20 +221,22 @@ Laser::Cutter.write(options.new(file: "box.pdf", format: nil)) # the extension p
 
 `Options` has an attribute for each option of `generate`:
 
-| Attribute                               | Type                    | When left out                  |
-| :-------------------------------------- | :---------------------- | :----------------------------- |
-| `width`, `height`, `depth`, `thickness` | Float above zero        | `MissingOption` is raised      |
-| `notch`                                 | Float above zero        | Three times the thickness      |
-| `kerf`, `margin`, `padding`             | Float, zero or more     | The default for the units      |
-| `stroke`                                | Float above zero        | The default for the units      |
-| `units`                                 | `in` or `mm`            | `in`                           |
-| `lid`                                   | `full`, `back`, `plain` | `full`                         |
-| `format`                                | `pdf` or `svg`          | `pdf`, or the file's extension |
-| `file`                                  | String                  | Only `write` needs it          |
-| `page_size`                             | A name such as `A4`     | The page fits the box          |
-| `page_layout`                           | `portrait`, `landscape` | `portrait`                     |
-| `metadata`                              | Boolean                 | `true`                         |
-| `inside_box`                            | Boolean                 | `false`                        |
+| Attribute                               | Type                     | When left out                  |
+| :-------------------------------------- | :----------------------- | :----------------------------- |
+| `width`, `height`, `depth`, `thickness` | Float above zero         | `MissingOption` is raised      |
+| `notch`                                 | Float above zero         | Three times the thickness      |
+| `kerf`, `margin`, `padding`             | Float, zero or more      | The default for the units      |
+| `stroke`                                | Float above zero         | The default for the units      |
+| `units`                                 | `in` or `mm`             | `in`                           |
+| `lid`                                   | `full`, `back`, `plain`  | `full`                         |
+| `slope`                                 | Float, above 0, below 90 | The box has six panels         |
+| `front_height`                          | Float, zero or more      | Required with `slope`          |
+| `format`                                | `pdf` or `svg`           | `pdf`, or the file's extension |
+| `file`                                  | String                   | Only `write` needs it          |
+| `page_size`                             | A name such as `A4`      | The page fits the box          |
+| `page_layout`                           | `portrait`, `landscape`  | `portrait`                     |
+| `metadata`                              | Boolean                  | `true`                         |
+| `inside_box`                            | Boolean                  | `false`                        |
 
 - Values are coerced, so the Strings a web form sends will do, and a blank String counts as left out. Keys may be Strings or Symbols.
 - A value it cannot use, or a key that is not an option, raises `Laser::Cutter::InvalidOption` with a message such as `lid cannot be "sliding", but must be one of: full, back, plain.` Both errors descend from `Laser::Cutter::Error`.
@@ -219,7 +253,7 @@ rescue Laser::Cutter::Error => e
 end
 ```
 
-`Laser::Cutter::Box::LIDS` lists the lids, for a select. `Configuration`, `Renderer::LayoutRenderer#render` and `PageManager#page_size_values`, which MakeABox.io called in 1.0.3, still work.
+`Laser::Cutter::Box::LIDS` lists the lids, for a select, and `Laser::Cutter::Sloped::Box::LIDS` those of a sloped box. `Configuration`, `Renderer::LayoutRenderer#render` and `PageManager#page_size_values`, which MakeABox.io called in 1.0.3, still work.
 
 ## Feature Wish List
 

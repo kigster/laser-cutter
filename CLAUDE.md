@@ -34,6 +34,8 @@ Pipeline, from config to file:
 1. **`Renderer.for(format, config)`** picks `LayoutRenderer` (PDF, Prawn) or `SvgRenderer` (SVG, Victor). Both answer `total` (lines to draw) and `render { |line| }`, which yields after each line. That block drives the progress bar.
    - `LayoutRenderer` draws a `BoxRenderer`, a `MetaRenderer` when `config.metadata` is set, and a second red `BoxRenderer` without kerf when `config.debug` is set. It sizes the page from the box enclosure unless `page_size` is given.
    - `SvgRenderer` fits the page to the box, flips y (SVG counts down from the top), and writes the metadata as a `<desc>`.
+   - Both get their box from `BoxFactory.for(config)`: `Sloped::Box` when the config has a `slope`, `Box` otherwise. A box answers `generate_notches`, `notches`, `outlines`, `enclosure` and `metadata=`.
+   - `MetaRenderer` is as tall as the settings it prints (`fields`). A fixed height once pushed the last line onto a second page.
 1. **`Box`** models the six faces as `Geometry::Rect`s. `position_faces!` lays them out in a cross (see the ASCII diagram in that method). `generate_notches` pairs each side of a face with the matching side of its outer bounding rect (face grown by `thickness`) as a **`Notching::Edge`**. The `conf` table sets per-face alignment: `valign`/`halign` decide whether a side's center notch points `:out` or `:in`. `corners` plus `pick_corners_face` decide which face fills the corner squares.
    - `lid` (`full`, `back`, `plain`) sets how the `top` panel joins the walls. A plain lid edge is the edge's **outside** line, and the wall side under it (`LID_SIDES`) is the edge's **inside** line, so the lid lies on walls that end at the inner height. The lid then owns the corners above the walls: `corner_ends` strips the corner box from the wall sides that touch it.
    - `outlines` holds the merged lines of each face by name; `notches` is all of them, flattened.
@@ -41,12 +43,24 @@ Pipeline, from config to file:
 1. **`Notching::PathGenerator`** turns an `Edge` into `Geometry::Line`s. It zigzags between the inside and outside lines using `Shift` deltas from two alternating `InfiniteIterator`s. It widens or narrows notches by `kerf` and adds the corner boxes, at the ends the edge names in `corner_ends`. Kerf grows every outline by half the kerf on every side; `spec/laser/cutter/box_lid_spec.rb` checks exactly that, point by point, through `spec/support/outline.rb`.
 1. **`Aggregator`** merges the lines of a face into the outline to cut. Neighbouring edges draw shared stretches twice, and a shared stretch runs through the material, so each collinear group is combined as a symmetric difference: a point is cut when an odd number of lines cover it. It groups lines by axis and offset and sweeps each group once, so a face takes n log n; the old pairwise version made a 100×80×60 box take 55 seconds.
 
+### The sloped box
+
+`--slope` and `--front-height` draw seven panels instead of six. Everything is in `lib/laser/cutter/sloped/`, behind `Sloped::Box`; `docs/decisions/decisions-on-angled-box.md` has the geometry.
+
+- **`Sloped::Profile`** is the side view: the inside outline of a side wall, and the lengths of the top strip, the tilted panel and the front strip. It refuses numbers that do not make the shape.
+- **`Sloped::Request.validate!`** checks settings before anything is drawn. `Configuration#validate!` and `Options.new` both call it: a slope needs a front height, a front height needs a slope, and the lid is `full` or `plain`.
+- **`Sloped::Panels`** builds each panel in its own frame as a **`Geometry::Loop`**, one walk of points, counter-clockwise. `SidePanel` is the five-sided wall; `RingPanel` is every rectangle (bottom, back, strips, tilted panel); `Corners` picks the panel that carries each corner cube.
+- **`Sloped::Notcher`** notches a run between two points through `Notching::AngledEdge`, without kerf and to the right of the walk, which is outwards.
+- **`Aggregator` is not used.** A `Loop` drops what a walk leaves behind (a point given twice, a spike, a point mid-run), so no line is drawn twice. Kerf is `loop.grow(kerf / 2)`: every side moves out and the corners stay sharp, which is exact where a corner is not square. `loop_spec.rb` checks that this equals what `Box` draws with the same kerf.
+- **`Sloped::Layout`** places the panels as an unfolded strip around the back; a **`Placement`** moves a panel there, mirrored for the right wall and turned for the front strip.
+- `spec/support/loops.rb` reads outlines without the code that drew them: `Loops.tabs` finds the tabs along a joint, and `Loops.interlock?` checks that two panels fill it between them. `panels_spec.rb` runs that over every joint of every variant. `spec/support/solid.rb` stands the panels up in space the way they are glued, and `assembly_spec.rb` checks that no two of them claim the same material, which is what covers the corners where three panels meet.
+
 Geometry is unitless, in the config's units. Conversion to PDF points happens only at render time (`value.send(:in)` / `.send(:mm)`). `PageManager#value_from_units` converts PDF points back.
 
 ### Ruby API
 
 - `Laser::Cutter.render(options)` returns the document as a String, and `Laser::Cutter.write(options)` writes it to `options.file`. Both live in `lib/laser/cutter.rb`, take an `Options` or a Hash, and pass a block through as the per-line callback. MakeABox.io calls these; keep them working without a file, a terminal or the CLI classes.
-- `Options` (`options.rb`) is a strict `Dry::Struct`, one attribute per `generate` option, with its types in `Types` (`types.rb`). It raises `MissingOption` for a missing dimension and `InvalidOption` for anything else, and turns into a `Configuration` with `to_configuration`. A new `generate` option needs an attribute here too.
+- `Options` (`options.rb`) is a strict `Dry::Struct`, one attribute per `generate` option, with its types in `Types` (`types.rb`). It raises `MissingOption` for a missing dimension, or a slope without a front height, and `InvalidOption` for anything else, and turns into a `Configuration` with `to_configuration`. A new `generate` option needs an attribute here too.
 - Renderers answer `document`, the String. `Renderer::Base#render` writes it to `config.file`.
 
 ### Command line

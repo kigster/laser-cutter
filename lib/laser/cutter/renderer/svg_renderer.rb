@@ -11,7 +11,7 @@ module Laser
       class SvgRenderer < Base
         def initialize(config)
           super
-          self.subject = Laser::Cutter::Box.new(config)
+          self.subject = Laser::Cutter::BoxFactory.for(config)
         end
 
         # @return [Array<Geometry::Line>] every line to cut, computed once

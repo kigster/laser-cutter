@@ -84,6 +84,15 @@ module Laser
           Geometry::Line.new(low, high)
         end
 
+        # The outside face of the tilted panel, one thickness out from its span.
+        #
+        # @return [Geometry::Line] from its low end to its high end
+        def tilted_outside
+          out = Vector[-Math.sin(angle), Math.cos(angle)] * thickness
+          span = tilted_span
+          Geometry::Line.new(span.p1.plus(out), span.p2.plus(out))
+        end
+
         # @return [Float] the length of the tilted panel, end to end
         def tilted_length = slope_length - front_cut - top_cut
 
